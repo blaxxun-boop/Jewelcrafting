@@ -198,7 +198,7 @@ lightning speed:
   gem: eikthyr
   power:
     movement speed: 30
-    min cooldown: 60
+    min cooldown: 90
     max cooldown: 120
     duration: 8
     attack speed: 100
@@ -222,7 +222,7 @@ poisonous drain:
   power:
     healing increase: 100
     min cooldown: 180
-    max cooldown: 300
+    max cooldown: 210
     duration: 8
     poison damage: 40
     life steal: 20

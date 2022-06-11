@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -121,12 +122,12 @@ public class EffectDef
 
 	public static readonly Dictionary<Effect, Type> ConfigTypes = new();
 
-	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.CurrentCultureIgnoreCase);
-	private static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).ToDictionary(i => i.ToString(), i => i), StringComparer.CurrentCultureIgnoreCase);
-	private static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.CurrentCultureIgnoreCase);
-	private static readonly Dictionary<string, Heightmap.Biome> ValidBiomes = new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None or Heightmap.Biome.BiomesMax or Heightmap.Biome.Ocean).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.CurrentCultureIgnoreCase);
+	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
+	private static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
+	private static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
+	private static readonly Dictionary<string, Heightmap.Biome> ValidBiomes = new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None or Heightmap.Biome.BiomesMax or Heightmap.Biome.Ocean).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.InvariantCultureIgnoreCase);
 
-	private static Dictionary<string, object?> castDictToStringDict(Dictionary<object, object?> dict) => new(dict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value), StringComparer.CurrentCultureIgnoreCase);
+	private static Dictionary<string, object?> castDictToStringDict(Dictionary<object, object?> dict) => new(dict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value), StringComparer.InvariantCultureIgnoreCase);
 
 	public static KeyValuePair<Dictionary<Heightmap.Biome, Dictionary<GemType, float>>, Dictionary<Effect, List<EffectDef>>> Parse(object? rootDictObj, out List<string> errors)
 	{
@@ -193,7 +194,7 @@ public class EffectDef
 								{
 									if (ValidGemTypes.TryGetValue(gemKv.Key, out GemType gemType) && IsDestructibleGemType(gemType))
 									{
-										if (gemKv.Value is string stringChance && float.TryParse(stringChance, out float chance) && chance is >= 0 and <= 1)
+										if (gemKv.Value is string stringChance && float.TryParse(stringChance, NumberStyles.Float, CultureInfo.InvariantCulture, out float chance) && chance is >= 0 and <= 1)
 										{
 											spawnChance[gemType] = chance;
 										}
@@ -237,7 +238,7 @@ public class EffectDef
 
 			void AddEffectDef(Dictionary<string, object?> effectDict, int? index = null)
 			{
-				HashSet<string> knownKeys = new(StringComparer.CurrentCultureIgnoreCase);
+				HashSet<string> knownKeys = new(StringComparer.InvariantCultureIgnoreCase);
 				string errorLocation = $"Found in{(index is not null ? $" {index}." : "")} effect definition for effect '{effect}'.";
 
 				EffectDef effectDef = new();
@@ -329,7 +330,7 @@ public class EffectDef
 				{
 					configType = typeof(DefaultPower);
 				}
-				Dictionary<string, FieldInfo> configFields = new(configType.GetFields().ToDictionary(f => Regex.Replace(f.Name, "(?!^)([A-Z])", " $1"), f => f), StringComparer.CurrentCultureIgnoreCase);
+				Dictionary<string, FieldInfo> configFields = new(configType.GetFields().ToDictionary(f => Regex.Replace(f.Name, "(?!^)([A-Z])", " $1"), f => f), StringComparer.InvariantCultureIgnoreCase);
 				if (configFields.Count > 0)
 				{
 					if (HasKey("power"))
@@ -370,7 +371,7 @@ public class EffectDef
 								{
 									if (powerTiers[i] is string powerNumber)
 									{
-										if (float.TryParse(powerNumber, out float power))
+										if (float.TryParse(powerNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out float power))
 										{
 											field.SetValue(effectDef.Power[i], power);
 										}
@@ -393,7 +394,7 @@ public class EffectDef
 								{
 									if (powerObj is string powerNumber)
 									{
-										if (float.TryParse(powerNumber, out float power))
+										if (float.TryParse(powerNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out float power))
 										{
 											field.SetValue(effectDef.Power[0], power);
 										}
