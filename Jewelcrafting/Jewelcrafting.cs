@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using BepInEx;
 using BepInEx.Configuration;
 using HarmonyLib;
@@ -22,7 +24,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.0.1";
+	private const string ModVersion = "1.0.3";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -43,7 +45,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> gemRespawnRate = null!;
 	public static ConfigEntry<int> upgradeChanceIncrease = null!;
 	private static ConfigEntry<float> experienceGainedFactor = null!;
-	
+
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
 	public static readonly CustomSyncedValue<List<string>> socketEffectDefinitions = new(configSync, "socket effects", new List<string>());
 
@@ -81,6 +83,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	public static GameObject swordFall = null!;
 	public static StatusEffect gliding = null!;
+	public static SE_Stats glowingSpirit = null!;
+	public static GameObject glowingSpiritPrefab = null!;
 	public static SE_Stats lightningSpeed = null!;
 	public static SE_Stats rootedRevenge = null!;
 	public static SE_Stats poisonousDrain = null!;
@@ -122,7 +126,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		public bool? HideDefaultButton;
 		public Action<ConfigEntryBase>? CustomDrawer;
 	}
-	
+
 	public void Awake()
 	{
 		configFilePaths = new List<string> { Path.GetDirectoryName(Config.ConfigFilePath), Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) };
@@ -135,7 +139,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		jewelcrafting.Name.Alias("jc_jewelcrafting_skill_name");
 		jewelcrafting.Description.Alias("jc_jewelcrafting_skill_description");
 		jewelcrafting.Configurable = false;
-		
+
 		serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, "If on, the configuration is locked and can be changed by server admins only.");
 		configSync.AddLockingConfigEntry(serverConfigLocked);
 		// Socket System
@@ -173,7 +177,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		experienceGainedFactor = config("3 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f)));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
 		jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
-		
+
 		BuildingPiecesSetup.initializeBuildingPieces(assets);
 		GemStoneSetup.initializeGemStones(assets);
 		DestructibleSetup.initializeDestructibles(assets);
@@ -190,6 +194,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
 		gliding = assets.LoadAsset<SE_Stats>("JCGliding");
+		glowingSpirit = assets.LoadAsset<SE_Stats>("SE_Crystal_Magelight");
+		glowingSpiritPrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Magelight");
+		glowingSpiritPrefab.AddComponent<GlowingSpirit.OrbDestroy>();
 		lightningSpeed = assets.LoadAsset<SE_Stats>("SE_Boss_1");
 		lightningSpeed.m_damageModifier = 0.5f;
 		poisonousDrain = assets.LoadAsset<SE_Stats>("SE_Boss_2");
@@ -220,9 +227,43 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "vfx_potionhit");
 		PrefabManager.RegisterPrefab(assets, "sfx_potion_smash");
 
-		if (!File.Exists(Paths.ConfigPath + "/Jewelcrafting.Sockets.yml"))
+		string yamlPath = Paths.ConfigPath + "/Jewelcrafting.Sockets.yml";
+		if (!File.Exists(yamlPath))
 		{
-			File.WriteAllBytes(Paths.ConfigPath + "/Jewelcrafting.Sockets.yml", Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml"));
+			File.WriteAllBytes(yamlPath, Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml"));
+		}
+		else
+		{
+			string currentHash = BitConverter.ToString(MD5.Create().ComputeHash(Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml"))).Replace("-", "");
+			string foundHash = BitConverter.ToString(MD5.Create().ComputeHash(File.ReadAllBytes(yamlPath))).Replace("-", "");
+			if (currentHash != foundHash)
+			{
+				if (GemStoneSetup.lastConfigHashes.Contains(foundHash))
+				{
+					File.WriteAllBytes(yamlPath, Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml"));
+				}
+				else
+				{
+					string[] currentlines = File.ReadAllLines(yamlPath);
+					HashSet<string> currentEffects = new(currentlines.Select(l => l.TrimStart('#', ' ', '\t')).Where(l => l.Length > 0 && char.IsLetter(l[0])).Select(l => l.Trim(' ', '\t', '\n', '\r', ':')));
+					string[] lines = Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml")).Split('\n').Select(l => l.TrimEnd('\r')).ToArray();
+					List<string> appendLines = new();
+					for (int i = 0; i < lines.Length; ++i)
+					{
+						if (lines[i].Length > 0 && char.IsLetter(lines[i][0]) && !currentEffects.Contains(lines[i].TrimEnd(':')))
+						{
+							appendLines.Add("");
+							do
+							{
+								appendLines.Add("# " + lines[i]);
+							} while (++i < lines.Length && lines[i].Length > 0 && lines[i][0] == ' ');
+							--i;
+						}
+					}
+
+					File.WriteAllLines(yamlPath, currentlines.Concat(appendLines));
+				}
+			}
 		}
 
 		/*

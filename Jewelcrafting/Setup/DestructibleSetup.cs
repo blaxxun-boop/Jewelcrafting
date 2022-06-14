@@ -12,7 +12,7 @@ namespace Jewelcrafting;
 public static class DestructibleSetup
 {
 	private static readonly Dictionary<GemType, GameObject> destructibles = new();
-	private static GameObject gemSpawner = null!;
+	public static GameObject gemSpawner = null!;
 
 	public static void initializeDestructibles(AssetBundle assets)
 	{
@@ -174,7 +174,7 @@ public static class DestructibleSetup
 		{
 			__instance.m_vegetation.Add(new ZoneSystem.ZoneVegetation
 			{
-				m_biome = Heightmap.Biome.BiomesMax,
+				m_biome = (Heightmap.Biome)(-1),
 				m_groupRadius = 6f,
 				m_groupSizeMin = 2,
 				m_groupSizeMax = 6,

@@ -68,6 +68,7 @@ public enum Effect
 	Turtleshell,
 	Marathon,
 	Unbreakable,
+	Glowingspirit,
 	Lightningspeed,
 	Rootedrevenge,
 	Poisonousdrain,

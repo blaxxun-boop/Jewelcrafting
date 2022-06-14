@@ -121,23 +121,37 @@ public static class GemStones
 	public class AddSocketIcons
 	{
 		public static readonly GameObject[] socketIcons = new GameObject[5];
+		public static Button socketingButton = null!;
 
 		private static void Postfix(InventoryGui __instance)
 		{
+			Transform recipeName = __instance.m_recipeName.transform;
+			Transform parent = recipeName.parent;
+
 			for (int i = 0; i < 5; ++i)
 			{
-				Transform recipeName = __instance.m_recipeName.transform;
-
 				GameObject socket = new($"Jewelcrafting Socket {i}");
-				socket.transform.SetParent(recipeName.parent, false);
+				socket.transform.SetParent(parent, false);
 				socket.AddComponent<Image>();
 				RectTransform rect = socket.GetComponent<RectTransform>();
 				rect.sizeDelta = new Vector2(32, 32);
-				rect.localPosition = new Vector3(-(5 - i) * 40, -50);
+				rect.localPosition = new Vector3(-(5 - i) * 36 - 77, -50);
 				socket.SetActive(false);
 
 				socketIcons[i] = socket;
 			}
+
+			socketingButton = Object.Instantiate(AddSocketAddingTab.tab.gameObject, parent, false).GetComponent<Button>();
+			RectTransform buttonRect = socketingButton.GetComponent<RectTransform>();
+			buttonRect.localPosition = new Vector3(-49, -50);
+			buttonRect.sizeDelta = new Vector2(88, 32);
+			Button.ButtonClickedEvent buttonClick = new();
+			buttonClick.AddListener(() =>
+			{
+				OpenFakeSocketsContainer.Open(__instance, __instance.m_selectedRecipe.Value);
+			});
+			socketingButton.onClick = buttonClick;
+			socketingButton.interactable = true;
 		}
 	}
 
@@ -163,6 +177,11 @@ public static class GemStones
 					AddSocketIcons.socketIcons[i].SetActive(true);
 					AddSocketIcons.socketIcons[i].GetComponent<Image>().sprite = ObjectDB.instance.GetItemPrefab(sockets.socketedGems[i])?.GetComponent<ItemDrop>().m_itemData.GetIcon() ?? emptySocketSprite;
 				}
+				AddSocketIcons.socketingButton.gameObject.SetActive(true);
+			}
+			else
+			{
+				AddSocketIcons.socketingButton.gameObject.SetActive(false);
 			}
 
 			if (AddSocketAddingTab.TabOpen() && __instance.m_selectedRecipe.Value is { } activeRecipe)
@@ -531,55 +550,64 @@ public static class GemStones
 	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateContainer))]
-	private class OpenFakeSocketsContainer
+	public class OpenFakeSocketsContainer
 	{
-		private static bool Prefix(InventoryGui __instance)
+		public static bool Open(InventoryGui invGui, ItemDrop.ItemData? item)
 		{
-			if (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse"))
+			ExtendedItemData? extended = item?.Extended();
+
+			if (extended?.GetComponent<Sockets>() is { } sockets)
 			{
-				Vector2 pos = Input.mousePosition;
-				ExtendedItemData? extended = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
-				if (extended?.GetComponent<Sockets>() is { } sockets)
+				if (invGui.IsContainerOpen())
 				{
-					if (__instance.IsContainerOpen())
-					{
-						__instance.CloseContainer();
-					}
-
-					RectTransform takeAllButton = (RectTransform)__instance.m_takeAllButton.transform;
-					Vector2 anchoredPosition = takeAllButton.anchoredPosition;
-					anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
-					takeAllButton.anchoredPosition = anchoredPosition;
-
-					Inventory inv = ReadSocketsInventory(sockets);
-					inv.m_onChanged += AddFakeSocketsContainer.SaveGems;
-
-					AddFakeSocketsContainer.openEquipment = extended;
-					AddFakeSocketsContainer.openInventory = inv;
+					invGui.CloseContainer();
 				}
+
+				RectTransform takeAllButton = (RectTransform)invGui.m_takeAllButton.transform;
+				Vector2 anchoredPosition = takeAllButton.anchoredPosition;
+				anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
+				takeAllButton.anchoredPosition = anchoredPosition;
+
+				Inventory inv = ReadSocketsInventory(sockets);
+				inv.m_onChanged += AddFakeSocketsContainer.SaveGems;
+
+				AddFakeSocketsContainer.openEquipment = extended;
+				AddFakeSocketsContainer.openInventory = inv;
 			}
 
 			if (AddFakeSocketsContainer.openInventory is { } inventory)
 			{
 				ExtendedItemData weapon = AddFakeSocketsContainer.openEquipment!;
-				if (__instance.m_playerGrid.GetInventory().GetItemAt(weapon.m_gridPos.x, weapon.m_gridPos.y)?.Extended() != weapon)
+				if (invGui.m_playerGrid.GetInventory().GetItemAt(weapon.m_gridPos.x, weapon.m_gridPos.y)?.Extended() != weapon)
 				{
-					__instance.CloseContainer();
+					invGui.CloseContainer();
 					return true;
 				}
 
-				__instance.m_container.gameObject.SetActive(true);
-				__instance.m_containerGrid.UpdateInventory(inventory, null, __instance.m_dragItem);
-				__instance.m_containerName.text = Localization.instance.Localize("$jc_socket_container_title", Localization.instance.Localize(weapon.m_shared.m_name));
-				if (__instance.m_firstContainerUpdate)
+				invGui.m_container.gameObject.SetActive(true);
+				invGui.m_containerGrid.UpdateInventory(inventory, null, invGui.m_dragItem);
+				invGui.m_containerName.text = Localization.instance.Localize("$jc_socket_container_title", Localization.instance.Localize(weapon.m_shared.m_name));
+				if (invGui.m_firstContainerUpdate)
 				{
-					__instance.m_containerGrid.ResetView();
-					__instance.m_firstContainerUpdate = false;
+					invGui.m_containerGrid.ResetView();
+					invGui.m_firstContainerUpdate = false;
 				}
 				return false;
 			}
 
 			return true;
+
+		}
+
+		private static bool Prefix(InventoryGui __instance)
+		{
+			ItemDrop.ItemData? item = null;
+			if (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse"))
+			{
+				Vector2 pos = Input.mousePosition;
+				item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
+			}
+			return Open(__instance, item);
 		}
 	}
 

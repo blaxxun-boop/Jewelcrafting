@@ -10,6 +10,8 @@ namespace Jewelcrafting.GemEffects;
 [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.SetupEquipment))]
 public class TrackEquipmentChanges
 {
+	public static event Action? OnEffectRecalc;
+	
 	[HarmonyPriority(Priority.Low)]
 	private static void Postfix(Humanoid __instance)
 	{
@@ -55,7 +57,11 @@ public class TrackEquipmentChanges
 			}
 		});
 
-		ZDO zdo = player.m_nview.m_zdo;
+		if (player.m_nview.m_zdo is not { } zdo)
+		{
+			return;
+		}
+
 		zdo.m_byteArrays ??= new Dictionary<int, byte[]>();
 		foreach (Effect effect in (Effect[])Enum.GetValues(typeof(Effect)))
 		{
@@ -77,5 +83,7 @@ public class TrackEquipmentChanges
 		}
 
 		zdo.IncreseDataRevision();
+		
+		OnEffectRecalc?.Invoke();
 	}
 }

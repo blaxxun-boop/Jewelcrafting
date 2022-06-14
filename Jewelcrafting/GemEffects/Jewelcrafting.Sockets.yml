@@ -91,6 +91,11 @@ hercules:
   gem: purple
   power: [10, 15, 20]
 
+glowing spirit:
+  slot: utility
+  gem: blue
+  power: [4, 6, 8]
+
 # Head
 
 explorer:

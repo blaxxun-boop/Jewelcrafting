@@ -13,9 +13,9 @@ public static class Necromancer
 	[HarmonyPatch(typeof(Projectile), nameof(Projectile.OnHit))]
 	private class SpawnSkeletonArcher
 	{
-		private static void Postfix(Projectile __instance, Collider collider)
+		private static void Postfix(Projectile __instance, Collider? collider)
 		{
-			if (__instance.m_didHit && __instance.m_owner is Player player && Projectile.FindHitObject(collider)?.GetComponent<Character>())
+			if (__instance.m_didHit && __instance.m_owner is Player player && collider is not null && Projectile.FindHitObject(collider)?.GetComponent<Character>())
 			{
 				if (Random.value < player.GetEffect(Effect.Necromancer) / 100f)
 				{

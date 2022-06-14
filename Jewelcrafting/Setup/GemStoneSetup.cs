@@ -15,9 +15,9 @@ public struct GemDefinition
 
 public static class GemStoneSetup
 {
-	public static List<string> lastConfigHashes = new()
+	public static readonly List<string> lastConfigHashes = new()
 	{
-		"U75ZwoXW+70+Ms1CO3sNwd5DeJq73kzEjVEWjeb2Rog=",
+		"893E9532EC165DF4305EFE13974FC593"
 	};
 	
 	public static GameObject SocketTooltip = null!;
