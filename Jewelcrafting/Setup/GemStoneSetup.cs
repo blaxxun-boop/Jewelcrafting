@@ -61,16 +61,16 @@ public static class GemStoneSetup
 		gemStone["GambleRecipe"].RequiredItems.Add("Uncut_Black_Stone", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Black_Crystal", 12);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Black_Crystal", Jewelcrafting.badLuckCostSimpleOnyx);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Advanced_Black_Socket", GemType.Black, 20f);
 		gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 		gemStone["GambleRecipe"].RequiredItems.Add("Simple_Black_Socket", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Black_Crystal", 35);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Black_Crystal", Jewelcrafting.badLuckCostAdvancedOnyx);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Perfect_Black_Socket", GemType.Black, 10f);
 		gemStone.Crafting.Add("op_transmution_table", 2);
@@ -86,16 +86,16 @@ public static class GemStoneSetup
 		gemStone["GambleRecipe"].RequiredItems.Add("Uncut_Blue_Stone", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Blue_Crystal", 12);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Blue_Crystal", Jewelcrafting.badLuckCostSimpleSapphire);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Advanced_Blue_Socket", GemType.Blue, 20f);
 		gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 		gemStone["GambleRecipe"].RequiredItems.Add("Simple_Blue_Socket", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Blue_Crystal", 35);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Blue_Crystal", Jewelcrafting.badLuckCostAdvancedSapphire);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Perfect_Blue_Socket", GemType.Blue, 10f);
 		gemStone.Crafting.Add("op_transmution_table", 2);
@@ -111,16 +111,16 @@ public static class GemStoneSetup
 		gemStone["GambleRecipe"].RequiredItems.Add("Uncut_Green_Stone", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Green_Crystal", 12);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Green_Crystal", Jewelcrafting.badLuckCostSimpleEmerald);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Advanced_Green_Socket", GemType.Green, 20f);
 		gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 		gemStone["GambleRecipe"].RequiredItems.Add("Simple_Green_Socket", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Green_Crystal", 35);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Green_Crystal", Jewelcrafting.badLuckCostAdvancedEmerald);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Perfect_Green_Socket", GemType.Green, 10f);
 		gemStone.Crafting.Add("op_transmution_table", 2);
@@ -136,16 +136,16 @@ public static class GemStoneSetup
 		gemStone["GambleRecipe"].RequiredItems.Add("Uncut_Purple_Stone", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Purple_Crystal", 12);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Purple_Crystal", Jewelcrafting.badLuckCostSimpleSpinel);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Advanced_Purple_Socket", GemType.Purple, 20f);
 		gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 		gemStone["GambleRecipe"].RequiredItems.Add("Simple_Purple_Socket", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Purple_Crystal", 35);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Purple_Crystal", Jewelcrafting.badLuckCostAdvancedSpinel);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Perfect_Purple_Socket", GemType.Purple, 10f);
 		gemStone.Crafting.Add("op_transmution_table", 2);
@@ -161,16 +161,16 @@ public static class GemStoneSetup
 		gemStone["GambleRecipe"].RequiredItems.Add("Uncut_Red_Stone", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Red_Crystal", 12);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Red_Crystal", Jewelcrafting.badLuckCostSimpleRuby);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Advanced_Red_Socket", GemType.Red, 20f);
 		gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 		gemStone["GambleRecipe"].RequiredItems.Add("Simple_Red_Socket", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Red_Crystal", 35);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Red_Crystal", Jewelcrafting.badLuckCostAdvancedRuby);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Perfect_Red_Socket", GemType.Red, 10f);
 		gemStone.Crafting.Add("op_transmution_table", 2);
@@ -186,16 +186,16 @@ public static class GemStoneSetup
 		gemStone["GambleRecipe"].RequiredItems.Add("Uncut_Yellow_Stone", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Yellow_Crystal", 12);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Yellow_Crystal", Jewelcrafting.badLuckCostSimpleSulfur);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Advanced_Yellow_Socket", GemType.Yellow, 20f);
 		gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 		gemStone["GambleRecipe"].RequiredItems.Add("Simple_Yellow_Socket", 1);
 		gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 		gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Yellow_Crystal", 35);
-		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+		gemStone["BadLuckRecipe"].RequiredItems.Add("Shattered_Yellow_Crystal", Jewelcrafting.badLuckCostAdvancedSulfur);
+		gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 
 		gemStone = AddGem("Perfect_Yellow_Socket", GemType.Yellow, 10f);
 		gemStone.Crafting.Add("op_transmution_table", 2);

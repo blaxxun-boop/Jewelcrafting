@@ -300,6 +300,23 @@ public static class GemStones
 				Player.m_localPlayer.UnequipItem(__instance.m_craftUpgradeItem);
 				Player.m_localPlayer.GetInventory().RemoveItem(__instance.m_craftUpgradeItem);
 
+				if (Jewelcrafting.resourceReturnRate.Value > 0 && ObjectDB.instance.GetRecipe(__instance.m_craftUpgradeItem) is { } recipe)
+				{
+					foreach (Piece.Requirement requirement in recipe.m_resources)
+					{
+						int amount = Mathf.FloorToInt(Random.value + requirement.m_amount * (Jewelcrafting.resourceReturnRate.Value / 100f));
+						if (amount > 0 && !Player.m_localPlayer.m_inventory.AddItem(requirement.m_resItem.m_itemData.m_dropPrefab, amount))
+						{
+							Transform transform = Player.m_localPlayer.transform;
+							Vector3 position = transform.position;
+							ItemDrop itemDrop = ItemDrop.DropItem(requirement.m_resItem.m_itemData, amount, position + transform.forward + transform.up, transform.rotation);
+							itemDrop.OnPlayerDrop();
+							itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
+							Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
+						}
+					}
+				}
+
 				Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_socket_adding_fail");
 
 				__instance.UpdateCraftingPanel();
