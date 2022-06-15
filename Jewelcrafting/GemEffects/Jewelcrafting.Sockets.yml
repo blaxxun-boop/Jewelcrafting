@@ -3,17 +3,17 @@
 fire starter:
   slot: weapon
   gem: red
-  power: [1, 2, 3]
+  power: [5, 10, 15]
 
 ice heart:
   slot: weapon
   gem: blue
-  power: [1, 2, 3]
+  power: [5, 10, 15]
 
 snake bite:
   slot: weapon
   gem: green
-  power: [1, 2, 3]
+  power: [5, 10, 15]
 
 shadow hit:
   slot: weapon

@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using ExtendedItemDataFramework;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -11,7 +12,7 @@ namespace Jewelcrafting.GemEffects;
 public class TrackEquipmentChanges
 {
 	public static event Action? OnEffectRecalc;
-	
+
 	[HarmonyPriority(Priority.Low)]
 	private static void Postfix(Humanoid __instance)
 	{
@@ -60,6 +61,34 @@ public class TrackEquipmentChanges
 		if (player.m_nview.m_zdo is not { } zdo)
 		{
 			return;
+		}
+
+		zdo.m_ints ??= new Dictionary<int, int>();
+
+		Sockets? leftItemSockets = player.m_leftItem?.Extended()?.GetComponent<Sockets>();
+		for (int i = 0; i < 5; ++i)
+		{
+			if (leftItemSockets?.socketedGems.Count > i && VisualEffects.weaponEffectPrefabs.TryGetValue(leftItemSockets.socketedGems[i], out Dictionary<Skills.SkillType, GameObject> effectsDict) && effectsDict.TryGetValue(player.m_leftItem!.m_shared.m_skillType, out GameObject effectName))
+			{
+				zdo.m_ints[$"JewelCrafting LeftHand Effect {i}".GetStableHashCode()] = effectName.name.GetStableHashCode();
+			}
+			else
+			{
+				zdo.m_ints.Remove($"JewelCrafting LeftHand Effect {i}".GetStableHashCode());
+			}
+		}
+		
+		Sockets? rightItemSockets = player.m_rightItem?.Extended()?.GetComponent<Sockets>();
+		for (int i = 0; i < 5; ++i)
+		{
+			if (rightItemSockets?.socketedGems.Count > i && VisualEffects.weaponEffectPrefabs.TryGetValue(rightItemSockets.socketedGems[i], out Dictionary<Skills.SkillType, GameObject> effectsDict) && effectsDict.TryGetValue(player.m_rightItem!.m_shared.m_skillType, out GameObject effectName))
+			{
+				zdo.m_ints[$"JewelCrafting RightHand Effect {i}".GetStableHashCode()] = effectName.name.GetStableHashCode();
+			}
+			else
+			{
+				zdo.m_ints.Remove($"JewelCrafting RightHand Effect {i}".GetStableHashCode());
+			}
 		}
 
 		zdo.m_byteArrays ??= new Dictionary<int, byte[]>();

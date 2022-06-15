@@ -48,7 +48,7 @@ public static class GlowingSpirit
 
 		private static void Postfix(Player __instance)
 		{
-			if (lightOrb is null || orbArrived)
+			if (__instance != Player.m_localPlayer || lightOrb is null || orbArrived)
 			{
 				return;
 			}
@@ -70,8 +70,13 @@ public static class GlowingSpirit
 
 		private static IEnumerator MoveOrb(Vector3 newPosition)
 		{
+			if (lightOrb is null)
+			{
+				yield break;
+			}
+			
 			float timer = 0f;
-			Vector3 startPosition = lightOrb!.transform.position;
+			Vector3 startPosition = lightOrb.transform.position;
 			if (global::Utils.DistanceXZ(startPosition, newPosition) > 5f)
 			{
 				duration = 0.5f;

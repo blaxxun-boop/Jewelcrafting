@@ -24,7 +24,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.0.4";
+	private const string ModVersion = "1.0.5";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -94,6 +94,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static List<string> configFilePaths = null!;
 
 	private static Skill jewelcrafting = null!;
+
+	public static readonly Dictionary<Skills.SkillType, GameObject> fireStarter = new();
+	public static readonly Dictionary<Skills.SkillType, GameObject> iceHeart = new();
+	public static readonly Dictionary<Skills.SkillType, GameObject> snakeBite = new();
+	public static readonly Dictionary<Skills.SkillType, GameObject> shadowHit = new();
 
 	public static GameObject swordFall = null!;
 	public static StatusEffect gliding = null!;
@@ -223,6 +228,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Harmony harmony = new(ModGUID);
 		harmony.PatchAll(assembly);
 
+		fireStarter.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sword"));
+		iceHeart.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Sword"));
+		snakeBite.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Sword"));
+		shadowHit.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Sword"));
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
 		gliding = assets.LoadAsset<SE_Stats>("JCGliding");
 		glowingSpirit = assets.LoadAsset<SE_Stats>("SE_Crystal_Magelight");

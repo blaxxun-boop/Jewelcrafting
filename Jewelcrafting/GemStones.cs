@@ -109,7 +109,7 @@ public static class GemStones
 	{
 		private static void Postfix()
 		{
-			AddSocketAddingTab.tab.gameObject.SetActive(Player.m_localPlayer.m_currentStation?.name.StartsWith("op_transmution_table", StringComparison.Ordinal) ?? false);
+			AddSocketAddingTab.tab.gameObject.SetActive(Player.m_localPlayer.m_currentStation && Player.m_localPlayer.m_currentStation.name.StartsWith("op_transmution_table", StringComparison.Ordinal));
 			if (!AddSocketAddingTab.tab.gameObject.activeSelf)
 			{
 				AddSocketAddingTab.tab.GetComponent<Button>().interactable = true;
@@ -267,6 +267,21 @@ public static class GemStones
 		}
 	}
 
+	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
+	private static class ItemSharedMap
+	{
+		public static readonly Dictionary<string, GameObject> items = new();
+
+		private static void Postfix(ObjectDB __instance)
+		{
+			items.Clear();
+			foreach (GameObject item in __instance.m_items)
+			{
+				items[item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name] = item;
+			}
+		}
+	}
+
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
 	private class AddSocketToItem
 	{
@@ -305,7 +320,7 @@ public static class GemStones
 					foreach (Piece.Requirement requirement in recipe.m_resources)
 					{
 						int amount = Mathf.FloorToInt(Random.value + requirement.m_amount * (Jewelcrafting.resourceReturnRate.Value / 100f));
-						if (amount > 0 && !Player.m_localPlayer.m_inventory.AddItem(requirement.m_resItem.m_itemData.m_dropPrefab, amount))
+						if (amount > 0 && !Player.m_localPlayer.m_inventory.AddItem(ItemSharedMap.items[requirement.m_resItem.m_itemData.m_shared.m_name], amount))
 						{
 							Transform transform = Player.m_localPlayer.transform;
 							Vector3 position = transform.position;
