@@ -105,7 +105,7 @@ public static class Utils
 			Skills.SkillType.Bows => GemLocation.Bow,
 			Skills.SkillType.Pickaxes => GemLocation.Tool,
 			Skills.SkillType.Unarmed when item.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon => GemLocation.Knife,
-			_ => throw new ArgumentOutOfRangeException()
+			_ => GemLocation.Sword
 		}
 	};
 

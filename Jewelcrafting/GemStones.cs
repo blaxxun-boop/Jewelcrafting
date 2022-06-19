@@ -161,8 +161,22 @@ public static class GemStones
 		private static float originalCraftSize;
 		private static bool displayGemChance;
 
-		private static void Postfix(InventoryGui __instance)
+		private static void Prefix(InventoryGui __instance, ref bool __state)
 		{
+			if (AddSocketAddingTab.TabOpen() && __instance.m_selectedRecipe.Value is { } itemData)
+			{
+				--itemData.m_quality;
+				__state = true;
+			}
+		}
+
+		private static void Postfix(InventoryGui __instance, bool __state)
+		{
+			if (__state && __instance.m_selectedRecipe.Value is { } itemData)
+			{
+				++itemData.m_quality;
+			}
+
 			RectTransform craftTypeRect = __instance.m_itemCraftType.GetComponent<RectTransform>();
 			Vector2 anchoredPosition = craftTypeRect.anchoredPosition;
 

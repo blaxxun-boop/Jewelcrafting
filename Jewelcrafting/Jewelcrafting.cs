@@ -20,17 +20,20 @@ namespace Jewelcrafting;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
 [BepInIncompatibility("randyknapp.mods.epicloot")]
+[BepInIncompatibility("DasSauerkraut.Terraheim")]
 [BepInDependency("randyknapp.mods.extendeditemdataframework")]
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.0.5";
+	private const string ModVersion = "1.0.6";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
 
 	private static ConfigEntry<Toggle> serverConfigLocked = null!;
+	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
 	public static ConfigEntry<Toggle> socketSystem = null!;
+	public static ConfigEntry<Toggle> visualEffects = null!;
 	public static ConfigEntry<UniqueDrop> uniqueGemDropSystem = null!;
 	public static ConfigEntry<int> uniqueGemDropChance = null!;
 	public static ConfigEntry<Toggle> uniqueGemDropOnePerPlayer = null!;
@@ -99,6 +102,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly Dictionary<Skills.SkillType, GameObject> iceHeart = new();
 	public static readonly Dictionary<Skills.SkillType, GameObject> snakeBite = new();
 	public static readonly Dictionary<Skills.SkillType, GameObject> shadowHit = new();
+	public static readonly Dictionary<Skills.SkillType, GameObject> vampire = new();
 
 	public static GameObject swordFall = null!;
 	public static StatusEffect gliding = null!;
@@ -111,6 +115,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SE_Stats icyProtection = null!;
 	public static SE_Stats fieryDoom = null!;
 	public static GameObject fieryDoomExplosion = null!;
+	public static SE_Stats awareness = null!;
+	public static GameObject heardIcon = null!;
+	public static GameObject attackedIcon = null!;
+	public static SE_Stats headhunter = null!;
 
 	private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
 	{
@@ -183,6 +191,23 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		int order = 0;
 
 		config("2 - Socket System", "YAML Editor Anchor", 0, new ConfigDescription("Just ignore this.", null, new ConfigurationManagerAttributes { HideSettingName = true, HideDefaultButton = true, CustomDrawer = DrawYamlEditorButton }), false);
+		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
+		visualEffects.SettingChanged += (_, _) =>
+		{
+			foreach (ItemDrop item in Resources.FindObjectsOfTypeAll<ItemDrop>())
+			{
+				if (visualEffects.Value == Toggle.On)
+				{
+					VisualEffects.DisplayEffectOnItemDrop.Postfix(item);
+				}
+				else
+				{
+					VisualEffects.DisplayEffectOnItemDrop.RemoveEffects(item);
+				}
+			}
+		};
+		useExternalYaml = configSync.AddConfigEntry(Config.Bind("2 - Socket System", "Use External YAML", Toggle.Off, new ConfigDescription("If set to on, the YAML file from your config folder will be used, instead of the internal configuration.", null, new ConfigurationManagerAttributes { Order = --order })));
+		useExternalYaml.SourceConfig.SettingChanged += (_, _) => ConfigLoader.reloadConfigFile();
 		badLuckRecipes = config("2 - Socket System", "Bad Luck Recipes", Toggle.On, new ConfigDescription("Enables or disables the bad luck recipes of all gems.", null, new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropSystem = config("2 - Socket System", "Drop System for Unique Gems", UniqueDrop.TrulyUnique, new ConfigDescription("Disabled: Unique Gems do not drop.\nTruly Unique: The first kill of each boss grants one Unique Gem.\nCustom: Lets you configure a drop chance and rate.", null, new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropChance = config("2 - Socket System", "Drop Chance for Unique Gems", 30, new ConfigDescription("Drop chance for Unique Gems. Has no effect, if the drop system is not set to custom.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
@@ -217,6 +242,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		BuildingPiecesSetup.initializeBuildingPieces(assets);
 		GemStoneSetup.initializeGemStones(assets);
 		DestructibleSetup.initializeDestructibles(assets);
+		JewelrySetup.initializeJewelry(assets);
 
 		int upgradeOrder = 0;
 		foreach (GemDefinition gem in GemStoneSetup.Gems.Values.SelectMany(g => g).Where(g => g.DefaultUpgradeChance > 0))
@@ -229,9 +255,50 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		harmony.PatchAll(assembly);
 
 		fireStarter.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sword"));
+		fireStarter.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Axe"));
+		fireStarter.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_FireParticles_BAxe"));
+		fireStarter.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Knife"));
+		fireStarter.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Spear"));
+		fireStarter.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Mace"));
+		fireStarter.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sledge"));
+		fireStarter.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Atgeir"));
+		
 		iceHeart.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Sword"));
+		iceHeart.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Axe"));
+		iceHeart.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_BAxe"));
+		iceHeart.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Knife"));
+		iceHeart.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Spear"));
+		iceHeart.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Mace"));
+		iceHeart.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Sledge"));
+		iceHeart.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Atgeir"));
+		
 		snakeBite.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Sword"));
+		snakeBite.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Axe"));
+		snakeBite.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_BAxe"));
+		snakeBite.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Knife"));
+		snakeBite.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Spear"));
+		snakeBite.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Mace"));
+		snakeBite.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Sledge"));
+		snakeBite.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Atgeir"));
+		
 		shadowHit.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Sword"));
+		shadowHit.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Axe"));
+		shadowHit.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_BAxe"));
+		shadowHit.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Knife"));
+		shadowHit.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Spear"));
+		shadowHit.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Mace"));
+		shadowHit.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Sledge"));
+		shadowHit.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Atgeir"));
+
+		vampire.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Sword"));
+		vampire.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Axe"));
+		vampire.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_BAxe"));
+		vampire.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Knife"));
+		vampire.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Spear"));
+		vampire.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Mace"));
+		vampire.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Sledge"));
+		vampire.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Atgeir"));
+		
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
 		gliding = assets.LoadAsset<SE_Stats>("JCGliding");
 		glowingSpirit = assets.LoadAsset<SE_Stats>("SE_Crystal_Magelight");
@@ -245,6 +312,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		icyProtection = assets.LoadAsset<SE_Stats>("SE_Boss_4");
 		fieryDoom = assets.LoadAsset<SE_Stats>("SE_Boss_5");
 		fieryDoomExplosion = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_3");
+		awareness = assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Red");
+		heardIcon = assets.LoadAsset<GameObject>("JC_Eyeball_Obj");
+		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
+		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
 
 		Necromancer.skeleton = PrefabManager.RegisterPrefab(assets, "JC_Skeleton");
 
@@ -266,8 +337,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "sfx_crystal_destroyed");
 		PrefabManager.RegisterPrefab(assets, "vfx_potionhit");
 		PrefabManager.RegisterPrefab(assets, "sfx_potion_smash");
+		PrefabManager.RegisterPrefab(assets, "vfx_puff_small");
+		PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
 
-		string yamlPath = Paths.ConfigPath + "/Jewelcrafting.Sockets.yml";
+		string yamlPath = Paths.ConfigPath + Path.DirectorySeparatorChar + "Jewelcrafting.Sockets.yml";
 		if (!File.Exists(yamlPath))
 		{
 			File.WriteAllBytes(yamlPath, Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml"));
@@ -333,6 +406,15 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			{
 				peer.m_rpc.Register("Jewelcrafting GenerateVegetation", GenerateVegetationSpawners.RPC_GenerateVegetation);
 			}
+		}
+	}
+
+	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
+	private static class AddStatusEffects
+	{
+		private static void Prefix(ObjectDB __instance)
+		{
+			__instance.m_StatusEffects.Add(headhunter);
 		}
 	}
 }

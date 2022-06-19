@@ -142,6 +142,7 @@
         <Compile Include="GemEffects\ConfigLoader.cs" />
         <Compile Include="GemEffects\EffectDef.cs" />
         <Compile Include="GemEffects\Effects\Avoidance.cs" />
+        <Compile Include="GemEffects\Effects\Awareness.cs" />
         <Compile Include="GemEffects\Effects\Berserk.cs" />
         <Compile Include="GemEffects\Effects\Comfortable.cs" />
         <Compile Include="GemEffects\Effects\Defender.cs" />
@@ -181,9 +182,9 @@
         <Compile Include="GemEffects\Effects\Unbreakable.cs" />
         <Compile Include="GemEffects\Effects\Unfazed.cs" />
         <Compile Include="GemEffects\Effects\Vampire.cs" />
-        <Compile Include="GemEffects\Effects\VisualEffects.cs" />
         <Compile Include="GemEffects\Effects\Vitality.cs" />
         <Compile Include="GemEffects\ForcePet.cs" />
+        <Compile Include="GemEffects\VisualEffects.cs" />
         <Compile Include="GemStones.cs" />
         <Compile Include="GenerateVegetationSpawners.cs" />
         <Compile Include="Jewelcrafting.cs" />
@@ -191,6 +192,7 @@
         <Compile Include="Setup\BuildingPiecesSetup.cs" />
         <Compile Include="Setup\DestructibleSetup.cs" />
         <Compile Include="Setup\GemStoneSetup.cs" />
+        <Compile Include="Setup\JewelrySetup.cs" />
         <Compile Include="Sockets.cs" />
         <Compile Include="TerminalCommands.cs" />
         <Compile Include="UniqueGemDrops.cs" />

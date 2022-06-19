@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using BepInEx;
 using HarmonyLib;
@@ -27,7 +28,7 @@ public static class ConfigLoader
 		CustomSyncedValue<List<string>> FileData { get; }
 		bool Enabled { get; }
 	}
-	
+
 	[HarmonyPatch(typeof(Game), nameof(Game.RequestRespawn))]
 	private class PatchConfigReading
 	{
@@ -70,6 +71,12 @@ public static class ConfigLoader
 	public static bool SkipSavingOfValueChange = false;
 	private static bool initialized = false;
 
+	public static void reloadConfigFile()
+	{
+		initialized = false;
+		loadConfigFile();
+	}
+
 	private static void loadConfigFile()
 	{
 		if (initialized)
@@ -90,7 +97,7 @@ public static class ConfigLoader
 		List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).OrderBy(p => Path.GetFileName(p) != loader.FilePattern.Replace("*", "")).ThenBy(Path.GetFileName).ToList();
 		if (paths.Count > 0)
 		{
-			Dictionary<string, string> files = paths.ToDictionary(p => p, File.ReadAllText);
+			Dictionary<string, string> files = Jewelcrafting.useExternalYaml.Value == Jewelcrafting.Toggle.On ? paths.ToDictionary(p => p, File.ReadAllText) : new Dictionary<string, string> { { "Jewelcrafting.Sockets.yml", Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml")) } };
 
 			foreach (KeyValuePair<string, string> file in files)
 			{
@@ -127,7 +134,7 @@ public static class ConfigLoader
 		{
 			Dictionary<string, string> files = loader.FileData.Value.Select((f, index) => new { f, index }).GroupBy(g => g.index / 2).ToDictionary(g => g.First().f, g => g.Last().f);
 			bool hasErrors = false;
-			
+
 			foreach (KeyValuePair<string, string> file in files)
 			{
 				try
@@ -195,6 +202,11 @@ public static class ConfigLoader
 
 	private static void consumeConfigFileEvent(object sender, FileSystemEventArgs args)
 	{
+		if (((Jewelcrafting.Toggle?)Jewelcrafting.useExternalYaml.LocalBaseValue ?? Jewelcrafting.useExternalYaml.Value) == Jewelcrafting.Toggle.Off)
+		{
+			return;
+		}
+		
 		foreach (Loader loader in loaders)
 		{
 			if (!Path.GetFileName(args.Name).StartsWith(Regex.Replace(loader.FilePattern, @"\*.*", "")))

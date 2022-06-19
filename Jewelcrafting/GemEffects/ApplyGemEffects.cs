@@ -64,33 +64,12 @@ public class TrackEquipmentChanges
 		}
 
 		zdo.m_ints ??= new Dictionary<int, int>();
-
-		Sockets? leftItemSockets = player.m_leftItem?.Extended()?.GetComponent<Sockets>();
-		for (int i = 0; i < 5; ++i)
-		{
-			if (leftItemSockets?.socketedGems.Count > i && VisualEffects.weaponEffectPrefabs.TryGetValue(leftItemSockets.socketedGems[i], out Dictionary<Skills.SkillType, GameObject> effectsDict) && effectsDict.TryGetValue(player.m_leftItem!.m_shared.m_skillType, out GameObject effectName))
-			{
-				zdo.m_ints[$"JewelCrafting LeftHand Effect {i}".GetStableHashCode()] = effectName.name.GetStableHashCode();
-			}
-			else
-			{
-				zdo.m_ints.Remove($"JewelCrafting LeftHand Effect {i}".GetStableHashCode());
-			}
-		}
 		
-		Sockets? rightItemSockets = player.m_rightItem?.Extended()?.GetComponent<Sockets>();
-		for (int i = 0; i < 5; ++i)
-		{
-			if (rightItemSockets?.socketedGems.Count > i && VisualEffects.weaponEffectPrefabs.TryGetValue(rightItemSockets.socketedGems[i], out Dictionary<Skills.SkillType, GameObject> effectsDict) && effectsDict.TryGetValue(player.m_rightItem!.m_shared.m_skillType, out GameObject effectName))
-			{
-				zdo.m_ints[$"JewelCrafting RightHand Effect {i}".GetStableHashCode()] = effectName.name.GetStableHashCode();
-			}
-			else
-			{
-				zdo.m_ints.Remove($"JewelCrafting RightHand Effect {i}".GetStableHashCode());
-			}
-		}
-
+		StoreSocketGems(zdo, VisSlot.HandLeft, player.m_leftItem);
+		StoreSocketGems(zdo, VisSlot.BackLeft, player.m_hiddenLeftItem);
+		StoreSocketGems(zdo, VisSlot.HandRight, player.m_rightItem);
+		StoreSocketGems(zdo, VisSlot.BackRight, player.m_hiddenLeftItem);
+		
 		zdo.m_byteArrays ??= new Dictionary<int, byte[]>();
 		foreach (Effect effect in (Effect[])Enum.GetValues(typeof(Effect)))
 		{
@@ -114,5 +93,47 @@ public class TrackEquipmentChanges
 		zdo.IncreseDataRevision();
 		
 		OnEffectRecalc?.Invoke();
+	}
+	
+	private static void StoreSocketGems(ZDO zdo, VisSlot part, ItemDrop.ItemData? item)
+	{
+		Dictionary<string, Dictionary<Skills.SkillType, GameObject>>? effectPrefabs = item is null ? null : VisualEffects.prefabDict(item.m_shared);
+
+		Sockets? itemSockets = item.Extended()?.GetComponent<Sockets>();
+		for (int i = 0; i < 5; ++i)
+		{
+			if (effectPrefabs is not null && itemSockets?.socketedGems.Count > i && effectPrefabs.TryGetValue(itemSockets.socketedGems[i], out Dictionary<Skills.SkillType, GameObject> effectsDict) && effectsDict.TryGetValue(VisualEffects.SkillKey(item!.m_shared), out GameObject effectName))
+			{
+				zdo.m_ints[$"JewelCrafting {part} Effect {i}".GetStableHashCode()] = effectName.name.GetStableHashCode();
+			}
+			else
+			{
+				zdo.m_ints.Remove($"JewelCrafting {part} Effect {i}".GetStableHashCode());
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(ArmorStand), nameof(ArmorStand.RPC_SetVisualItem))]
+	private static class AttachArmorStandItemSocketZDO
+	{
+		private static void Prefix(ArmorStand __instance, int index)
+		{
+			if (__instance.m_nview?.IsOwner() == true)
+			{
+				StoreSocketGems(__instance.m_nview.GetZDO(), __instance.m_slots[index].m_slot, __instance.m_queuedItem);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(ItemStand), nameof(ItemStand.RPC_SetVisualItem))]
+	private static class AttachItemStandItemSocketZDO
+	{
+		private static void Prefix(ItemStand __instance)
+		{
+			if (__instance.m_nview?.IsOwner() == true)
+			{
+				StoreSocketGems(__instance.m_nview.GetZDO(), VisSlot.Beard, __instance.m_queuedItem);
+			}
+		}
 	}
 }

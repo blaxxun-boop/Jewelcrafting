@@ -69,6 +69,11 @@ public static class DestructibleSetup
 		public void Awake()
 		{
 			netView = GetComponent<ZNetView>();
+			if (!netView)
+			{
+				return;
+			}
+			
 			biome = Heightmap.FindBiome(transform.position);
 
 			if (netView.GetZDO().GetFloat("spawn random", -1) == -1)
@@ -86,8 +91,11 @@ public static class DestructibleSetup
 
 		public void Start()
 		{
-			Destroy(GetComponent<SphereCollider>());
-			InvokeRepeating(nameof(CheckSpawn), 0f, 5f);
+			if (netView)
+			{
+				Destroy(GetComponent<SphereCollider>());
+				InvokeRepeating(nameof(CheckSpawn), 0f, 5f);
+			}
 		}
 
 		public void CheckSpawn()
