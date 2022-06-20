@@ -13,6 +13,12 @@ public struct GemDefinition
 	public float DefaultUpgradeChance;
 }
 
+public struct GemInfo
+{
+	public GemType Type;
+	public int Tier;
+}
+
 public static class GemStoneSetup
 {
 	public static readonly List<string> lastConfigHashes = new()
@@ -23,6 +29,7 @@ public static class GemStoneSetup
 	public static GameObject SocketTooltip = null!;
 	public static readonly Dictionary<GemType, List<GemDefinition>> Gems = new();
 	public static readonly Dictionary<GemType, GameObject> shardColors = new();
+	public static readonly Dictionary<string, GemInfo> GemInfos = new();
 
 	public static void initializeGemStones(AssetBundle assets)
 	{
@@ -39,12 +46,19 @@ public static class GemStoneSetup
 			{
 				colorGems = Gems[color] = new List<GemDefinition>();
 			}
+			string gemName = gemStone.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 			colorGems.Add(new GemDefinition
 			{
 				DefaultUpgradeChance = defaultUpgradeChance,
 				Prefab = gemStone.Prefab,
-				Name = gemStone.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name,
+				Name = gemName,
 			});
+
+			GemInfos[gemName] = new GemInfo
+			{
+				Type = color,
+				Tier = colorGems.Count,
+			};
 
 			return gemStone;
 		}

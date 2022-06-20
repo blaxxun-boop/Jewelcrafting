@@ -25,7 +25,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.0.6";
+	private const string ModVersion = "1.0.7";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -33,11 +33,14 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<Toggle> serverConfigLocked = null!;
 	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
 	public static ConfigEntry<Toggle> socketSystem = null!;
+	public static ConfigEntry<Toggle> inventorySocketing = null!;
+	public static ConfigEntry<int> breakChanceUnsocketSimple = null!;
+	public static ConfigEntry<int> breakChanceUnsocketAdvanced = null!;
+	public static ConfigEntry<int> breakChanceUnsocketPerfect = null!;
 	public static ConfigEntry<Toggle> visualEffects = null!;
 	public static ConfigEntry<UniqueDrop> uniqueGemDropSystem = null!;
 	public static ConfigEntry<int> uniqueGemDropChance = null!;
 	public static ConfigEntry<Toggle> uniqueGemDropOnePerPlayer = null!;
-	public static ConfigEntry<int> chanceToAddSocket = null!;
 	public static ConfigEntry<int> resourceReturnRate = null!;
 	public static ConfigEntry<Toggle> badLuckRecipes = null!;
 	public static ConfigEntry<int> badLuckCostSimpleOnyx = null!;
@@ -61,8 +64,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> maximumNumberSockets = null!;
 	public static ConfigEntry<int> gemRespawnRate = null!;
 	public static ConfigEntry<int> upgradeChanceIncrease = null!;
+	public static ConfigEntry<int> awarenessRange = null!;
+	private static ConfigEntry<int> rigidDamageReduction = null!;
+	private static ConfigEntry<uint> headhunterDuration = null!;
+	private static ConfigEntry<int> headhunterDamage = null!;
 	private static ConfigEntry<float> experienceGainedFactor = null!;
 
+	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
 	public static readonly CustomSyncedValue<List<string>> socketEffectDefinitions = new(configSync, "socket effects", new List<string>());
 
@@ -119,6 +127,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static GameObject heardIcon = null!;
 	public static GameObject attackedIcon = null!;
 	public static SE_Stats headhunter = null!;
+	public static SE_Stats rigidFinger = null!;
 
 	private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
 	{
@@ -191,6 +200,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		int order = 0;
 
 		config("2 - Socket System", "YAML Editor Anchor", 0, new ConfigDescription("Just ignore this.", null, new ConfigurationManagerAttributes { HideSettingName = true, HideDefaultButton = true, CustomDrawer = DrawYamlEditorButton }), false);
+		inventorySocketing = config("2 - Socket System", "Inventory Socketing", Toggle.On, "If enabled, you can press the interact key to change gems in your items from your inventory. If disabled, you have to use the Gemcutters Table, to change the gems in your items.");
 		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
 		visualEffects.SettingChanged += (_, _) =>
 		{
@@ -212,7 +222,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		uniqueGemDropSystem = config("2 - Socket System", "Drop System for Unique Gems", UniqueDrop.TrulyUnique, new ConfigDescription("Disabled: Unique Gems do not drop.\nTruly Unique: The first kill of each boss grants one Unique Gem.\nCustom: Lets you configure a drop chance and rate.", null, new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropChance = config("2 - Socket System", "Drop Chance for Unique Gems", 30, new ConfigDescription("Drop chance for Unique Gems. Has no effect, if the drop system is not set to custom.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropOnePerPlayer = config("2 - Socket System", "Drop one Gem per Player", Toggle.On, new ConfigDescription("If bosses should drop one Unique Gem per player. Has no effect, if the drop system is not set to custom.", null, new ConfigurationManagerAttributes { Order = --order }));
-		chanceToAddSocket = config("2 - Socket System", "Chance to add a Socket", 50, new ConfigDescription("Chance to successfully add a socket to an item.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		breakChanceUnsocketSimple = config("2 - Socket System", "Simple Gem Break Chance", 0, new ConfigDescription("Chance to break a simple gem when trying to remove it from a socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		breakChanceUnsocketAdvanced = config("2 - Socket System", "Advanced Gem Break Chance", 0, new ConfigDescription("Chance to break an advanced gem when trying to remove it from a socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 0, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		badLuckCostSimpleOnyx = config("2 - Socket System", "Bad Luck Cost Simple Onyx", 12, new ConfigDescription("Onyx shards required to craft a Simple Onyx.", null, new ConfigurationManagerAttributes { Order = --order }));
 		badLuckCostSimpleSapphire = config("2 - Socket System", "Bad Luck Cost Simple Sapphire", 12, new ConfigDescription("Sapphire shards required to craft a Simple Sapphire.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -238,7 +250,18 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		experienceGainedFactor = config("3 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
 		jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
+		
+		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
+		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
+		headhunterDuration = config("Emerald Headhunter Ring", "Effect Duration", 20U, new ConfigDescription("Effect duration for the Emerald Headhunter Ring."));
+		headhunterDamage = config("Emerald Headhunter Ring", "Damage Increase", 30, new ConfigDescription("Damage increase for the Emerald Headhunter Ring effect.", new AcceptableValueRange<int>(0, 100)));
 
+		void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
+		{
+			setter(config.Value);
+			config.SettingChanged += (_, _) => setter(config.Value);
+		}
+		
 		BuildingPiecesSetup.initializeBuildingPieces(assets);
 		GemStoneSetup.initializeGemStones(assets);
 		DestructibleSetup.initializeDestructibles(assets);
@@ -248,6 +271,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		foreach (GemDefinition gem in GemStoneSetup.Gems.Values.SelectMany(g => g).Where(g => g.DefaultUpgradeChance > 0))
 		{
 			gemUpgradeChances.Add(gem.Name, config("Socket Upgrade Chances", Localization.instance.Localize(gem.Name), gem.DefaultUpgradeChance, new ConfigDescription($"Success chance while trying to create {Localization.instance.Localize(gem.Name)}.", new AcceptableValueRange<float>(0f, 100f), new ConfigurationManagerAttributes { Order = --upgradeOrder })));
+		}
+		
+		int socketAddingOrder = 0;
+		for (int i = 0; i < 5; ++i)
+		{
+			socketAddingChances.Add(i, config("Socket Adding Chances", $"{i+1}. Socket", 50, new ConfigDescription($"Success chance while trying to add the {i+1}. Socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --socketAddingOrder })));
 		}
 
 		Assembly assembly = Assembly.GetExecutingAssembly();
@@ -316,6 +345,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		heardIcon = assets.LoadAsset<GameObject>("JC_Eyeball_Obj");
 		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
 		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
+		rigidFinger = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Purple");
+		SetCfgValue(value => rigidFinger.m_damageModifier = 1 - value / 100f, rigidDamageReduction);
+		SetCfgValue(value => headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
+		SetCfgValue(value => headhunter.m_ttl = value, headhunterDuration);
 
 		Necromancer.skeleton = PrefabManager.RegisterPrefab(assets, "JC_Skeleton");
 
@@ -339,6 +372,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "sfx_potion_smash");
 		PrefabManager.RegisterPrefab(assets, "vfx_puff_small");
 		PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
+		
+		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
+		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);
+		Localizer.AddPlaceholder("jc_ring_green_description", "power", headhunterDamage);
+		Localizer.AddPlaceholder("jc_ring_green_description", "duration", headhunterDuration);
+		Localizer.AddPlaceholder("jc_se_ring_green_description", "power", headhunterDamage);
 
 		string yamlPath = Paths.ConfigPath + Path.DirectorySeparatorChar + "Jewelcrafting.Sockets.yml";
 		if (!File.Exists(yamlPath))

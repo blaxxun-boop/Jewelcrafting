@@ -36,12 +36,12 @@ public static class Awareness
 
 			Vector3 playerPos = Player.m_localPlayer.transform.position;
 
-			if (Character.m_characters.Any(c => Vector3.Distance(playerPos, c.transform.position) < 30 && c.GetComponent<MonsterAI>()?.IsAlerted() == true))
+			if (Character.m_characters.Any(c => Vector3.Distance(playerPos, c.transform.position) < Jewelcrafting.awarenessRange.Value && c.GetComponent<MonsterAI>()?.IsAlerted() == true))
 			{
 				attackedIcon.gameObject.SetActive(true);
 				heardIcon.gameObject.SetActive(false);
 			}
-			else if (Character.m_characters.Any(c => Vector3.Distance(playerPos, c.transform.position) < 30 && c.GetComponent<MonsterAI>()?.HaveTarget() == true))
+			else if (Character.m_characters.Any(c => Vector3.Distance(playerPos, c.transform.position) < Jewelcrafting.awarenessRange.Value && c.GetComponent<MonsterAI>()?.HaveTarget() == true))
 			{
 				attackedIcon.gameObject.SetActive(false);
 				heardIcon.gameObject.SetActive(true);

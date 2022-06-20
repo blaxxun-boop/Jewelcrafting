@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -97,6 +98,7 @@ public static class GemStones
 				}
 				tab.GetComponent<Button>().interactable = false;
 				InventoryGui.instance.UpdateCraftingPanel();
+				__instance.m_craftTimer = -1;
 			});
 			tab.GetComponent<Button>().onClick = buttonClick;
 		}
@@ -203,7 +205,8 @@ public static class GemStones
 				__instance.m_recipeRequirementList[0].transform.parent.gameObject.SetActive(false);
 				__instance.m_craftButton.GetComponentInChildren<Text>().text = Localization.instance.Localize("$jc_add_socket_button");
 				__instance.m_craftButton.interactable = activeRecipe is not null && CanAddMoreSockets(activeRecipe);
-				__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_socket_adding_warning", Math.Min(Mathf.RoundToInt(Jewelcrafting.chanceToAddSocket.Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f)), 100).ToString());
+				int socketNumber = Math.Min(activeRecipe.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0, 4);
+				__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_socket_adding_warning", Math.Min(Mathf.RoundToInt(Jewelcrafting.socketAddingChances[socketNumber].Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f)), 100).ToString());
 				if (craftTypeRect.pivot.y != 1)
 				{
 					Vector2 sizeDelta = craftTypeRect.sizeDelta;
@@ -310,7 +313,9 @@ public static class GemStones
 
 			Player.m_localPlayer.RaiseSkill("Jewelcrafting");
 
-			if (!Player.m_localPlayer.m_noPlacementCost && Random.value > Jewelcrafting.chanceToAddSocket.Value / 100f * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f))
+			int socketNumber = Math.Min(__instance.m_craftUpgradeItem.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0, 4);
+
+			if (!Player.m_localPlayer.m_noPlacementCost && Random.value > Jewelcrafting.socketAddingChances[socketNumber].Value / 100f * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f))
 			{
 				if (__instance.m_craftUpgradeItem.Extended()?.GetComponent<Sockets>() is { } sockets)
 				{
@@ -409,7 +414,16 @@ public static class GemStones
 			{
 				if (UITooltip.m_tooltip.transform.Find("Bkg (1)/Transmute_Press_Interact") is { } interact)
 				{
-					interact.GetComponent<Text>().text = Localization.instance.Localize("$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+					string text;
+					if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
+					{
+						text = Localization.instance.Localize("$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+					}
+					else
+					{
+						text = Localization.instance.Localize("$jc_table_required");
+					}
+					interact.GetComponent<Text>().text = text;
 				}
 
 				int numSockets = sockets.socketedGems.Count;
@@ -647,13 +661,18 @@ public static class GemStones
 
 		private static bool Prefix(InventoryGui __instance)
 		{
-			ItemDrop.ItemData? item = null;
-			if (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse"))
+			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
 			{
-				Vector2 pos = Input.mousePosition;
-				item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
+				ItemDrop.ItemData? item = null;
+				if (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse"))
+				{
+					Vector2 pos = Input.mousePosition;
+					item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
+				}
+				return Open(__instance, item);
 			}
-			return Open(__instance, item);
+
+			return true;
 		}
 	}
 
@@ -704,6 +723,19 @@ public static class GemStones
 						__result = false;
 						return false;
 					}
+
+					if (ShallDestroyGem(item, fromInventory))
+					{
+						fromInventory.RemoveItem(item);
+						IEnumerator ResetDragItem()
+						{
+							yield return null;
+							InventoryGui.instance.SetupDragItem(null, __instance.GetInventory(), 0);
+						}
+						InventoryGui.instance.StartCoroutine(ResetDragItem());
+						__result = false;
+						return false;
+					}
 				}
 
 				return true;
@@ -711,7 +743,8 @@ public static class GemStones
 
 			if (socketableGemStones.Contains(item.m_dropPrefab))
 			{
-				if (__instance.m_inventory.GetItemAt(pos.x, pos.y) == item)
+				ItemDrop.ItemData? oldItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
+				if (oldItem == item)
 				{
 					return true;
 				}
@@ -727,6 +760,11 @@ public static class GemStones
 					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_equipped_unique_gem", equippedUnique));
 					__result = false;
 					return false;
+				}
+
+				if (fromInventory != __instance.GetInventory() && oldItem is not null)
+				{
+					ShallDestroyGem(oldItem, __instance.GetInventory());
 				}
 
 				amount = 1;
@@ -844,6 +882,40 @@ public static class GemStones
 			}
 
 			return true;
+		}
+	}
+
+	private static bool ShallDestroyGem(ItemDrop.ItemData item, Inventory inventory)
+	{
+		if (GemStoneSetup.GemInfos.TryGetValue(item.m_shared.m_name, out GemInfo info) && GemStoneSetup.shardColors.ContainsKey(info.Type))
+		{
+			float chance = (info.Tier switch
+			{
+				1 => Jewelcrafting.breakChanceUnsocketSimple,
+				2 => Jewelcrafting.breakChanceUnsocketAdvanced,
+				3 => Jewelcrafting.breakChanceUnsocketPerfect,
+				_ => throw new IndexOutOfRangeException($"Found unexpected tier {info.Tier}")
+			}).Value / 100f;
+			if (chance > Random.value)
+			{
+				Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_gemstone_remove_fail");
+				inventory.RemoveItem(item);
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.OnSelectedItem))]
+	private class DestroyGemItemOnMove
+	{
+		private static void Prefix(InventoryGrid grid, ref ItemDrop.ItemData? item, InventoryGrid.Modifier mod)
+		{
+			if (item is not null && grid.m_inventory == AddFakeSocketsContainer.openInventory && mod == InventoryGrid.Modifier.Move && ShallDestroyGem(item, grid.m_inventory))
+			{
+				item = null;
+			}
 		}
 	}
 }
