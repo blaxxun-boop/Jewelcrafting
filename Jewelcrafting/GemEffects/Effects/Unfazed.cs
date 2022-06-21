@@ -1,9 +1,21 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class Unfazed
 {
+	static Unfazed()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Unfazed, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[MultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Character), nameof(Character.GetStaggerTreshold))]
 	private static class IncreaseStaggerThreshold
 	{

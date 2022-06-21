@@ -1,9 +1,21 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class Unbreakable
 {
+	static Unbreakable()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Unbreakable, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Attack), nameof(Attack.DoMeleeAttack))]
 	private static class ReduceToolDurabilityLoss
 	{

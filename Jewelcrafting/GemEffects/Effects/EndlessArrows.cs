@@ -1,10 +1,22 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class EndlessArrows
 {
+	static EndlessArrows()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Endlessarrows, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Attack), nameof(Attack.UseAmmo))]
 	private static class ReduceAmmoUsage
 	{

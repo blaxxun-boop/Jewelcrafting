@@ -16,11 +16,11 @@ public static class FieryDoom
 	[StructLayout(LayoutKind.Sequential)]
 	private struct Config
 	{
-		public readonly float StaggerChance;
-		public readonly float MinCooldown;
-		public readonly float MaxCooldown;
-		public readonly float Duration;
-		public readonly float FireDamage;
+		[InverseMultiplicativePercentagePower] public readonly float StaggerChance;
+		[MinPower] public readonly float MinCooldown;
+		[MinPower] public readonly float MaxCooldown;
+		[AdditivePower] public readonly float Duration;
+		[AdditivePower] public readonly float FireDamage;
 	}
 	
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]

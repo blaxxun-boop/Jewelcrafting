@@ -6,6 +6,17 @@ namespace Jewelcrafting.GemEffects;
 
 public static class Explorer
 {
+	static Explorer()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Explorer, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[MultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Minimap), nameof(Minimap.Explore), typeof(Vector3), typeof(float))]
 	private class IncreaseExplorationRadius
 	{

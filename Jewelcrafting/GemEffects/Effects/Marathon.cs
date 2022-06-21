@@ -1,9 +1,21 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class Marathon
 {
+	static Marathon()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Marathon, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(SEMan), nameof(SEMan.ModifyRunStaminaDrain))]
 	private static class ReduceStaminaUsage
 	{

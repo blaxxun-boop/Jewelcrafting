@@ -1,9 +1,21 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class Sprinter
 {
+	static Sprinter()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Sprinter, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[MultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Player), nameof(Player.GetJogSpeedFactor))]
 	private class IncreaseJogSpeed
 	{

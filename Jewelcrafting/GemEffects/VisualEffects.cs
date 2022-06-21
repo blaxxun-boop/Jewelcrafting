@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using ExtendedItemDataFramework;
 using HarmonyLib;
@@ -9,28 +8,46 @@ namespace Jewelcrafting.GemEffects;
 
 public static class VisualEffects
 {
-	private static readonly Dictionary<string, Dictionary<Skills.SkillType, GameObject>> weaponEffectPrefabs = new()
+	private static readonly Dictionary<string, Dictionary<Skills.SkillType, GameObject>> handAttachEffectPrefabs = new()
 	{
-		{ "Perfect_Red_Socket", Jewelcrafting.fireStarter },
-		{ "Perfect_Blue_Socket", Jewelcrafting.iceHeart },
-		{ "Perfect_Green_Socket", Jewelcrafting.snakeBite },
-		{ "Perfect_Black_Socket", Jewelcrafting.shadowHit },
-		{ "Perfect_Yellow_Socket", Jewelcrafting.vampire }
+		{ "Perfect_Red_Socket", Jewelcrafting.redGemEffects },
+		{ "Perfect_Blue_Socket", Jewelcrafting.blueGemEffects },
+		{ "Perfect_Green_Socket", Jewelcrafting.greenGemEffects },
+		{ "Perfect_Black_Socket", Jewelcrafting.blackGemEffects },
+		{ "Perfect_Yellow_Socket", Jewelcrafting.yellowGemEffects },
+		{ "Perfect_Purple_Socket", Jewelcrafting.purpleGemEffects },
 	};
+
+	private static readonly Dictionary<string, Dictionary<ItemDrop.ItemData.ItemType, GameObject>> armorEffectPrefabs = new()
+	{
+	};
+
+	private static readonly Dictionary<Skills.SkillType, Dictionary<string, GameObject>> handAttachPrefabsBySkill = new();
+	private static readonly Dictionary<ItemDrop.ItemData.ItemType, Dictionary<string, GameObject>> armorPrefabsByType = new();
 
 	private const int TwoHandedVal = 0x80000;
 
 	private static void FillEffectHashMap()
 	{
-		void AddToEffectMap(Dictionary<string, Dictionary<Skills.SkillType, GameObject>> effectPrefabs)
+		void AddToEffectMap<T>(Dictionary<string, Dictionary<T, GameObject>> effectPrefabs, Dictionary<T, Dictionary<string, GameObject>> inverse)
 		{
-			foreach (GameObject effect in effectPrefabs.Values.SelectMany(g => g.Values))
+			foreach (KeyValuePair<string, Dictionary<T, GameObject>> kv in effectPrefabs)
 			{
-				effectHashMap.Add(effect.name.GetStableHashCode(), effect);
+				foreach (KeyValuePair<T, GameObject> effectKv in kv.Value)
+				{
+					if (!inverse.TryGetValue(effectKv.Key, out Dictionary<string, GameObject> inverseDict))
+					{
+						inverseDict = inverse[effectKv.Key] = new Dictionary<string, GameObject>();
+					}
+					inverseDict.Add(kv.Key, effectKv.Value);
+
+					effectHashMap.Add(effectKv.Value.name.GetStableHashCode(), effectKv.Value);
+				}
 			}
 		}
-			
-		AddToEffectMap(weaponEffectPrefabs);
+
+		AddToEffectMap(handAttachEffectPrefabs, handAttachPrefabsBySkill);
+		AddToEffectMap(armorEffectPrefabs, armorPrefabsByType);
 	}
 
 	private static readonly Dictionary<int, GameObject> effectHashMap = new();
@@ -48,7 +65,7 @@ public static class VisualEffects
 		{
 			FillEffectHashMap();
 		}
-		
+
 		private static readonly ConditionalWeakTable<VisEquipment, Dictionary<string, EffectCache>> activeEffects = new();
 
 		private static void Postfix(VisEquipment __instance)
@@ -58,7 +75,7 @@ public static class VisualEffects
 				Dictionary<string, EffectCache> effectsActive = activeEffects.GetOrCreateValue(__instance);
 
 				void Apply(VisSlot part, GameObject? equipRoot) => ApplyEffects(effectsActive, zdo, part, equipRoot);
-				
+
 				Apply(VisSlot.HandLeft, __instance.m_leftItemInstance);
 				Apply(VisSlot.BackLeft, __instance.m_leftBackItemInstance);
 				Apply(VisSlot.HandRight, __instance.m_rightItemInstance);
@@ -116,14 +133,19 @@ public static class VisualEffects
 		}
 	}
 
-	public static Dictionary<string, Dictionary<Skills.SkillType, GameObject>>? prefabDict(ItemDrop.ItemData.SharedData shared)
+	public static Dictionary<string, GameObject>? prefabDict(ItemDrop.ItemData.SharedData shared)
 	{
+		Dictionary<string, GameObject>? prefabs;
 		if (shared.m_itemType is ItemDrop.ItemData.ItemType.Bow or ItemDrop.ItemData.ItemType.Shield or ItemDrop.ItemData.ItemType.OneHandedWeapon or ItemDrop.ItemData.ItemType.TwoHandedWeapon)
 		{
-			return weaponEffectPrefabs;
+			handAttachPrefabsBySkill.TryGetValue(SkillKey(shared), out prefabs);
+		}
+		else
+		{
+			armorPrefabsByType.TryGetValue(shared.m_itemType, out prefabs);
 		}
 
-		return null;
+		return prefabs;
 	}
 
 	[HarmonyPatch(typeof(ItemDrop), nameof(ItemDrop.Start))]
@@ -135,7 +157,7 @@ public static class VisualEffects
 			{
 				foreach (string socket in itemSockets.socketedGems)
 				{
-					if (effectPrefabs.TryGetValue(socket, out Dictionary<Skills.SkillType, GameObject> effectsDict) && effectsDict.TryGetValue(SkillKey(__instance.m_itemData.m_shared), out GameObject effect))
+					if (effectPrefabs.TryGetValue(socket, out GameObject effect))
 					{
 						Object.Instantiate(effect, __instance.transform.Find("attach"), false);
 					}
@@ -149,7 +171,7 @@ public static class VisualEffects
 			{
 				foreach (string socket in itemSockets.socketedGems)
 				{
-					if (effectPrefabs.TryGetValue(socket, out Dictionary<Skills.SkillType, GameObject> effectsDict) && effectsDict.TryGetValue(SkillKey(item.m_itemData.m_shared), out GameObject effect))
+					if (effectPrefabs.TryGetValue(socket, out GameObject effect))
 					{
 						Transform attach = item.transform.Find("attach");
 						for (int j = 0, children = attach.childCount; j < children; ++j)
@@ -164,7 +186,7 @@ public static class VisualEffects
 			}
 		}
 	}
-	
+
 	public static Skills.SkillType TwoHanded(Skills.SkillType type) => (Skills.SkillType)(TwoHandedVal | (int)type);
 
 	public static Skills.SkillType SkillKey(ItemDrop.ItemData.SharedData shared) => (Skills.SkillType)((shared.m_skillType is Skills.SkillType.Axes or Skills.SkillType.Clubs && shared.m_itemType is ItemDrop.ItemData.ItemType.TwoHandedWeapon ? TwoHandedVal : 0) | (int)shared.m_skillType);

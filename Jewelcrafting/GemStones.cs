@@ -163,22 +163,24 @@ public static class GemStones
 		private static float originalCraftSize;
 		private static bool displayGemChance;
 
-		private static void Prefix(InventoryGui __instance, ref bool __state)
+		private static int RevertUpgradingQuality() => AddSocketAddingTab.TabOpen() ? 1 : 0;
+
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
-			if (AddSocketAddingTab.TabOpen() && __instance.m_selectedRecipe.Value is { } itemData)
+			FieldInfo qualityField = AccessTools.DeclaredField(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.m_quality));
+			foreach (CodeInstruction instruction in instructions)
 			{
-				--itemData.m_quality;
-				__state = true;
+				yield return instruction;
+				if (instruction.opcode == OpCodes.Ldfld && instruction.OperandIs(qualityField))
+				{
+					yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ChangeDisplay), nameof(RevertUpgradingQuality)));
+					yield return new CodeInstruction(OpCodes.Sub);
+				}
 			}
 		}
-
-		private static void Postfix(InventoryGui __instance, bool __state)
+		
+		private static void Postfix(InventoryGui __instance)
 		{
-			if (__state && __instance.m_selectedRecipe.Value is { } itemData)
-			{
-				++itemData.m_quality;
-			}
-
 			RectTransform craftTypeRect = __instance.m_itemCraftType.GetComponent<RectTransform>();
 			Vector2 anchoredPosition = craftTypeRect.anchoredPosition;
 
@@ -472,7 +474,7 @@ public static class GemStones
 				{
 					if ((seenGems & gemLocation) == 0)
 					{
-						__result += $"\n<color=orange>{gemLocation}:</color> {Localization.instance.Localize($"$jc_effect_{gem[gemLocation].Effect.ToString().ToLower()}")} {gem[gemLocation].Power}";
+						__result += $"\n<color=orange>{Localization.instance.Localize($"$jc_socket_slot_{gemLocation.ToString().ToLower()}")}:</color> {Localization.instance.Localize($"$jc_effect_{gem[gemLocation].Effect.ToString().ToLower()}")} {gem[gemLocation].Power}";
 						seenGems |= gemLocation;
 					}
 				}

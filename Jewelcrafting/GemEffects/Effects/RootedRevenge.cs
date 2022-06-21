@@ -18,11 +18,11 @@ public static class RootedRevenge
 	[StructLayout(LayoutKind.Sequential)]
 	private struct Config
 	{
-		public readonly float BonusDamage;
-		public readonly float MinCooldown;
-		public readonly float MaxCooldown;
-		public readonly float Duration;
-		public readonly float Range;
+		[MultiplicativePercentagePower] public readonly float BonusDamage;
+		[MinPower] public readonly float MinCooldown;
+		[MinPower] public readonly float MaxCooldown;
+		[AdditivePower] public readonly float Duration;
+		[MaxPower] public readonly float Range;
 	}
 
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]
@@ -47,7 +47,7 @@ public static class RootedRevenge
 			base.OnDamaged(hit, attacker);
 			if (attacker is Player player && player.m_seman.HaveStatusEffect(Jewelcrafting.rootedRevenge.name))
 			{
-				hit.m_damage.Modify(player.GetEffect<Config>(Effect.Rootedrevenge).BonusDamage / 100f);
+				hit.m_damage.Modify(1 + player.GetEffect<Config>(Effect.Rootedrevenge).BonusDamage / 100f);
 			}
 		}
 	}

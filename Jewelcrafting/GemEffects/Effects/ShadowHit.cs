@@ -2,12 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class ShadowHit
 {
+	static ShadowHit()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Shadowhit, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+	
 	[HarmonyPatch(typeof(Character), nameof(Character.Damage))]
 	private class SpawnShadowSword
 	{

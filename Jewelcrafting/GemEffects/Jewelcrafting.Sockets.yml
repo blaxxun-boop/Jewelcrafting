@@ -172,7 +172,7 @@ unfazed:
 parry master:
   slot: shield
   gem: purple
-  power: [5, 8, 10]
+  power: [50, 80, 100]
 
 avoidance:
   slot: shield

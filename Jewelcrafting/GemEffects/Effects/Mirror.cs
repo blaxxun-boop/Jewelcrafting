@@ -6,6 +6,17 @@ namespace Jewelcrafting.GemEffects;
 
 public static class Mirror
 {
+	static Mirror()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Mirror, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Character), nameof(Character.Damage))]
 	public class ReflectDamageBack
 	{

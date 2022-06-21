@@ -1,9 +1,21 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class Inconspicuous
 {
+	static Inconspicuous()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Inconspicuous, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(SEMan), nameof(SEMan.ModifyNoise))]
 	private class ReduceNoise
 	{

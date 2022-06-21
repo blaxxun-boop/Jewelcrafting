@@ -1,10 +1,22 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class SnakeBite
 {
+	static SnakeBite()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Snakebite, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[MultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Character), nameof(Character.Damage))]
 	private class AddBonusPoisonDamage
 	{

@@ -5,6 +5,17 @@ namespace Jewelcrafting.GemEffects;
 
 public static class Hercules
 {
+	static Hercules()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Hercules, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[MultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Player), nameof(Player.GetMaxCarryWeight))]
 	private static class IncreaseCarryWeight
 	{

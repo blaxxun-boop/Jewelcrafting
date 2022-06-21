@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using HarmonyLib;
+using JetBrains.Annotations;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
@@ -8,6 +9,17 @@ namespace Jewelcrafting.GemEffects;
 
 public static class Necromancer
 {
+	static Necromancer()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Necromancer, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+
 	public static GameObject skeleton = null!;
 	
 	[HarmonyPatch(typeof(Projectile), nameof(Projectile.OnHit))]

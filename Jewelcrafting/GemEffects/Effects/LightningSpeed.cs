@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Runtime.InteropServices;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -15,12 +16,12 @@ public static class LightningSpeed
 	[StructLayout(LayoutKind.Sequential)]
 	private struct Config
 	{
-		public readonly float MovementSpeed;
-		public readonly float MinCooldown;
-		public readonly float MaxCooldown;
-		public readonly float Duration;
-		public readonly float AttackSpeed;
-		public readonly float Stamina;
+		[MultiplicativePercentagePower] public readonly float MovementSpeed;
+		[MinPower] public readonly float MinCooldown;
+		[MinPower] public readonly float MaxCooldown;
+		[AdditivePower] public readonly float Duration;
+		[MultiplicativePercentagePower] public readonly float AttackSpeed;
+		[InverseMultiplicativePercentagePower] public readonly float Stamina;
 	}
 	
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]
@@ -57,7 +58,7 @@ public static class LightningSpeed
 		{
 			if (__instance.m_seman.HaveStatusEffect(Jewelcrafting.lightningSpeed.name))
 			{
-				v *= __instance.GetEffect<Config>(Effect.Lightningspeed).Stamina / 100f;
+				v *= 1 - __instance.GetEffect<Config>(Effect.Lightningspeed).Stamina / 100f;
 			}
 		}
 	}

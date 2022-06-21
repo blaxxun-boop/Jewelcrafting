@@ -17,12 +17,12 @@ public static class PoisonousDrain
 	[StructLayout(LayoutKind.Sequential)]
 	private struct Config
 	{
-		public readonly float HealingIncrease;
-		public readonly float MinCooldown;
-		public readonly float MaxCooldown;
-		public readonly float Duration;
-		public readonly float PoisonDamage;
-		public readonly float LifeSteal;
+		[MultiplicativePercentagePower] public readonly float HealingIncrease;
+		[MinPower] public readonly float MinCooldown;
+		[MinPower] public readonly float MaxCooldown;
+		[AdditivePower] public readonly float Duration;
+		[AdditivePower] public readonly float PoisonDamage;
+		[MultiplicativePercentagePower] public readonly float LifeSteal;
 	}
 	
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]

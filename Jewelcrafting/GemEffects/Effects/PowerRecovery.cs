@@ -2,11 +2,23 @@
 using System.Linq;
 using System.Reflection.Emit;
 using HarmonyLib;
+using JetBrains.Annotations;
 
 namespace Jewelcrafting.GemEffects;
 
 public static class PowerRecovery
 {
+	static PowerRecovery()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Powerrecovery, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[InverseMultiplicativePercentagePower] public float Power;
+	}
+
 	[HarmonyPatch(typeof(Player), nameof(Player.ActivateGuardianPower))]
 	private class ReduceGuardianPowerCooldown
 	{

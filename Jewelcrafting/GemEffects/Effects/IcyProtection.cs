@@ -18,11 +18,11 @@ public static class IcyProtection
 	[StructLayout(LayoutKind.Sequential)]
 	private struct Config
 	{
-		public readonly float DamageReduction;
-		public readonly float MinCooldown;
-		public readonly float MaxCooldown;
-		public readonly float Duration;
-		public readonly float Drakes;
+		[InverseMultiplicativePercentagePower] public readonly float DamageReduction;
+		[MinPower] public readonly float MinCooldown;
+		[MinPower] public readonly float MaxCooldown;
+		[AdditivePower] public readonly float Duration;
+		[MaxPower] public readonly float Drakes;
 	}
 	
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]
