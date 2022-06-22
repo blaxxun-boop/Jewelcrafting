@@ -36,7 +36,9 @@ public static class Utils
 	public static void ApplyToAllPlayerItems(Player player, Action<ItemDrop.ItemData?> callback)
 	{
 		callback(player.m_rightItem);
+		callback(player.m_hiddenRightItem);
 		callback(player.m_leftItem);
+		callback(player.m_hiddenLeftItem);
 		callback(player.m_chestItem);
 		callback(player.m_legItem);
 		callback(player.m_ammoItem);
@@ -166,5 +168,18 @@ public static class Utils
 	public static bool isAdmin(ZRpc? rpc)
 	{
 		return rpc is null || ZNet.instance.m_adminList.Contains(rpc.GetSocket().GetHostName());
+	}
+	
+	public static T ConvertStatusEffect<T>(StatusEffect statusEffect) where T : StatusEffect
+	{
+		T ownSE = ScriptableObject.CreateInstance<T>();
+
+		ownSE.name = statusEffect.name;
+		foreach (FieldInfo field in statusEffect.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+		{
+			field.SetValue(ownSE, field.GetValue(statusEffect));
+		}
+
+		return ownSE;
 	}
 }

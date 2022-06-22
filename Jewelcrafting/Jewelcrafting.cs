@@ -25,7 +25,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.0.8";
+	private const string ModVersion = "1.0.9";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -338,7 +338,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		glowingSpirit = assets.LoadAsset<SE_Stats>("SE_Crystal_Magelight");
 		glowingSpiritPrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Magelight");
 		glowingSpiritPrefab.AddComponent<GlowingSpirit.OrbDestroy>();
-		lightningSpeed = assets.LoadAsset<SE_Stats>("SE_Boss_1");
+		lightningSpeed = Utils.ConvertStatusEffect<LightningSpeed.LightningSpeedEffect>(assets.LoadAsset<SE_Stats>("JC_Electric_Wings_SE"));
 		lightningSpeed.m_damageModifier = 0.5f;
 		poisonousDrain = assets.LoadAsset<SE_Stats>("SE_Boss_2");
 		poisonousDrainCloud = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_2");
@@ -356,7 +356,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		SetCfgValue(value => headhunter.m_ttl = value, headhunterDuration);
 
 		Necromancer.skeleton = PrefabManager.RegisterPrefab(assets, "JC_Skeleton");
-
+		
+		PrefabManager.RegisterPrefab(assets, "JC_Electric_Wings");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_5");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_6");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_7");
@@ -378,6 +379,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "vfx_puff_small");
 		PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
 		
+		Localizer.AddPlaceholder("jc_electric_wings_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_ring_green_description", "power", headhunterDamage);

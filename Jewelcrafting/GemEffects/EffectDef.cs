@@ -114,7 +114,7 @@ public class AdditivePowerAttribute : PowerAttribute
 // Use when doing 1 + effect / 100
 public class MultiplicativePercentagePowerAttribute : PowerAttribute
 {
-	public override float Add(float a, float b) => (1 + a / 100) * (1 + b / 100) * 100;
+	public override float Add(float a, float b) => ((1 + a / 100) * (1 + b / 100) - 1) * 100;
 }
 
 // Use when doing 1 - effect / 100 or when doing Random.Value < effect power

@@ -8,10 +8,17 @@ using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
-[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.SetupEquipment))]
+[HarmonyPatch]
 public class TrackEquipmentChanges
 {
 	public static event Action? OnEffectRecalc;
+
+	private static IEnumerable<MethodInfo> TargetMethods() => new[]
+	{
+		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.SetupEquipment)),
+		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.HideHandItems)),
+		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.ShowHandItems)),
+	};
 
 	[HarmonyPriority(Priority.Low)]
 	private static void Postfix(Humanoid __instance)
@@ -26,7 +33,7 @@ public class TrackEquipmentChanges
 	{
 		Player player = Player.m_localPlayer;
 
-		float weaponMultiplier = player.m_rightItem?.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon && player.m_leftItem?.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon ? 0.6f : 1;
+		float weaponMultiplier = (player.m_rightItem ?? player.m_hiddenRightItem)?.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon && (player.m_leftItem ?? player.m_hiddenLeftItem)?.m_shared.m_itemType == ItemDrop.ItemData.ItemType.OneHandedWeapon ? 0.6f : 1;
 
 		Dictionary<Effect, object> effects = new();
 
@@ -40,7 +47,7 @@ public class TrackEquipmentChanges
 				{
 					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, EffectPower> locationPowers) && locationPowers.TryGetValue(location, out EffectPower effectPower))
 					{
-						float multiplier = item == player.m_rightItem || item == player.m_leftItem ? weaponMultiplier : 1;
+						float multiplier = item == player.m_rightItem || item == player.m_leftItem || item == player.m_hiddenRightItem || item == player.m_hiddenRightItem ? weaponMultiplier : 1;
 
 						if (!effects.TryGetValue(effectPower.Effect, out object effectValue))
 						{
@@ -72,7 +79,7 @@ public class TrackEquipmentChanges
 		StoreSocketGems(zdo, VisSlot.HandLeft, player.m_leftItem);
 		StoreSocketGems(zdo, VisSlot.BackLeft, player.m_hiddenLeftItem);
 		StoreSocketGems(zdo, VisSlot.HandRight, player.m_rightItem);
-		StoreSocketGems(zdo, VisSlot.BackRight, player.m_hiddenLeftItem);
+		StoreSocketGems(zdo, VisSlot.BackRight, player.m_hiddenRightItem);
 
 		zdo.m_byteArrays ??= new Dictionary<int, byte[]>();
 		foreach (Effect effect in (Effect[])Enum.GetValues(typeof(Effect)))

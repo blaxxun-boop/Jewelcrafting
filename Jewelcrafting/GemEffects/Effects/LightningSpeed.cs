@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Runtime.InteropServices;
 using HarmonyLib;
-using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -16,7 +15,7 @@ public static class LightningSpeed
 	[StructLayout(LayoutKind.Sequential)]
 	private struct Config
 	{
-		[MultiplicativePercentagePower] public readonly float MovementSpeed;
+		[AdditivePower] public readonly float MovementSpeed;
 		[MinPower] public readonly float MinCooldown;
 		[MinPower] public readonly float MaxCooldown;
 		[AdditivePower] public readonly float Duration;
@@ -44,7 +43,7 @@ public static class LightningSpeed
 				Jewelcrafting.lightningSpeed.m_ttl = config.Duration;
 				if (player.m_seman.AddStatusEffect(Jewelcrafting.lightningSpeed) is SE_Stats statusEffect)
 				{
-					statusEffect.m_speedModifier = 1 + config.MovementSpeed / 100f;
+					statusEffect.m_speedModifier = config.MovementSpeed / 100f;
 				}
 			}
 		}
@@ -60,6 +59,15 @@ public static class LightningSpeed
 			{
 				v *= 1 - __instance.GetEffect<Config>(Effect.Lightningspeed).Stamina / 100f;
 			}
+		}
+	}
+
+	public class LightningSpeedEffect : SE_Stats
+	{
+		public override string GetTooltipString()
+		{
+			Config config = Player.m_localPlayer.GetEffect<Config>(Effect.Lightningspeed);
+			return Localization.instance.Localize(m_tooltip, config.MovementSpeed.ToString("0.#"), config.Stamina.ToString("0.#"));
 		}
 	}
 }
