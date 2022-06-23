@@ -21,11 +21,6 @@ public struct GemInfo
 
 public static class GemStoneSetup
 {
-	public static readonly List<string> lastConfigHashes = new()
-	{
-		"893E9532EC165DF4305EFE13974FC593"
-	};
-	
 	public static GameObject SocketTooltip = null!;
 	public static readonly Dictionary<GemType, List<GemDefinition>> Gems = new();
 	public static readonly Dictionary<GemType, GameObject> shardColors = new();

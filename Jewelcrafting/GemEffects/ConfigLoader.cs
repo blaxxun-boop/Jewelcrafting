@@ -22,7 +22,8 @@ public static class ConfigLoader
 	{
 		List<string> ErrorCheck(object? yaml);
 		void ApplyConfig();
-		List<string> ProcessConfig(object? yaml);
+		List<string> ProcessConfig(string key, object? yaml);
+		void Reset();
 		string FilePattern { get; }
 		string EditButtonName { get; }
 		CustomSyncedValue<List<string>> FileData { get; }
@@ -74,7 +75,11 @@ public static class ConfigLoader
 	public static void reloadConfigFile()
 	{
 		initialized = false;
-		loadConfigFile();
+		foreach (Loader loader in loaders)
+		{
+			loader.Reset();
+			loadConfigFile(loader);
+		}
 	}
 
 	private static void loadConfigFile()
@@ -84,27 +89,37 @@ public static class ConfigLoader
 			return;
 		}
 
-		initialized = true;
-
 		foreach (Loader loader in loaders)
 		{
 			loadConfigFile(loader);
 		}
+
+		initialized = true;
 	}
 
 	private static void loadConfigFile(Loader loader)
 	{
-		List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).OrderBy(p => Path.GetFileName(p) != loader.FilePattern.Replace("*", "")).ThenBy(Path.GetFileName).ToList();
-		if (paths.Count > 0)
+		if (!initialized)
 		{
-			Dictionary<string, string> files = Jewelcrafting.useExternalYaml.Value == Jewelcrafting.Toggle.On ? paths.ToDictionary(p => p, File.ReadAllText) : new Dictionary<string, string> { { "Jewelcrafting.Sockets.yml", Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml")) } };
+			object builtinConfig = new DeserializerBuilder().Build().Deserialize<object>(Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml")));
+			List<string> builtinConfigErrors = loader.ProcessConfig("", builtinConfig);
+			if (builtinConfigErrors.Count > 0)
+			{
+				Debug.LogError($"Found {Jewelcrafting.ModName} config errors in built-in config. Please report an issue:\n{string.Join("\n", builtinConfigErrors)}");
+			}
+		}
+
+		List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).OrderBy(p => Path.GetFileName(p) != loader.FilePattern.Replace("*", "")).ThenBy(Path.GetFileName).ToList();
+		if (paths.Count > 0 && Jewelcrafting.useExternalYaml.Value == Jewelcrafting.Toggle.On)
+		{
+			Dictionary<string, string> files = paths.ToDictionary(p => p, File.ReadAllText);
 
 			foreach (KeyValuePair<string, string> file in files)
 			{
 				try
 				{
 					object configObj = new DeserializerBuilder().Build().Deserialize<object>(file.Value);
-					List<string> errors = loader.ProcessConfig(configObj);
+					List<string> errors = loader.ProcessConfig(file.Key, configObj);
 					if (errors.Count > 0)
 					{
 						Debug.LogError($"Found {Jewelcrafting.ModName} config errors in file at {file.Key}. Please review the syntax of your file:\n{string.Join("\n", errors)}");
@@ -118,20 +133,23 @@ public static class ConfigLoader
 				}
 			}
 
-			loader.FileData.Value = files.SelectMany(kv => new[] { kv.Key, kv.Value }).ToList();
+			loader.FileData.AssignLocalValue(files.SelectMany(kv => new[] { kv.Key, kv.Value }).ToList());
 		}
-		else if (loader.Enabled)
-		{
-			string defaultPath = Jewelcrafting.configFilePaths.First() + Path.DirectorySeparatorChar + "Jewelcrafting.Sockets.yml";
-			File.WriteAllBytes(defaultPath, Utils.ReadEmbeddedFileBytes("GemEffects.Jewelcrafting.Sockets.yml"));
-			Debug.LogWarning($"Config file is set to active, but no {loader.FilePattern} file was found at {string.Join(" or ", Jewelcrafting.configFilePaths)}. Automatically creating a config file at {defaultPath}.");
 
-			loadConfigFile(loader); // retry
+		if (initialized)
+		{
 			return;
 		}
 
 		loader.FileData.ValueChanged += () =>
 		{
+			if (Jewelcrafting.useExternalYaml.Value == Jewelcrafting.Toggle.Off)
+			{
+				return;
+			}
+
+			loader.Reset();
+
 			Dictionary<string, string> files = loader.FileData.Value.Select((f, index) => new { f, index }).GroupBy(g => g.index / 2).ToDictionary(g => g.First().f, g => g.Last().f);
 			bool hasErrors = false;
 
@@ -140,7 +158,7 @@ public static class ConfigLoader
 				try
 				{
 					object configObj = new DeserializerBuilder().Build().Deserialize<object>(file.Value);
-					List<string> errors = loader.ProcessConfig(configObj);
+					List<string> errors = loader.ProcessConfig(file.Key, configObj);
 					if (errors.Count > 0)
 					{
 						Debug.LogError($"Received new {Jewelcrafting.ModName} yaml config data, with errors in file at {file.Key}. Please review the syntax of your file:\n{string.Join("\n", errors)}");
@@ -206,7 +224,7 @@ public static class ConfigLoader
 		{
 			return;
 		}
-		
+
 		foreach (Loader loader in loaders)
 		{
 			if (!Path.GetFileName(args.Name).StartsWith(Regex.Replace(loader.FilePattern, @"\*.*", "")))
@@ -220,12 +238,14 @@ public static class ConfigLoader
 				Dictionary<string, string> files = paths.ToDictionary(p => p, File.ReadAllText);
 				bool hasErrors = false;
 
+				loader.Reset();
+
 				foreach (KeyValuePair<string, string> file in files)
 				{
 					try
 					{
 						object configObj = new DeserializerBuilder().Build().Deserialize<object>(file.Value);
-						List<string> errors = loader.ProcessConfig(configObj);
+						List<string> errors = loader.ProcessConfig(file.Key, configObj);
 						if (errors.Count > 0)
 						{
 							Debug.LogError($"Found {Jewelcrafting.ModName} config errors in file at {file.Key}. Please review the syntax of your file:\n{string.Join("\n", errors)}");
@@ -241,7 +261,7 @@ public static class ConfigLoader
 
 				if (hasErrors)
 				{
-					Debug.LogWarning($"Ignoring the changed config file, retaining the originally loaded file.");
+					Debug.LogWarning("Ignoring the changed config file, retaining the originally loaded file.");
 				}
 				else
 				{

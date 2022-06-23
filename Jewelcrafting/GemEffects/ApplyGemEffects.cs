@@ -61,7 +61,7 @@ public class TrackEquipmentChanges
 						{
 							foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
 							{
-								field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.Config)) * multiplier);
+								field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.Config) * multiplier));
 							}
 						}
 					}

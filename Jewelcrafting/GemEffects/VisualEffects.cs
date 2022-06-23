@@ -15,7 +15,7 @@ public static class VisualEffects
 		{ "Perfect_Green_Socket", Jewelcrafting.greenGemEffects },
 		{ "Perfect_Black_Socket", Jewelcrafting.blackGemEffects },
 		{ "Perfect_Yellow_Socket", Jewelcrafting.yellowGemEffects },
-		{ "Perfect_Purple_Socket", Jewelcrafting.purpleGemEffects },
+		{ "Perfect_Purple_Socket", Jewelcrafting.purpleGemEffects }
 	};
 
 	private static readonly Dictionary<string, Dictionary<ItemDrop.ItemData.ItemType, GameObject>> armorEffectPrefabs = new()
@@ -26,6 +26,12 @@ public static class VisualEffects
 	private static readonly Dictionary<ItemDrop.ItemData.ItemType, Dictionary<string, GameObject>> armorPrefabsByType = new();
 
 	private const int TwoHandedVal = 0x80000;
+	private const int TowershieldVal = 0x100000;
+	private const int BlackmetalVal = 0x120000;
+	private const int BucklerVal = 0x140000;
+	private const int FineWoodBowVal = 0x160000;
+	private const int HuntsmanBowVal = 0x180000;
+	private const int DraugrFangVal = 0x200000;
 
 	private static void FillEffectHashMap()
 	{
@@ -187,7 +193,21 @@ public static class VisualEffects
 		}
 	}
 
-	public static Skills.SkillType TwoHanded(Skills.SkillType type) => (Skills.SkillType)(TwoHandedVal | (int)type);
+	private static Skills.SkillType SkillKey(ItemDrop.ItemData.SharedData shared) => (Skills.SkillType)((int)shared.m_skillType 
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Axes or Skills.SkillType.Clubs && shared.m_itemType is ItemDrop.ItemData.ItemType.TwoHandedWeapon ? TwoHandedVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_timedBlockBonus <= 1 ? TowershieldVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_name.Contains("blackmetal") ? BlackmetalVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_name.Contains("buckler") ? BucklerVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_finewood") ? FineWoodBowVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_huntsman") ? HuntsmanBowVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_draugrfang") ? DraugrFangVal : 0)
+		);
 
-	public static Skills.SkillType SkillKey(ItemDrop.ItemData.SharedData shared) => (Skills.SkillType)((shared.m_skillType is Skills.SkillType.Axes or Skills.SkillType.Clubs && shared.m_itemType is ItemDrop.ItemData.ItemType.TwoHandedWeapon ? TwoHandedVal : 0) | (int)shared.m_skillType);
+	public static Skills.SkillType TwoHanded(Skills.SkillType type) => (Skills.SkillType)(TwoHandedVal | (int)type);
+	public static Skills.SkillType Blackmetal(Skills.SkillType type) => (Skills.SkillType)(BlackmetalVal | (int)type);
+	public static Skills.SkillType Buckler() => (Skills.SkillType)(BucklerVal | (int)Skills.SkillType.Blocking);
+	public static Skills.SkillType Towershield() => (Skills.SkillType)(TowershieldVal | (int)Skills.SkillType.Blocking);
+	public static Skills.SkillType FineWoodBow() => (Skills.SkillType)(FineWoodBowVal | (int)Skills.SkillType.Bows);
+	public static Skills.SkillType BowHuntsman() => (Skills.SkillType)(HuntsmanBowVal | (int)Skills.SkillType.Bows);
+	public static Skills.SkillType BowDraugrFang() => (Skills.SkillType)(DraugrFangVal | (int)Skills.SkillType.Bows);
 }

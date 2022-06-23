@@ -79,7 +79,7 @@ public enum Effect
 
 public enum GemType
 {
-	Black,
+	Black = 1,
 	Blue,
 	Green,
 	Purple,
@@ -155,8 +155,10 @@ public class EffectDef
 	public GemLocation Slots;
 	public bool Unique = false;
 	public object[] Power = Array.Empty<object>();
-
+	
 	public static readonly Dictionary<Effect, Type> ConfigTypes = new();
+
+	private const GemLocation ResetGemlocations = GemLocation.All + 1;
 
 	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
@@ -165,16 +167,25 @@ public class EffectDef
 
 	private static Dictionary<string, object?> castDictToStringDict(Dictionary<object, object?> dict) => new(dict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value), StringComparer.InvariantCultureIgnoreCase);
 
-	public static KeyValuePair<Dictionary<Heightmap.Biome, Dictionary<GemType, float>>, Dictionary<Effect, List<EffectDef>>> Parse(object? rootDictObj, out List<string> errors)
+	public struct ParseResult
+	{
+		public Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution;
+		public Dictionary<Effect, List<EffectDef>> effects;
+	}
+
+	public static ParseResult Parse(object? rootDictObj, out List<string> errors)
 	{
 		Dictionary<Effect, List<EffectDef>> effects = new();
 		Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
-		KeyValuePair<Dictionary<Heightmap.Biome, Dictionary<GemType, float>>, Dictionary<Effect, List<EffectDef>>> configurationResult = new(gemDistribution, effects);
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)
 		{
-			errors.Add($"All top-level keys must be a mapping. Got unexpected {rootDictObj?.GetType().ToString() ?? "empty string (null)"}.");
+			if (rootDictObj is not null)
+			{
+				errors.Add($"All top-level keys must be a mapping. Got unexpected {rootDictObj.GetType()}.");
+			}
 			return configurationResult;
 		}
 
@@ -245,17 +256,18 @@ public class EffectDef
 									}
 								}
 							}
+							else if (biomeKv.Value is string biomeChance && float.TryParse(biomeChance, NumberStyles.Float, CultureInfo.InvariantCulture, out float chance) && chance is >= 0 and <= 1)
+							{
+								foreach (GemType gemType in ValidGemTypes.Values.Where(IsDestructibleGemType))
+								{
+									spawnChance[gemType] = chance;
+								}
+							}
 							else
 							{
-								errors.Add($"Gem chances are defined individually as a mapping of gem type and chance. Got unexpected {biomeKv.Value?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+								errors.Add($"Gem chances are defined individually as a mapping of gem type and chance, or a global chance for all gems expressed by a number between 0 and 1. Got unexpected {(biomeKv.Value is string stringValue ? $"'{stringValue}'" :biomeKv.Value?.GetType().ToString() ?? "empty string (null)")}. {errorLocation}");
 							}
-
-							if (spawnChance.Values.Sum() - 0.00001f > 1)
-							{
-								errors.Add($"The sum of all gem chances must not exceed 1. {errorLocation}");
-								continue;
-							}
-
+							
 							gemDistribution[biome] = spawnChance;
 						}
 						else
@@ -296,6 +308,7 @@ public class EffectDef
 						else
 						{
 							errorList.Add($"'{gem}' is not a valid type for a gem. Valid gem types are: '{string.Join("', '", ValidGemTypes.Keys)}'. {errorLocation}");
+							return;
 						}
 					}
 					else
@@ -315,7 +328,10 @@ public class EffectDef
 					List<string> slots = new();
 					if (effectDict["slot"] is string singleSlot)
 					{
-						slots.Add(singleSlot);
+						if (!string.Equals(singleSlot, "none", StringComparison.InvariantCultureIgnoreCase))
+						{
+							slots.Add(singleSlot);
+						}
 					}
 					else if (effectDict["slot"] is List<object?> slotList)
 					{
@@ -344,13 +360,8 @@ public class EffectDef
 						}
 						else
 						{
-							errorList.Add($"A '{slot}' is not a valid location for a gem. Valid locations are: '{string.Join("', '", ValidGemLocations.Keys)}'. {errorLocation}");
+							errorList.Add($"A '{slot}' is not a valid location for a gem. Valid locations are: '{string.Join("', '", ValidGemLocations.Keys)}'. Alternatively specify 'none' to drop all slots for this gem color. {errorLocation}");
 						}
-					}
-					if (effectDef.Slots == 0)
-					{
-						errorList.Add($"An effect definition must contain at least one location the gem can be inserted into. {errorLocation}");
-						return;
 					}
 				}
 				else
@@ -367,7 +378,7 @@ public class EffectDef
 					configType = typeof(DefaultPower);
 				}
 				Dictionary<string, FieldInfo> configFields = new(configType.GetFields().ToDictionary(f => Regex.Replace(f.Name, "(?!^)([A-Z])", " $1"), f => f), StringComparer.InvariantCultureIgnoreCase);
-				if (configFields.Count > 0)
+				if (effectDef.Slots != 0 && configFields.Count > 0)
 				{
 					if (HasKey("power"))
 					{
@@ -383,6 +394,12 @@ public class EffectDef
 							field ??= configFields.First().Value;
 							if (powerObj is Dictionary<object, object?> powersList && !hasField)
 							{
+								if (configFields.Count != powersList.Count)
+								{
+									errorList.Add($"There are missing configurable values for this effect. Specify values for all of {string.Join(", ", configFields.Keys)}. {errorLocation}");
+									return false;
+								}
+
 								foreach (KeyValuePair<string, object?> kv in castDictToStringDict(powersList))
 								{
 									if (!configFields.TryGetValue(kv.Key, out field))
@@ -390,6 +407,7 @@ public class EffectDef
 										errorList.Add($"'{kv.Key}' is not a valid configuration key for the powers. Specify values for all of {string.Join(", ", configFields.Keys)}. {errorLocation}");
 										return false;
 									}
+
 									if (!ParseTiers(kv.Value, field))
 									{
 										return false;
@@ -452,6 +470,7 @@ public class EffectDef
 									return false;
 								}
 							}
+
 							return true;
 						}
 
@@ -483,6 +502,10 @@ public class EffectDef
 
 			switch (rootDictKv.Value)
 			{
+				case "unset":
+				case List<object?> { Count: 0 }:
+					effects[ValidEffects[effect]] = new List<EffectDef>();
+					break;
 				case List<object?> effectList:
 				{
 					for (int i = 0; i < effectList.Count; i++)
@@ -502,7 +525,7 @@ public class EffectDef
 					AddEffectDef(castDictToStringDict(effectDict));
 					break;
 				default:
-					errors.Add($"Effects must either contain an effect definition, which must be a mapping of effect properties, or a list of effect definitions. Got unexpected {rootDictKv.Value?.GetType().ToString() ?? "empty string (null)"} for effect '{effect}'.");
+					errors.Add($"Effects must either contain an effect definition, which must be a mapping of effect properties, a list of effect definitions, or the string 'unset' to remove the effect altogether. Got unexpected {rootDictKv.Value?.GetType().ToString() ?? "empty string (null)"} for effect '{effect}'.");
 					break;
 			}
 		}
@@ -512,8 +535,7 @@ public class EffectDef
 
 	public class Loader : ConfigLoader.Loader
 	{
-		private Dictionary<Effect, List<EffectDef>> SocketEffects = new();
-		private Dictionary<Heightmap.Biome, Dictionary<GemType, float>> GemDistribution = new();
+		private readonly Dictionary<string, ParseResult> parsed = new();
 
 		public List<string> ErrorCheck(object? yaml)
 		{
@@ -521,18 +543,77 @@ public class EffectDef
 			return errors;
 		}
 
-		public List<string> ProcessConfig(object? yaml)
+		public List<string> ProcessConfig(string key, object? yaml)
 		{
-			KeyValuePair<Dictionary<Heightmap.Biome, Dictionary<GemType, float>>, Dictionary<Effect, List<EffectDef>>> result = Parse(yaml, out List<string> errors);
-			GemDistribution = result.Key;
-			SocketEffects = result.Value;
+			parsed[key] = Parse(yaml, out List<string> errors);
 			return errors;
+		}
+
+		public void Reset()
+		{
+			foreach (string key in parsed.Keys.Where(k => k != "").ToArray())
+			{
+				parsed.Remove(key);
+			}
 		}
 
 		public void ApplyConfig()
 		{
-			Jewelcrafting.SocketEffects = new Dictionary<Effect, List<EffectDef>>(SocketEffects);
-			Jewelcrafting.GemDistribution = new Dictionary<Heightmap.Biome, Dictionary<GemType, float>>(GemDistribution);
+			Dictionary<Effect, List<EffectDef>> socketEffects = new();
+			Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
+			foreach (ParseResult parse in parsed.Values)
+			{
+				foreach (KeyValuePair<Effect,List<EffectDef>> effectKv in parse.effects)
+				{
+					if (effectKv.Value.Count == 0)
+					{
+						socketEffects.Remove(effectKv.Key);
+					}
+					else
+					{
+						if (!socketEffects.TryGetValue(effectKv.Key, out List<EffectDef> gems))
+						{
+							gems = socketEffects[effectKv.Key] = new List<EffectDef>();
+						}
+						foreach (EffectDef def in effectKv.Value)
+						{
+							gems.RemoveAll(g => def.Type == g.Type);
+							if (def.Slots != 0)
+							{
+								gems.Add(def);
+							}
+						}
+					}
+				}
+				
+				foreach (KeyValuePair<Heightmap.Biome, Dictionary<GemType, float>> biomeKv in parse.gemDistribution)
+				{
+					if (!gemDistribution.TryGetValue(biomeKv.Key, out Dictionary<GemType, float> gems))
+					{
+						gems = gemDistribution[biomeKv.Key] = new Dictionary<GemType, float>();
+					}
+					foreach (KeyValuePair<GemType, float> kv in biomeKv.Value)
+					{
+						gems[kv.Key] = kv.Value;
+					}
+				}
+			}
+
+			// Ensure the sum for any given gemtype is at most 1
+			foreach (Dictionary<GemType, float> gems in gemDistribution.Values)
+			{
+				float sum = gems.Values.Sum();
+				if (sum > 1)
+				{
+					foreach (GemType gemType in gems.Keys.ToArray())
+					{
+						gems[gemType] /= sum;
+					}
+				}
+			}
+			
+			Jewelcrafting.SocketEffects = socketEffects;
+			Jewelcrafting.GemDistribution = gemDistribution;
 			Jewelcrafting.EffectPowers.Clear();
 			foreach (KeyValuePair<Effect, List<EffectDef>> kv in Jewelcrafting.SocketEffects)
 			{
