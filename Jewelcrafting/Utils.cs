@@ -29,6 +29,7 @@ public static class Utils
 			       ItemDrop.ItemData.ItemType.Shield or
 			       ItemDrop.ItemData.ItemType.Shoulder or
 			       ItemDrop.ItemData.ItemType.Utility or
+			       ItemDrop.ItemData.ItemType.Tool or
 			       ItemDrop.ItemData.ItemType.TwoHandedWeapon ||
 		       (item.m_itemType is ItemDrop.ItemData.ItemType.OneHandedWeapon && !item.m_attack.m_consumeItem);
 	}

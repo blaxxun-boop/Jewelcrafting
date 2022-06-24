@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using ItemManager;
+using Jewelcrafting.GemEffects;
 using UnityEngine;
 
 namespace Jewelcrafting;
@@ -11,8 +12,8 @@ public static class JewelrySetup
 {
 	private static readonly HashSet<string> upgradeableJewelry = new();
 
-	private static int greenRingHash;
-	private static string redRingName = null!;
+	public static int greenRingHash;
+	public static string redRingName = null!;
 
 	public static void initializeJewelry(AssetBundle assets)
 	{
@@ -51,6 +52,24 @@ public static class JewelrySetup
 		redRingName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		upgradeableJewelry.Add(redRingName);
 		
+		item = new Item(assets, "JC_Necklace_Green");
+		item.Crafting.Add("op_transmution_table", 3);
+		item.RequiredItems.Add("Perfect_Green_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		ItemDrop.ItemData.SharedData greenNecklaceShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		upgradeableJewelry.Add(greenNecklaceShared.m_name);
+		greenNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<MagicRepair>(greenNecklaceShared.m_equipStatusEffect);
+
+		item = new Item(assets, "JC_Necklace_Blue");
+		item.Crafting.Add("op_transmution_table", 3);
+		item.RequiredItems.Add("Perfect_Blue_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
+		
 		ExtendedItemDataFramework.ExtendedItemData.NewExtendedItemData += item =>
 		{
 			if (item.m_shared.m_name == purpleRingName && item.m_quality == 1 && item.GetComponent<Sockets>() is null)
@@ -85,51 +104,6 @@ public static class JewelrySetup
 			if (upgradeableJewelry.Contains(item.m_shared.m_name))
 			{
 				__result += $"\n$item_armor: <color=orange>{item.GetArmor(qualityLevel)}</color>";
-			}
-		}
-	}
-
-	[HarmonyPatch(typeof(OfferingBowl), nameof(OfferingBowl.DelayedSpawnBoss))]
-	private static class ApplyBossBuffs
-	{
-		private static void Postfix(OfferingBowl __instance)
-		{
-			List<Player> nearbyPlayers = new();
-			Player.GetPlayersInRange(__instance.m_bossSpawnPoint, 50f, nearbyPlayers);
-
-			foreach (Player p in nearbyPlayers)
-			{
-				if (p.m_visEquipment.m_currentUtilityItemHash == greenRingHash)
-				{
-					p.m_seman.AddStatusEffect(Jewelcrafting.headhunter.name, true);
-				}
-			}
-		}
-	}
-
-	[HarmonyPatch(typeof(Player), nameof(Player.UpdateEnvStatusEffects))]
-	private static class PreventColdNights
-	{
-		private static bool RemoveColdInColdNights(bool cold, Player player)
-		{
-			if (cold && EnvMan.instance.GetCurrentEnvironment().m_isColdAtNight && player.m_utilityItem?.m_shared.m_name == redRingName)
-			{
-				cold = false;
-			}
-			return cold;
-		} 
-		
-		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
-		{
-			MethodInfo isCold = AccessTools.DeclaredMethod(typeof(EnvMan), nameof(EnvMan.IsCold));
-			foreach (CodeInstruction instruction in instructions)
-			{
-				yield return instruction;
-				if (instruction.Calls(isCold))
-				{
-					yield return new CodeInstruction(OpCodes.Ldarg_0);
-					yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(PreventColdNights), nameof(RemoveColdInColdNights)));
-				}
 			}
 		}
 	}

@@ -229,6 +229,9 @@
   "jc_effect_unbreakable": "Unbreakable",
   "jc_effect_unbreakable_desc": "Decreases durability loss.",
   "jc_effect_unbreakable_desc_detail": "$1% reduced durability loss.",
+  "jc_effect_energetic": "Energetic",
+  "jc_effect_energetic_desc": "Decreases stamina usage.",
+  "jc_effect_energetic_desc_detail": "$1% reduced stamina usage.",
   "jc_effect_glowingspirit": "Glowing Spirit",
   "jc_effect_glowingspirit_desc": "Summons a glowing spirit.",
   "jc_effect_glowingspirit_desc_detail": "Summons a glowing spirit for $1 minutes at nightfall.",
@@ -268,5 +271,13 @@
   "jc_ring_red": "Ruby Ring of Warmth",
   "jc_ring_red_description": "This ring radiates heat, making the wearer feel warm. This will prevent feeling cold at night.",
   "jc_se_ring_red": "Warm",
-  "jc_se_ring_red_description": "You do not feel cold at night."
+  "jc_se_ring_red_description": "You do not feel cold at night.",
+  "jc_necklace_green": "Emerald Necklace of Magic Repair",
+  "jc_necklace_green_description": "An emerald necklace, which emits a magic aura. This aura will slowly repair all the equipment you are wearing.",
+  "jc_se_necklace_green": "Magic Repair",
+  "jc_se_necklace_green_description": "The equipment you are wearing is slowly getting repaired.",
+  "jc_necklace_blue": "Aquatic Sapphire Necklace",
+  "jc_necklace_blue_description": "This shiny necklace comes with a sapphire that contains a small amount of pure water. Wearing this necklace will increase your damage dealt while you are wet.",
+  "jc_se_necklace_blue": "Aquatic",
+  "jc_se_necklace_blue_description": "Your damage dealt is increased by {power}%."
 }

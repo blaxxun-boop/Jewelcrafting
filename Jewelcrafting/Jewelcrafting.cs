@@ -23,7 +23,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.0.10";
+	private const string ModVersion = "1.0.11";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -32,6 +32,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
 	public static ConfigEntry<Toggle> socketSystem = null!;
 	public static ConfigEntry<Toggle> inventorySocketing = null!;
+	public static ConfigEntry<InteractBehaviour> inventoryInteractBehaviour = null!;
 	public static ConfigEntry<int> breakChanceUnsocketSimple = null!;
 	public static ConfigEntry<int> breakChanceUnsocketAdvanced = null!;
 	public static ConfigEntry<int> breakChanceUnsocketPerfect = null!;
@@ -67,6 +68,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<uint> headhunterDuration = null!;
 	private static ConfigEntry<int> headhunterDamage = null!;
 	private static ConfigEntry<float> experienceGainedFactor = null!;
+	public static ConfigEntry<int> magicRepairAmount = null!;
+	private static ConfigEntry<int> aquaticDamageIncrease = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
@@ -104,13 +107,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private static Skill jewelcrafting = null!;
 
-	public static readonly Dictionary<Skills.SkillType, GameObject> redGemEffects = new();
-	public static readonly Dictionary<Skills.SkillType, GameObject> blueGemEffects = new();
-	public static readonly Dictionary<Skills.SkillType, GameObject> greenGemEffects = new();
-	public static readonly Dictionary<Skills.SkillType, GameObject> blackGemEffects = new();
-	public static readonly Dictionary<Skills.SkillType, GameObject> yellowGemEffects = new();
-	public static readonly Dictionary<Skills.SkillType, GameObject> purpleGemEffects = new();
-
 	public static GameObject swordFall = null!;
 	public static StatusEffect gliding = null!;
 	public static SE_Stats glowingSpirit = null!;
@@ -127,6 +123,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static GameObject attackedIcon = null!;
 	public static SE_Stats headhunter = null!;
 	private static SE_Stats rigidFinger = null!;
+	public static GameObject magicRepair = null!;
+	public static SE_Stats aquatic = null!;
 
 	private ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
 	{
@@ -151,6 +149,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Disabled = 0,
 		TrulyUnique = 1,
 		Custom = 2
+	}
+	
+	public enum InteractBehaviour
+	{
+		Disabled = 0,
+		Hovering = 1,
+		Enabled = 2
 	}
 
 	[PublicAPI]
@@ -200,6 +205,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		config("2 - Socket System", "YAML Editor Anchor", 0, new ConfigDescription("Just ignore this.", null, new ConfigurationManagerAttributes { HideSettingName = true, HideDefaultButton = true, CustomDrawer = DrawYamlEditorButton }), false);
 		inventorySocketing = config("2 - Socket System", "Inventory Socketing", Toggle.On, "If enabled, you can press the interact key to change gems in your items from your inventory. If disabled, you have to use the Gemcutters Table, to change the gems in your items.");
+		inventoryInteractBehaviour = config("2 - Socket System", "Interact Behaviour", InteractBehaviour.Hovering, "Disabled: Interact key is disabled, while the inventory is open.\nHovering: Interact key is disabled, while hovering an item with at least one socket.\nEnabled: Interact key is enabled. You will have to use the Gemcutters Table, to socket your items.", false);
 		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
 		visualEffects.SettingChanged += (_, _) =>
 		{
@@ -254,6 +260,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
 		headhunterDuration = config("Emerald Headhunter Ring", "Effect Duration", 20U, new ConfigDescription("Effect duration for the Emerald Headhunter Ring."));
 		headhunterDamage = config("Emerald Headhunter Ring", "Damage Increase", 30, new ConfigDescription("Damage increase for the Emerald Headhunter Ring effect.", new AcceptableValueRange<int>(0, 100)));
+		magicRepairAmount = config("Emerald Necklace of Magic Repair", "Repair Amount", 5, new ConfigDescription("Durability restoration per minute for the Emerald Necklace of Magic Repair effect.", new AcceptableValueRange<int>(0, 100)));
+		aquaticDamageIncrease = config("Aquatic Sapphire Necklace", "Damage Increase", 10, new ConfigDescription("Damage increase while wearing the Aquatic Sapphire Necklace and being wet.", new AcceptableValueRange<int>(0, 100)));
 
 		void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
 		{
@@ -265,6 +273,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		GemStoneSetup.initializeGemStones(assets);
 		DestructibleSetup.initializeDestructibles(assets);
 		JewelrySetup.initializeJewelry(assets);
+		VisualEffectSetup.initializeVisualEffects(assets);
 
 		int upgradeOrder = 0;
 		foreach (GemDefinition gem in GemStoneSetup.Gems.Values.SelectMany(g => g).Where(g => g.DefaultUpgradeChance > 0))
@@ -281,88 +290,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Assembly assembly = Assembly.GetExecutingAssembly();
 		Harmony harmony = new(ModGUID);
 		harmony.PatchAll(assembly);
-
-		redGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sword"));
-		redGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Axe"));
-		redGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_FireParticles_BAxe"));
-		redGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Knife"));
-		redGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Spear"));
-		redGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Mace"));
-		redGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sledge"));
-		redGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Atgeir"));
-		redGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_PainTolerance_Shield"));
-		redGemEffects.Add(VisualEffects.Blackmetal(Skills.SkillType.Blocking), PrefabManager.RegisterPrefab(assets, "JC_PainTolerance_BShield"));
-		redGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_PainTolerance_AShield"));
-		redGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_PainTolerance_TShield"));
-		redGemEffects.Add(Skills.SkillType.Bows, PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_Bow"));
-		redGemEffects.Add(VisualEffects.FineWoodBow(), PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_FineBow"));
-		redGemEffects.Add(VisualEffects.BowHuntsman(), PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_HuntBow"));
-		redGemEffects.Add(VisualEffects.BowDraugrFang(), PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_FangBow"));
-
-		blueGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Sword"));
-		blueGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Axe"));
-		blueGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_BAxe"));
-		blueGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Knife"));
-		blueGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Spear"));
-		blueGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Mace"));
-		blueGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Sledge"));
-		blueGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Atgeir"));
-		blueGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_Unfazed_Shield"));
-		blueGemEffects.Add(VisualEffects.Blackmetal(Skills.SkillType.Blocking), PrefabManager.RegisterPrefab(assets, "JC_Unfazed_BShield"));
-		blueGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_Unfazed_AShield"));
-		blueGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_Unfazed_TShield"));
-
-		greenGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Sword"));
-		greenGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Axe"));
-		greenGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_BAxe"));
-		greenGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Knife"));
-		greenGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Spear"));
-		greenGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Mace"));
-		greenGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Sledge"));
-		greenGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Atgeir"));
-		greenGemEffects.Add(Skills.SkillType.Bows, PrefabManager.RegisterPrefab(assets, "JC_Necromancer_Bow"));
-		greenGemEffects.Add(VisualEffects.FineWoodBow(), PrefabManager.RegisterPrefab(assets, "JC_Necromancer_FineBow"));
-		greenGemEffects.Add(VisualEffects.BowHuntsman(), PrefabManager.RegisterPrefab(assets, "JC_Necromancer_HuntBow"));
-		greenGemEffects.Add(VisualEffects.BowDraugrFang(), PrefabManager.RegisterPrefab(assets, "JC_Necromancer_FangBow"));
-
-		blackGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Sword"));
-		blackGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Axe"));
-		blackGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_BAxe"));
-		blackGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Knife"));
-		blackGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Spear"));
-		blackGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Mace"));
-		blackGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Sledge"));
-		blackGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Atgeir"));
-		blackGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_Tank_Shield"));
-		blackGemEffects.Add(VisualEffects.Blackmetal(Skills.SkillType.Blocking), PrefabManager.RegisterPrefab(assets, "JC_Tank_BShield"));
-		blackGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_Tank_AShield"));
-		blackGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_Tank_TShield"));
-		blackGemEffects.Add(Skills.SkillType.Bows, PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_Bow"));
-		blackGemEffects.Add(VisualEffects.FineWoodBow(), PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_FineBow"));
-		blackGemEffects.Add(VisualEffects.BowHuntsman(), PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_HuntBow"));
-		blackGemEffects.Add(VisualEffects.BowDraugrFang(), PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_FangBow"));
-
-		yellowGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Sword"));
-		yellowGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Axe"));
-		yellowGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_BAxe"));
-		yellowGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Knife"));
-		yellowGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Spear"));
-		yellowGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Mace"));
-		yellowGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Sledge"));
-		yellowGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Atgeir"));
-		yellowGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_Avoidance_Shield"));
-		yellowGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_AShield"));
-		yellowGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_BShield"));
-		yellowGemEffects.Add(VisualEffects.Blackmetal(Skills.SkillType.Blocking), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_TShield"));
-
-		purpleGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_Shield"));
-		purpleGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_AShield"));
-		purpleGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_BShield"));
-		purpleGemEffects.Add(VisualEffects.Blackmetal(Skills.SkillType.Blocking), PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_TShield"));
-		purpleGemEffects.Add(Skills.SkillType.Bows, PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_Bow"));
-		purpleGemEffects.Add(VisualEffects.FineWoodBow(), PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_FineBow"));
-		purpleGemEffects.Add(VisualEffects.BowHuntsman(), PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_HuntBow"));
-		purpleGemEffects.Add(VisualEffects.BowDraugrFang(), PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_FangBow"));
 
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
 		gliding = assets.LoadAsset<SE_Stats>("JCGliding");
@@ -382,9 +309,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
 		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
 		rigidFinger = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Purple");
+		magicRepair = PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
+		aquatic = assets.LoadAsset<SE_Stats>("JC_Se_Necklace_Blue");
+
 		SetCfgValue(value => rigidFinger.m_damageModifier = 1 - value / 100f, rigidDamageReduction);
 		SetCfgValue(value => headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
 		SetCfgValue(value => headhunter.m_ttl = value, headhunterDuration);
+		SetCfgValue(value => aquatic.m_damageModifier = 1 + value / 100f, aquaticDamageIncrease);
 
 		Necromancer.skeleton = PrefabManager.RegisterPrefab(assets, "JC_Skeleton");
 
@@ -408,7 +339,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "vfx_potionhit");
 		PrefabManager.RegisterPrefab(assets, "sfx_potion_smash");
 		PrefabManager.RegisterPrefab(assets, "vfx_puff_small");
-		PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_1");
 
 		Localizer.AddPlaceholder("jc_electric_wings_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
@@ -416,6 +347,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_ring_green_description", "power", headhunterDamage);
 		Localizer.AddPlaceholder("jc_ring_green_description", "duration", headhunterDuration);
 		Localizer.AddPlaceholder("jc_se_ring_green_description", "power", headhunterDamage);
+		Localizer.AddPlaceholder("jc_se_necklace_blue_description", "power", aquaticDamageIncrease);
 
 		/*
 		foreach (UnityEngine.Object asset in assets.LoadAllAssets())

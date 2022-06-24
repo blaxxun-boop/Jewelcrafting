@@ -417,7 +417,7 @@ public static class GemStones
 				if (UITooltip.m_tooltip.transform.Find("Bkg (1)/Transmute_Press_Interact") is { } interact)
 				{
 					string text;
-					if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
+					if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table")))
 					{
 						text = Localization.instance.Localize("$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
 					}
@@ -658,7 +658,6 @@ public static class GemStones
 			}
 
 			return true;
-
 		}
 
 		private static bool Prefix(InventoryGui __instance)
@@ -666,7 +665,7 @@ public static class GemStones
 			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
 			{
 				ItemDrop.ItemData? item = null;
-				if (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse"))
+				if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")))
 				{
 					Vector2 pos = Input.mousePosition;
 					item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
@@ -681,9 +680,23 @@ public static class GemStones
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Update))]
 	private class CatchInventoryUseButton
 	{
-		private static bool ShallPreventInventoryClose()
+		private static bool ShallPreventInventoryClose(InventoryGui invGui)
 		{
-			return Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")) && RectTransformUtility.RectangleContainsScreenPoint(InventoryGui.instance.m_playerGrid.m_gridRoot, Input.mousePosition);
+			if (Jewelcrafting.inventoryInteractBehaviour.Value == Jewelcrafting.InteractBehaviour.Enabled)
+			{
+				return false;
+			}
+			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")) && RectTransformUtility.RectangleContainsScreenPoint(invGui.m_playerGrid.m_gridRoot, Input.mousePosition))
+			{
+				if (Jewelcrafting.inventoryInteractBehaviour.Value == Jewelcrafting.InteractBehaviour.Disabled)
+				{
+					return true;
+				}
+				
+				Vector2 pos = Input.mousePosition;
+				return invGui.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended()?.GetComponent<Sockets>() is not null;
+			}
+			return false;
 		}
 
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsList)
@@ -702,6 +715,7 @@ public static class GemStones
 					{
 						--j;
 					}
+					yield return new CodeInstruction(OpCodes.Ldarg_0);
 					yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(CatchInventoryUseButton), nameof(ShallPreventInventoryClose)));
 					yield return new CodeInstruction(OpCodes.Brtrue, target!.Value);
 				}
