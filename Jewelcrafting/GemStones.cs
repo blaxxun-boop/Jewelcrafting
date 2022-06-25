@@ -113,12 +113,13 @@ public static class GemStones
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateCraftingPanel))]
 	private class LimitTabToGemCutterTable
 	{
-		private static void Postfix()
+		private static void Prefix(InventoryGui __instance)
 		{
 			AddSocketAddingTab.tab.gameObject.SetActive(Player.m_localPlayer.m_currentStation && Player.m_localPlayer.m_currentStation.name.StartsWith("op_transmution_table", StringComparison.Ordinal));
-			if (!AddSocketAddingTab.tab.gameObject.activeSelf)
+			if (!AddSocketAddingTab.tab.gameObject.activeSelf && !AddSocketAddingTab.tab.GetComponent<Button>().interactable)
 			{
 				AddSocketAddingTab.tab.GetComponent<Button>().interactable = true;
+				__instance.m_tabCraft.interactable = false;
 			}
 		}
 	}

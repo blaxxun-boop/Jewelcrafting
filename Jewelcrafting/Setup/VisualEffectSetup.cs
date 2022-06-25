@@ -14,6 +14,13 @@ public static class VisualEffectSetup
 	public static readonly Dictionary<Skills.SkillType, GameObject> yellowGemEffects = new();
 	public static readonly Dictionary<Skills.SkillType, GameObject> purpleGemEffects = new();
 
+	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> redArmorEffects = new();
+	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> blueArmorEffects = new();
+	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> greenArmorEffects = new();
+	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> blackArmorEffects = new();
+	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> yellowArmorEffects = new();
+	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> purpleArmorEffects = new();
+
 	public static void initializeVisualEffects(AssetBundle assets)
 	{
 		redGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sword"));
@@ -88,7 +95,12 @@ public static class VisualEffectSetup
 		yellowGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_AShield"));
 		yellowGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_BShield"));
 		yellowGemEffects.Add(VisualEffects.Blackmetal(Skills.SkillType.Blocking), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_TShield"));
-
+		yellowGemEffects.Add(Skills.SkillType.Pickaxes, PrefabManager.RegisterPrefab(assets, "JC_Pick_Energetic"));
+		yellowGemEffects.Add(VisualEffects.PickaxeIron(), PrefabManager.RegisterPrefab(assets, "JC_PickIron_Energetic"));
+		
+		yellowArmorEffects.Add(VisualEffects.Hammer(), PrefabManager.RegisterPrefab(assets, "JC_Hammer_Energetic"));
+		yellowArmorEffects.Add(VisualEffects.Hoe(), PrefabManager.RegisterPrefab(assets, "JC_Hoe_Energetic"));
+		
 		purpleGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_Shield"));
 		purpleGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_AShield"));
 		purpleGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_BShield"));
@@ -97,5 +109,10 @@ public static class VisualEffectSetup
 		purpleGemEffects.Add(VisualEffects.FineWoodBow(), PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_FineBow"));
 		purpleGemEffects.Add(VisualEffects.BowHuntsman(), PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_HuntBow"));
 		purpleGemEffects.Add(VisualEffects.BowDraugrFang(), PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_FangBow"));
+		purpleGemEffects.Add(Skills.SkillType.Pickaxes, PrefabManager.RegisterPrefab(assets, "JC_Pick_Unbreakable"));
+		purpleGemEffects.Add(VisualEffects.PickaxeIron(), PrefabManager.RegisterPrefab(assets, "JC_PickIron_Unbreakable"));
+
+		purpleArmorEffects.Add(VisualEffects.Hammer(), PrefabManager.RegisterPrefab(assets, "JC_Hammer_Unbreakable"));
+		purpleArmorEffects.Add(VisualEffects.Hoe(), PrefabManager.RegisterPrefab(assets, "JC_Hoe_Unbreakable"));
 	}
 }

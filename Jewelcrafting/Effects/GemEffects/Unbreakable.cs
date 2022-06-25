@@ -23,7 +23,7 @@ public static class Unbreakable
 		{
 			if (__instance.m_character is Player player)
 			{
-				__instance.m_weapon.m_shared.m_durabilityDrain *= 1 - player.GetEffect(Effect.Unbreakable) / 100f;
+				__instance.m_weapon.m_shared.m_useDurabilityDrain *= 1 - player.GetEffect(Effect.Unbreakable) / 100f;
 			}
 		}
 
@@ -31,7 +31,7 @@ public static class Unbreakable
 		{
 			if (__instance.m_character is Player player)
 			{
-				__instance.m_weapon.m_shared.m_durabilityDrain /= 1 - player.GetEffect(Effect.Unbreakable) / 100f;
+				__instance.m_weapon.m_shared.m_useDurabilityDrain /= 1 - player.GetEffect(Effect.Unbreakable) / 100f;
 			}
 		}
 	}
@@ -43,7 +43,7 @@ public static class Unbreakable
 		{
 			if (__instance.GetRightItem() is { } hammer)
 			{
-				hammer.m_shared.m_durabilityDrain *= 1 - __instance.GetEffect(Effect.Unbreakable) / 100f;
+				hammer.m_shared.m_useDurabilityDrain *= 1 - __instance.GetEffect(Effect.Unbreakable) / 100f;
 			}
 		}
 
@@ -51,7 +51,7 @@ public static class Unbreakable
 		{
 			if (__instance.GetRightItem() is { } hammer)
 			{
-				hammer.m_shared.m_durabilityDrain /= 1 - __instance.GetEffect(Effect.Unbreakable) / 100f;
+				hammer.m_shared.m_useDurabilityDrain /= 1 - __instance.GetEffect(Effect.Unbreakable) / 100f;
 			}
 		}
 	}
