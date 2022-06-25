@@ -71,8 +71,12 @@ public static class GemStones
 		public static Transform tab = null!;
 		private static readonly UnityAction clearInteractable = () =>
 		{
-			tab.GetComponent<Button>().interactable = true;
-			InventoryGui.instance.UpdateCraftingPanel();
+			if (!tab.GetComponent<Button>().interactable)
+			{
+				InventoryGui.instance.m_craftTimer = -1;
+				tab.GetComponent<Button>().interactable = true;
+				InventoryGui.instance.UpdateCraftingPanel();
+			}
 		};
 
 		[HarmonyPriority(Priority.High)]

@@ -137,6 +137,7 @@ public static class Utils
 			if (item?.Extended() is { } extended)
 			{
 				extended.Components.AddRange(components);
+				extended.Save();
 			}
 			return item;
 		}

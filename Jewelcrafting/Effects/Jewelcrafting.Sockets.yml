@@ -198,7 +198,7 @@ unbreakable:
 
 energetic:
   slot: tool
-  gem: purple
+  gem: yellow
   power: [15, 25, 30]
 
 # Boss
