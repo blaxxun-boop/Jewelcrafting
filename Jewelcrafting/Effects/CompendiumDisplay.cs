@@ -28,10 +28,13 @@ public static class CompendiumDisplay
 					GemLocation location = Utils.GetGemLocation(item.m_shared);
 					foreach (string socket in itemSockets.socketedGems.Where(s => s != ""))
 					{
-						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, EffectPower> locationPowers) && locationPowers.TryGetValue(location, out EffectPower effectPower))
+						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 						{
-							gems.TryGetValue(effectPower.Effect, out KeyValuePair<float, GemLocation> power);
-							gems[effectPower.Effect] = new KeyValuePair<float, GemLocation>(power.Key + effectPower.Power, power.Value | location);
+							foreach (EffectPower effectPower in effectPowers)
+							{
+								gems.TryGetValue(effectPower.Effect, out KeyValuePair<float, GemLocation> power);
+								gems[effectPower.Effect] = new KeyValuePair<float, GemLocation>(power.Key + effectPower.Power, power.Value | location);
+							}
 						}
 					}
 				}
@@ -54,7 +57,7 @@ public static class CompendiumDisplay
 				int gemHash = kv.Value[0].Prefab.name.GetStableHashCode();
 				if (Jewelcrafting.EffectPowers.ContainsKey(gemHash))
 				{
-					Dictionary<Effect, IEnumerable<GemLocation>> effects = Jewelcrafting.EffectPowers[gemHash].GroupBy(g => g.Value.Effect).ToDictionary(g => g.Key, g => g.Select(kv => kv.Key));
+					Dictionary<Effect, IEnumerable<GemLocation>> effects = Jewelcrafting.EffectPowers[gemHash].SelectMany(kv => kv.Value.Select(p => new KeyValuePair<GemLocation, Effect>(kv.Key, p.Effect))).GroupBy(g => g.Value).ToDictionary(g => g.Key, g => g.Select(kv => kv.Key));
 					foreach (KeyValuePair<Effect, IEnumerable<GemLocation>> effect in effects)
 					{
 						/*GemLocation seenGems = 0;

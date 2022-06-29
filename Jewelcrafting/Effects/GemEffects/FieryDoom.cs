@@ -40,6 +40,10 @@ public static class FieryDoom
 			Config config = player.GetEffect<Config>(Effect.Fierydoom);
 			if (config.Duration > 0)
 			{
+				Object.Instantiate(Jewelcrafting.fireStart, player.transform);
+				
+				yield return new WaitForSeconds(4);
+				
 				player.m_seman.AddStatusEffect(Jewelcrafting.fieryDoom).m_ttl = config.Duration;
 				Object.Instantiate(Jewelcrafting.fieryDoomExplosion, player.transform).GetComponent<Aoe>().Setup(player, Vector3.zero, 50, new HitData
 				{

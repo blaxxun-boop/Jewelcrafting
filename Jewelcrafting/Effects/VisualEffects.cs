@@ -28,8 +28,8 @@ public static class VisualEffects
 		{ "Perfect_Purple_Socket", VisualEffectSetup.purpleArmorEffects }
 	};
 
-	private static readonly Dictionary<Skills.SkillType, Dictionary<string, GameObject>> handAttachPrefabsBySkill = new();
-	private static readonly Dictionary<ItemDrop.ItemData.ItemType, Dictionary<string, GameObject>> armorPrefabsByType = new();
+	private static readonly Dictionary<Skills.SkillType, Dictionary<string, GameObject[]>> handAttachPrefabsBySkill = new();
+	private static readonly Dictionary<ItemDrop.ItemData.ItemType, Dictionary<string, GameObject[]>> armorPrefabsByType = new();
 
 	private const int TwoHandedVal = 0x80000;
 	private const int TowershieldVal = 0x100000;
@@ -44,19 +44,49 @@ public static class VisualEffects
 
 	private static void FillEffectHashMap()
 	{
-		void AddToEffectMap<T>(Dictionary<string, Dictionary<T, GameObject>> effectPrefabs, Dictionary<T, Dictionary<string, GameObject>> inverse)
+		void AddToEffectMap<T>(Dictionary<string, Dictionary<T, GameObject>> effectPrefabs, Dictionary<T, Dictionary<string, GameObject[]>> inverse)
 		{
 			foreach (KeyValuePair<string, Dictionary<T, GameObject>> kv in effectPrefabs)
 			{
 				foreach (KeyValuePair<T, GameObject> effectKv in kv.Value)
 				{
-					if (!inverse.TryGetValue(effectKv.Key, out Dictionary<string, GameObject> inverseDict))
+					if (!inverse.TryGetValue(effectKv.Key, out Dictionary<string, GameObject[]> inverseDict))
 					{
-						inverseDict = inverse[effectKv.Key] = new Dictionary<string, GameObject>();
+						inverseDict = inverse[effectKv.Key] = new Dictionary<string, GameObject[]>();
 					}
-					inverseDict.Add(kv.Key, effectKv.Value);
+					inverseDict.Add(kv.Key, new []{ effectKv.Value });
 
 					effectHashMap.Add(effectKv.Value.name.GetStableHashCode(), effectKv.Value);
+				}
+			}
+			
+			foreach (KeyValuePair<T, Dictionary<string, GameObject[]>> inverseKv in inverse)
+			{
+				foreach (KeyValuePair<GemType, Dictionary<GemType, GameObject[]>> mergedKv in MergedGemStoneSetup.mergedGems)
+				{
+					foreach (KeyValuePair<GemType, GameObject[]> gemKv in mergedKv.Value)
+					{
+						for (int i = 0; i < gemKv.Value.Length; ++i)
+						{
+							Dictionary<T, GameObject>?[] prefabDicts = new Dictionary<T, GameObject>[2];
+							effectPrefabs.TryGetValue(GemStoneSetup.Gems[mergedKv.Key][i].Prefab.name, out prefabDicts[0]);
+							effectPrefabs.TryGetValue(GemStoneSetup.Gems[gemKv.Key][i].Prefab.name, out prefabDicts[1]);
+
+							List<GameObject> prefabs = new();
+							foreach (Dictionary<T, GameObject>? prefabDict in prefabDicts)
+							{
+								if (prefabDict?.TryGetValue(inverseKv.Key, out GameObject prefab) == true)
+								{
+									prefabs.Add(prefab);
+								}
+							}
+
+							if (prefabs.Count > 0)
+							{
+								inverseKv.Value.Add(gemKv.Value[i].name, prefabs.ToArray());
+							}
+						}
+					}
 				}
 			}
 		}
@@ -101,7 +131,7 @@ public static class VisualEffects
 
 	private static void ApplyEffects(Dictionary<string, EffectCache> effectsActive, ZDO zdo, VisSlot part, GameObject? equipRoot)
 	{
-		for (int i = 0; i < 5; ++i)
+		for (int i = 0; i < 10; ++i)
 		{
 			string name = $"JewelCrafting {part} Effect {i}";
 			int effect = zdo.GetInt(name);
@@ -148,9 +178,9 @@ public static class VisualEffects
 		}
 	}
 
-	public static Dictionary<string, GameObject>? prefabDict(ItemDrop.ItemData.SharedData shared)
+	public static Dictionary<string, GameObject[]>? prefabDict(ItemDrop.ItemData.SharedData shared)
 	{
-		Dictionary<string, GameObject>? prefabs;
+		Dictionary<string, GameObject[]>? prefabs;
 		if (shared.m_itemType is ItemDrop.ItemData.ItemType.Bow or ItemDrop.ItemData.ItemType.Shield or ItemDrop.ItemData.ItemType.OneHandedWeapon or ItemDrop.ItemData.ItemType.TwoHandedWeapon)
 		{
 			handAttachPrefabsBySkill.TryGetValue(SkillKey(shared), out prefabs);
@@ -172,9 +202,12 @@ public static class VisualEffects
 			{
 				foreach (string socket in itemSockets.socketedGems)
 				{
-					if (effectPrefabs.TryGetValue(socket, out GameObject effect))
+					if (effectPrefabs.TryGetValue(socket, out GameObject[] effects))
 					{
-						Object.Instantiate(effect, __instance.transform.Find("attach"), false);
+						foreach (GameObject effect in effects)
+						{
+							Object.Instantiate(effect, __instance.transform.Find("attach"), false);
+						}
 					}
 				}
 			}
@@ -186,14 +219,17 @@ public static class VisualEffects
 			{
 				foreach (string socket in itemSockets.socketedGems)
 				{
-					if (effectPrefabs.TryGetValue(socket, out GameObject effect))
+					if (effectPrefabs.TryGetValue(socket, out GameObject[] effects))
 					{
 						Transform attach = item.transform.Find("attach");
 						for (int j = 0, children = attach.childCount; j < children; ++j)
 						{
-							if (global::Utils.GetPrefabName(attach.GetChild(j).gameObject) == effect.name)
+							foreach (GameObject effect in effects)
 							{
-								Object.Destroy(attach.GetChild(j).gameObject);
+								if (global::Utils.GetPrefabName(attach.GetChild(j).gameObject) == effect.name)
+								{
+									Object.Destroy(attach.GetChild(j).gameObject);
+								}
 							}
 						}
 					}

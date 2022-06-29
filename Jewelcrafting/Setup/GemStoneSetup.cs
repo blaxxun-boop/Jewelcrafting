@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
+using HarmonyLib;
 using ItemManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
@@ -31,7 +33,6 @@ public static class GemStoneSetup
 		Item AddGem(string prefab, GemType color, float defaultUpgradeChance = 0)
 		{
 			Item gemStone = new(assets, prefab) { Configurable = false };
-			GemStones.socketableGemStones.Add(gemStone.Prefab);
 			if (shardColors.TryGetValue(color, out GameObject shard))
 			{
 				GemStones.gemToShard.Add(gemStone.Prefab.name, shard);
@@ -42,6 +43,7 @@ public static class GemStoneSetup
 				colorGems = Gems[color] = new List<GemDefinition>();
 			}
 			string gemName = gemStone.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+			GemStones.socketableGemStones.Add(gemName);
 			colorGems.Add(new GemDefinition
 			{
 				DefaultUpgradeChance = defaultUpgradeChance,
@@ -59,7 +61,7 @@ public static class GemStoneSetup
 		}
 
 		SocketTooltip = assets.LoadAsset<GameObject>("CrystalText");
-		GemStones.emptySocketSprite = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_1").GetComponent<Image>().sprite;
+		GemStones.emptySocketSprite = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_Text_1/Transmute_1").GetComponent<Image>().sprite;
 
 		Item gemStone = new(assets, "Uncut_Black_Stone");
 		Jewelcrafting.gemDropChances.Add(gemStone.Prefab, Jewelcrafting.gemDropChanceOnyx);
@@ -221,5 +223,17 @@ public static class GemStoneSetup
 		GemStones.bossToGem.Add("GoblinKing", gemStone.Prefab);
 		gemStone = AddGem("Boss_Crystal_7", GemType.Eikthyr);
 		GemStones.bossToGem.Add("Eikthyr", gemStone.Prefab);
+	}
+	
+	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
+	private class AddGemStonesToDrops
+	{
+		private static void Postfix(List<KeyValuePair<GameObject, int>> __result)
+		{
+			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On)
+			{
+				__result.AddRange(from gem in Jewelcrafting.gemDropChances.Keys where Random.value < Jewelcrafting.gemDropChances[gem].Value / 100f select new KeyValuePair<GameObject, int>(gem, 1));
+			}
+		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Runtime.InteropServices;
 using HarmonyLib;
+using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -40,6 +41,10 @@ public static class LightningSpeed
 			Config config = player.GetEffect<Config>(Effect.Lightningspeed);
 			if (config.Duration > 0)
 			{
+				Object.Instantiate(Jewelcrafting.lightningStart, player.transform);
+				
+				yield return new WaitForSeconds(4);
+				
 				Jewelcrafting.lightningSpeed.m_ttl = config.Duration;
 				if (player.m_seman.AddStatusEffect(Jewelcrafting.lightningSpeed) is SE_Stats statusEffect)
 				{

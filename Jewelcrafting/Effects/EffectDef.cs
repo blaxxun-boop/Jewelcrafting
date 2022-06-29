@@ -620,26 +620,42 @@ public class EffectDef
 			{
 				foreach (EffectDef def in kv.Value)
 				{
-					List<GemDefinition> gems = GemStoneSetup.Gems[def.Type];
-					for (int i = 0; i < gems.Count; ++i)
+					void ApplyToGems(List<GameObject> gems)
 					{
-						GemDefinition gem = gems[i];
-						int hash = gem.Prefab.name.GetStableHashCode();
-						if (!Jewelcrafting.EffectPowers.TryGetValue(hash, out Dictionary<GemLocation, EffectPower> power))
+						for (int i = 0; i < gems.Count; ++i)
 						{
-							power = Jewelcrafting.EffectPowers[hash] = new Dictionary<GemLocation, EffectPower>();
-						}
-						EffectPower effectPower = new()
-						{
-							Effect = kv.Key,
-							Config = def.Power[i],
-							Unique = def.Unique,
-						};
-						foreach (GemLocation location in (GemLocation[])Enum.GetValues(typeof(GemLocation)))
-						{
-							if ((def.Slots & location) == location)
+							int hash = gems[i].name.GetStableHashCode();
+							if (!Jewelcrafting.EffectPowers.TryGetValue(hash, out Dictionary<GemLocation, List<EffectPower>> power))
 							{
-								power[location] = effectPower;
+								power = Jewelcrafting.EffectPowers[hash] = new Dictionary<GemLocation, List<EffectPower>>();
+							}
+							EffectPower effectPower = new()
+							{
+								Effect = kv.Key,
+								Config = def.Power[i],
+								Unique = def.Unique,
+							};
+							foreach (GemLocation location in (GemLocation[])Enum.GetValues(typeof(GemLocation)))
+							{
+								if ((def.Slots & location) == location)
+								{
+									if (!power.TryGetValue(location, out List<EffectPower> effectPowers))
+									{
+										effectPowers = power[location] = new List<EffectPower>();
+									}
+									effectPowers.Add(effectPower);
+								}
+							}
+						}
+					}
+					ApplyToGems(GemStoneSetup.Gems[def.Type].Select(g => g.Prefab).ToList());
+					foreach (KeyValuePair<GemType, Dictionary<GemType, GameObject[]>> mergedGem in MergedGemStoneSetup.mergedGems)
+					{
+						foreach (KeyValuePair<GemType,GameObject[]> mergedKv in mergedGem.Value)
+						{
+							if (mergedKv.Key == def.Type || mergedGem.Key == def.Type)
+							{
+								ApplyToGems(mergedKv.Value.ToList());
 							}
 						}
 					}

@@ -45,23 +45,26 @@ public class TrackEquipmentChanges
 
 				foreach (string socket in itemSockets.socketedGems)
 				{
-					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, EffectPower> locationPowers) && locationPowers.TryGetValue(location, out EffectPower effectPower))
+					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 					{
 						float multiplier = item == player.m_rightItem || item == player.m_leftItem || item == player.m_hiddenRightItem || item == player.m_hiddenRightItem ? weaponMultiplier : 1;
 
-						if (!effects.TryGetValue(effectPower.Effect, out object effectValue))
+						foreach (EffectPower effectPower in effectPowers)
 						{
-							effectValue = effects[effectPower.Effect] = Utils.Clone(effectPower.Config);
-							foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+							if (!effects.TryGetValue(effectPower.Effect, out object effectValue))
 							{
-								field.SetValue(effectValue, (float)field.GetValue(effectValue) * multiplier);
+								effectValue = effects[effectPower.Effect] = Utils.Clone(effectPower.Config);
+								foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+								{
+									field.SetValue(effectValue, (float)field.GetValue(effectValue) * multiplier);
+								}
 							}
-						}
-						else
-						{
-							foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+							else
 							{
-								field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.Config) * multiplier));
+								foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+								{
+									field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.Config) * multiplier));
+								}
 							}
 						}
 					}
@@ -108,18 +111,26 @@ public class TrackEquipmentChanges
 
 	private static void StoreSocketGems(ZDO zdo, VisSlot part, ItemDrop.ItemData? item)
 	{
-		Dictionary<string, GameObject>? effectPrefabs = item is null ? null : VisualEffects.prefabDict(item.m_shared);
+		Dictionary<string, GameObject[]>? effectPrefabs = item is null ? null : VisualEffects.prefabDict(item.m_shared);
 
 		Sockets? itemSockets = item.Extended()?.GetComponent<Sockets>();
 		for (int i = 0; i < 5; ++i)
 		{
-			if (effectPrefabs is not null && itemSockets?.socketedGems.Count > i && effectPrefabs.TryGetValue(itemSockets.socketedGems[i], out GameObject effectName))
+			if (effectPrefabs is not null && itemSockets?.socketedGems.Count > i && effectPrefabs.TryGetValue(itemSockets.socketedGems[i], out GameObject[] effects))
 			{
-				zdo.m_ints[$"JewelCrafting {part} Effect {i}".GetStableHashCode()] = effectName.name.GetStableHashCode();
+				for (int j = 0; j < effects.Length; ++j)
+				{
+					zdo.m_ints[$"JewelCrafting {part} Effect {i*2+j}".GetStableHashCode()] = effects[j].name.GetStableHashCode();
+				}
+				if (effects.Length != 2)
+				{
+					zdo.m_ints.Remove($"JewelCrafting {part} Effect {i*2+1}".GetStableHashCode());
+				}
 			}
 			else
 			{
-				zdo.m_ints.Remove($"JewelCrafting {part} Effect {i}".GetStableHashCode());
+				zdo.m_ints.Remove($"JewelCrafting {part} Effect {i*2}".GetStableHashCode());
+				zdo.m_ints.Remove($"JewelCrafting {part} Effect {i*2+1}".GetStableHashCode());
 			}
 		}
 	}

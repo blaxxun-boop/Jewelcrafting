@@ -70,6 +70,10 @@ public static class PoisonousDrain
 			Config config = player.GetEffect<Config>(Effect.Poisonousdrain);
 			if (config.Duration > 0)
 			{
+				Object.Instantiate(Jewelcrafting.poisonStart, player.transform);
+				
+				yield return new WaitForSeconds(4);
+				
 				player.m_seman.AddStatusEffect(Jewelcrafting.poisonousDrain).m_ttl = config.Duration;
 				Object.Instantiate(Jewelcrafting.poisonousDrainCloud, player.transform).GetComponent<Aoe>().Setup(player, Vector3.zero, 30, new HitData
 				{

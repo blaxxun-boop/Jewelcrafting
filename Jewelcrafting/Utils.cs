@@ -77,7 +77,7 @@ public static class Utils
 		float maxSeconds = maxWait(config);
 		if (minSeconds > 0)
 		{
-			return new WaitForSeconds(Random.Range(minSeconds, maxSeconds));
+			return new WaitForSeconds(Mathf.Max(4, Random.Range(minSeconds, maxSeconds)));
 		}
 
 		float wait = 0;
@@ -85,7 +85,7 @@ public static class Utils
 		{
 			wait = defs.Min(def => minWait((T)def.Power[0]));
 		}
-		return new WaitForSeconds(Mathf.Max(wait, 1));
+		return new WaitForSeconds(Mathf.Max(wait, 4));
 	}
 
 	public static GemLocation GetGemLocation(ItemDrop.ItemData.SharedData item) => item.m_itemType switch
