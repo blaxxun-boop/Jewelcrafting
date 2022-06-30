@@ -490,48 +490,51 @@ public static class GemStones
 	{
 		private static void Postfix(ItemDrop.ItemData item, ref string __result)
 		{
-			if (item.m_dropPrefab is { } prefab && Jewelcrafting.EffectPowers.TryGetValue(prefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> gem))
+			if (item.m_dropPrefab is { } prefab)
 			{
-				__result += "\n";
-
-				GemLocation seenGems = 0;
-				foreach (GemLocation gemLocation in gem.Keys.OrderByDescending(g => (int)g))
+				if (Jewelcrafting.EffectPowers.TryGetValue(prefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> gem))
 				{
-					if ((seenGems & gemLocation) == 0)
+					__result += "\n";
+
+					GemLocation seenGems = 0;
+					foreach (GemLocation gemLocation in gem.Keys.OrderByDescending(g => (int)g))
 					{
-						__result += $"\n<color=orange>{Localization.instance.Localize($"$jc_socket_slot_{gemLocation.ToString().ToLower()}")}:</color> {string.Join(", ", gem[gemLocation].Select(effectPower => Localization.instance.Localize($"$jc_effect_{effectPower.Effect.ToString().ToLower()} {effectPower.Power}")))}";
-						seenGems |= gemLocation;
+						if ((seenGems & gemLocation) == 0)
+						{
+							__result += $"\n<color=orange>{Localization.instance.Localize($"$jc_socket_slot_{gemLocation.ToString().ToLower()}")}:</color> {string.Join(", ", gem[gemLocation].Select(effectPower => Localization.instance.Localize($"$jc_effect_{effectPower.Effect.ToString().ToLower()} {effectPower.Power}")))}";
+							seenGems |= gemLocation;
+						}
 					}
 				}
-			}
-			if (FusionBoxSetup.boxTier.TryGetValue(item.m_dropPrefab, out int tier) && item.Extended()?.GetComponent<Box>() is { } box)
-			{
-				if (box.progress < 0)
+				if (FusionBoxSetup.boxTier.TryGetValue(prefab, out int tier) && item.Extended()?.GetComponent<Box>() is { } box)
 				{
-					__result += Localization.instance.Localize("\n\n$jc_merge_completed");
-				}
-				else
-				{
-					string days(int days) => Localization.instance.Localize(days != 1 ? "$jc_days" : "$jc_one_day", days.ToString());
-					__result += Localization.instance.Localize("\n\n$jc_merge_duration: ") + days(Mathf.CeilToInt(Jewelcrafting.crystalFusionBoxMergeDuration[tier].Value - box.progress));
-					ConfigEntry<int>[] mergeChances = Jewelcrafting.boxMergeChances[item.m_shared.m_name];
-					if (box.boxSealed)
+					if (box.progress < 0)
 					{
-						__result += Localization.instance.Localize($"\n\n$jc_merge_success_chance: {mergeChances[box.Tier].Value}%");
+						__result += Localization.instance.Localize("\n\n$jc_merge_completed");
 					}
 					else
 					{
-						__result += Localization.instance.Localize("\n\n$jc_merge_success_chances:");
-						__result += Localization.instance.Localize($"\n$jc_gem_tier_1: {mergeChances[0].Value}%");
-						__result += Localization.instance.Localize($"\n$jc_gem_tier_2: {mergeChances[1].Value}%");
-						__result += Localization.instance.Localize($"\n$jc_gem_tier_3: {mergeChances[2].Value}%");
-					}
-					__result += Localization.instance.Localize("\n\n$jc_merge_boss_reward:");
-					foreach (KeyValuePair<string, ConfigEntry<int>[]> progress in Jewelcrafting.boxBossProgress)
-					{
-						if (progress.Value[tier].Value > 0)
+						string days(int days) => Localization.instance.Localize(days != 1 ? "$jc_days" : "$jc_one_day", days.ToString());
+						__result += Localization.instance.Localize("\n\n$jc_merge_duration: ") + days(Mathf.CeilToInt(Jewelcrafting.crystalFusionBoxMergeDuration[tier].Value - box.progress));
+						ConfigEntry<int>[] mergeChances = Jewelcrafting.boxMergeChances[item.m_shared.m_name];
+						if (box.boxSealed)
 						{
-							__result += $"\n{Localization.instance.Localize(progress.Key)}: " + days(progress.Value[tier].Value);
+							__result += Localization.instance.Localize($"\n\n$jc_merge_success_chance: {mergeChances[box.Tier].Value}%");
+						}
+						else
+						{
+							__result += Localization.instance.Localize("\n\n$jc_merge_success_chances:");
+							__result += Localization.instance.Localize($"\n$jc_gem_tier_1: {mergeChances[0].Value}%");
+							__result += Localization.instance.Localize($"\n$jc_gem_tier_2: {mergeChances[1].Value}%");
+							__result += Localization.instance.Localize($"\n$jc_gem_tier_3: {mergeChances[2].Value}%");
+						}
+						__result += Localization.instance.Localize("\n\n$jc_merge_boss_reward:");
+						foreach (KeyValuePair<string, ConfigEntry<int>[]> progress in Jewelcrafting.boxBossProgress)
+						{
+							if (progress.Value[tier].Value > 0)
+							{
+								__result += $"\n{Localization.instance.Localize(progress.Key)}: " + days(progress.Value[tier].Value);
+							}
 						}
 					}
 				}
