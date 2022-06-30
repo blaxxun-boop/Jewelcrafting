@@ -96,13 +96,7 @@ public static class VisualEffects
 	}
 
 	private static readonly Dictionary<int, GameObject> effectHashMap = new();
-
-	private struct EffectCache
-	{
-		public int hash;
-		public GameObject equipObject;
-	}
-
+	
 	[HarmonyPatch(typeof(VisEquipment), nameof(VisEquipment.UpdateEquipmentVisuals))]
 	private static class ApplyGemEffects
 	{
@@ -111,13 +105,13 @@ public static class VisualEffects
 			FillEffectHashMap();
 		}
 
-		private static readonly ConditionalWeakTable<VisEquipment, Dictionary<string, EffectCache>> activeEffects = new();
+		private static readonly ConditionalWeakTable<VisEquipment, Dictionary<VisSlot, Dictionary<int, GameObject>>> activeEffects = new();
 
 		private static void Postfix(VisEquipment __instance)
 		{
 			if (__instance.m_nview.m_zdo is { } zdo && __instance.m_isPlayer)
 			{
-				Dictionary<string, EffectCache> effectsActive = activeEffects.GetOrCreateValue(__instance);
+				Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive = activeEffects.GetOrCreateValue(__instance);
 
 				void Apply(VisSlot part, GameObject? equipRoot) => ApplyEffects(effectsActive, zdo, part, equipRoot);
 
@@ -129,36 +123,79 @@ public static class VisualEffects
 		}
 	}
 
-	private static void ApplyEffects(Dictionary<string, EffectCache> effectsActive, ZDO zdo, VisSlot part, GameObject? equipRoot)
+	private static void ApplyEffects(Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive, ZDO zdo, VisSlot part, GameObject? equipRoot)
 	{
-		for (int i = 0; i < 10; ++i)
+		if (equipRoot is null)
 		{
-			string name = $"JewelCrafting {part} Effect {i}";
-			int effect = zdo.GetInt(name);
-			if (effectsActive.TryGetValue(name, out EffectCache active))
-			{
-				if (active.hash == effect && active.equipObject && Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.On)
-				{
-					continue;
-				}
+			return;
+		}
 
-				if (equipRoot?.transform is { } item)
+		if (!effectsActive.TryGetValue(part, out Dictionary<int, GameObject> partEffects))
+		{
+			partEffects = effectsActive[part] = new Dictionary<int, GameObject>();
+		}
+
+		ApplySlotEffects(partEffects, zdo, $"JewelCrafting {part}", equipRoot);
+	}
+
+	private static void ApplySlotEffects(Dictionary<int, GameObject> slotEffects, ZDO zdo, string keyPrefix, GameObject equipRoot)
+	{
+		if (Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.Off)
+		{
+			if (slotEffects.Count > 0)
+			{
+				foreach (GameObject activeEffect in slotEffects.Values)
 				{
-					string effectName = effectHashMap[active.hash].name;
-					for (int j = 0, children = item.childCount; j < children; ++j)
+					if (activeEffect)
 					{
-						if (global::Utils.GetPrefabName(item.GetChild(j).gameObject) == effectName)
-						{
-							Object.Destroy(item.GetChild(j).gameObject);
-						}
+						Object.Destroy(activeEffect);
 					}
 				}
-				effectsActive.Remove(name);
+				slotEffects.Clear();
 			}
-			if (effect != 0 && equipRoot is not null && Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.On)
+
+			return;
+		}
+
+		bool changed = false;
+		for (int i = 0; ; ++i)
+		{
+			int effect = zdo.GetInt($"{keyPrefix} Effect {i}");
+			if (effect == 0)
 			{
-				effectsActive[name] = new EffectCache { hash = effect, equipObject = equipRoot };
-				Object.Instantiate(effectHashMap[effect], equipRoot.transform, false);
+				if (i != slotEffects.Count)
+				{
+					changed = true;
+				}
+				break;
+			}
+
+			if (!slotEffects.TryGetValue(effect, out GameObject activeEffect) || !activeEffect)
+			{
+				if (activeEffect is null)
+				{
+					changed = true;
+				}
+				slotEffects[effect] = Object.Instantiate(effectHashMap[effect], equipRoot.transform, false);
+			}
+		}
+
+		if (changed)
+		{
+			HashSet<int> removeEffects = new(slotEffects.Keys);
+			for (int i = 0, effect; (effect = zdo.GetInt($"{keyPrefix} Effect {i}")) != 0; ++i)
+			{
+				removeEffects.Remove(effect);
+			}
+
+			foreach (int effect in removeEffects)
+			{
+				GameObject effectObject = slotEffects[effect];
+				if (effectObject)
+				{
+					Object.Destroy(effectObject);
+				}
+				slotEffects.Remove(effect);
 			}
 		}
 	}
@@ -166,14 +203,13 @@ public static class VisualEffects
 	[HarmonyPatch(typeof(ItemStand), nameof(ItemStand.UpdateVisual))]
 	private static class ApplyItemStandGemEffects
 	{
-		private static readonly ConditionalWeakTable<ItemStand, Dictionary<string, EffectCache>> activeEffects = new();
+		private static readonly ConditionalWeakTable<ItemStand, Dictionary<int, GameObject>> activeEffects = new();
 
 		private static void Postfix(ItemStand __instance)
 		{
 			if (__instance.m_nview.m_zdo is { } zdo && __instance.m_visualItem)
 			{
-				Dictionary<string, EffectCache> effectsActive = activeEffects.GetOrCreateValue(__instance);
-				ApplyEffects(effectsActive, zdo, VisSlot.Beard, __instance.m_visualItem);
+				ApplySlotEffects(activeEffects.GetOrCreateValue(__instance), zdo, "JewelCrafting Beard", __instance.m_visualItem);
 			}
 		}
 	}

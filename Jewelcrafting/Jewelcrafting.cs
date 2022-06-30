@@ -24,7 +24,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.1";
+	private const string ModVersion = "1.1.2";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -148,11 +148,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static SE_Stats rigidFinger = null!;
 	public static GameObject magicRepair = null!;
 	public static SE_Stats aquatic = null!;
-	public static GameObject lightningStart = null!;
-	public static GameObject rootStart = null!;
-	public static GameObject poisonStart = null!;
-	public static GameObject iceStart = null!;
-	public static GameObject fireStart = null!;
+	public static SE_Stats lightningStart = null!;
+	public static SE_Stats rootStart = null!;
+	public static SE_Stats poisonStart = null!;
+	public static SE_Stats iceStart = null!;
+	public static SE_Stats fireStart = null!;
 
 	private static Jewelcrafting self = null!;
 
@@ -368,11 +368,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		rigidFinger = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Purple");
 		magicRepair = PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
 		aquatic = assets.LoadAsset<SE_Stats>("JC_Se_Necklace_Blue");
-		lightningStart = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Purple");
-		rootStart = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Brown");
-		poisonStart = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Green");
-		iceStart = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Blue");
-		fireStart = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Red");
+		lightningStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
+		rootStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Brown");
+		poisonStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Green");
+		iceStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Blue");
+		fireStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Red");
 
 		SetCfgValue(value => rigidFinger.m_damageModifier = 1 - value / 100f, rigidDamageReduction);
 		SetCfgValue(value => headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
@@ -402,6 +402,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "sfx_potion_smash");
 		PrefabManager.RegisterPrefab(assets, "vfx_puff_small");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_1");
+		PrefabManager.RegisterPrefab(assets, "sfx_start_buff");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Purple");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Brown");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Green");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Blue");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Red");
 
 		Localizer.AddPlaceholder("jc_electric_wings_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
@@ -432,7 +438,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static void AddBossBoxProgressConfig(string name, int[] progress)
 	{
 		Regex regex = new("['[\"\\]]");
-		
+
 		boxBossProgress.Add(name, progress.Select((chance, i) => config("3 - Fusion Box", $"Boss Progress {regex.Replace(english.Localize(name), "")} for {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)}", chance, new ConfigDescription($"Progress applied to {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)} when killing {regex.Replace(english.Localize(name), "")}", null, new ConfigurationManagerAttributes { Order = -boxBossProgress.Count * 3 - i - 1000 }))).ToArray());
 	}
 

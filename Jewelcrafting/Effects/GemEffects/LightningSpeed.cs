@@ -41,7 +41,7 @@ public static class LightningSpeed
 			Config config = player.GetEffect<Config>(Effect.Lightningspeed);
 			if (config.Duration > 0)
 			{
-				Object.Instantiate(Jewelcrafting.lightningStart, player.transform);
+				player.m_seman.AddStatusEffect(Jewelcrafting.lightningStart);
 				
 				yield return new WaitForSeconds(4);
 				

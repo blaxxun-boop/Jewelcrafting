@@ -42,8 +42,8 @@ public static class IcyProtection
 			Config config = player.GetEffect<Config>(Effect.Icyprotection);
 			if (config.Duration > 0)
 			{
-				Object.Instantiate(Jewelcrafting.iceStart, player.transform);
-				
+				player.m_seman.AddStatusEffect(Jewelcrafting.iceStart);
+
 				yield return new WaitForSeconds(4);
 				
 				player.m_seman.AddStatusEffect(Jewelcrafting.icyProtection);

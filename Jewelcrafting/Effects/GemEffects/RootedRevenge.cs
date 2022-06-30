@@ -74,8 +74,8 @@ public static class RootedRevenge
 			Config config = player.GetEffect<Config>(Effect.Rootedrevenge);
 			if (config.Duration > 0)
 			{
-				Object.Instantiate(Jewelcrafting.rootStart, player.transform);
-				
+				player.m_seman.AddStatusEffect(Jewelcrafting.rootStart);
+
 				yield return new WaitForSeconds(4);
 				
 				player.m_seman.AddStatusEffect(Jewelcrafting.rootedRevenge).m_ttl = config.Duration;

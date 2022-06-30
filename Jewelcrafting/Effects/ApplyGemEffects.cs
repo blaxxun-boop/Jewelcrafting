@@ -113,25 +113,23 @@ public class TrackEquipmentChanges
 	{
 		Dictionary<string, GameObject[]>? effectPrefabs = item is null ? null : VisualEffects.prefabDict(item.m_shared);
 
-		Sockets? itemSockets = item.Extended()?.GetComponent<Sockets>();
-		for (int i = 0; i < 5; ++i)
+		int i = 0;
+		if (effectPrefabs is not null && item.Extended()?.GetComponent<Sockets>() is {} itemSockets)
 		{
-			if (effectPrefabs is not null && itemSockets?.socketedGems.Count > i && effectPrefabs.TryGetValue(itemSockets.socketedGems[i], out GameObject[] effects))
+			foreach (string socket in itemSockets.socketedGems)
 			{
-				for (int j = 0; j < effects.Length; ++j)
+				if (effectPrefabs.TryGetValue(socket, out GameObject[] effects))
 				{
-					zdo.m_ints[$"JewelCrafting {part} Effect {i*2+j}".GetStableHashCode()] = effects[j].name.GetStableHashCode();
-				}
-				if (effects.Length != 2)
-				{
-					zdo.m_ints.Remove($"JewelCrafting {part} Effect {i*2+1}".GetStableHashCode());
+					foreach (GameObject effect in effects)
+					{
+						zdo.m_ints[$"JewelCrafting {part} Effect {i++}".GetStableHashCode()] = effect.name.GetStableHashCode();
+					}
 				}
 			}
-			else
-			{
-				zdo.m_ints.Remove($"JewelCrafting {part} Effect {i*2}".GetStableHashCode());
-				zdo.m_ints.Remove($"JewelCrafting {part} Effect {i*2+1}".GetStableHashCode());
-			}
+		}
+		
+		while (zdo.m_ints.Remove($"JewelCrafting {part} Effect {i++}".GetStableHashCode()))
+		{
 		}
 	}
 
