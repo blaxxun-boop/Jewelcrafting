@@ -31,7 +31,10 @@ public static class FusionBoxSetup
 		{
 			if (Jewelcrafting.boxMergeChances.ContainsKey(item.m_shared.m_name))
 			{
-				item.AddComponent<Box>();
+				if (item.GetComponent<Box>() is null)
+				{
+					item.AddComponent<Box>();
+				}
 			}
 		};
 	}
@@ -49,7 +52,7 @@ public static class FusionBoxSetup
 					{
 						continue;
 					}
-					if (Random.value < 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(__instance.GetComponent<Character>().GetMaxHealth() / 100, 1 / 3f))
+					if (Random.value < 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(__instance.GetComponent<Character>().GetMaxHealth() / Jewelcrafting.healthBaseBoxDrop.Value, 1 / 3f))
 					{
 						__result.Add(new KeyValuePair<GameObject, int>(Boxes[tier], 1));
 					}
@@ -57,8 +60,6 @@ public static class FusionBoxSetup
 			}
 		}
 	}
-
-	private static void IncreaseBoxProgress(float progress) => IncreaseBoxProgress(Enumerable.Repeat(progress, Boxes.Length));
 
 	public static void IncreaseBoxProgress(IEnumerable<float> progress)
 	{
@@ -68,7 +69,7 @@ public static class FusionBoxSetup
 			if (boxes.Length > 0)
 			{
 				Box box = boxes[Random.Range(0, boxes.Length)].Extended().GetComponent<Box>();
-				box.AddProgress(progress.ToArray()[box.Tier]);
+				box.AddProgress(progress.ToArray()[boxTier[box.ItemData.m_dropPrefab]]);
 			}
 		}
 	}
@@ -85,7 +86,7 @@ public static class FusionBoxSetup
 				if (Player.m_localPlayer && lastPos != Player.m_localPlayer.transform.position)
 				{
 					lastPos = Player.m_localPlayer.transform.position;
-					IncreaseBoxProgress(1 / 30f);
+					IncreaseBoxProgress(Jewelcrafting.crystalFusionBoxMergeActivityProgress.Select(c => c.Value));
 				}
 				yield return new WaitForSeconds(60);
 			}

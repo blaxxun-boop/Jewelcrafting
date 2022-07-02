@@ -24,7 +24,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.2";
+	private const string ModVersion = "1.1.3";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -63,7 +63,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> gemDropChanceRuby = null!;
 	public static ConfigEntry<int> gemDropChanceSulfur = null!;
 	public static readonly ConfigEntry<int>[] crystalFusionBoxDropRate = new ConfigEntry<int>[FusionBoxSetup.Boxes.Length];
-	public static readonly ConfigEntry<int>[] crystalFusionBoxMergeDuration = new ConfigEntry<int>[FusionBoxSetup.Boxes.Length];
+	public static ConfigEntry<int> healthBaseBoxDrop = null!;
+	public static readonly ConfigEntry<float>[] crystalFusionBoxMergeActivityProgress = new ConfigEntry<float>[FusionBoxSetup.Boxes.Length];
 	public static ConfigEntry<int> maximumNumberSockets = null!;
 	public static ConfigEntry<int> gemRespawnRate = null!;
 	public static ConfigEntry<int> upgradeChanceIncrease = null!;
@@ -108,18 +109,18 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{ "$jc_legendary_gembox", new[] { 100, 75, 50 } }
 	};
 
-	private readonly Dictionary<string, int[]> defaultBoxBossProgress = new()
+	private readonly Dictionary<string, float[]> defaultBoxBossProgress = new()
 	{
-		{ "$enemy_eikthyr", new[] { 3, 1, 0 } },
-		{ "$enemy_gdking", new[] { 5, 3, 0 } },
-		{ "$enemy_bonemass", new[] { 7, 5, 1 } },
-		{ "$enemy_dragon", new[] { 9, 7, 2 } },
-		{ "$enemy_goblinking", new[] { 11, 9, 3 } }
+		{ "$enemy_eikthyr", new [] { 3f, 0, 0 } },
+		{ "$enemy_gdking", new [] { 4f, 0.5f, 0 } },
+		{ "$enemy_bonemass", new [] { 5f, 1f, 0.3f } },
+		{ "$enemy_dragon", new [] { 7f, 3f, 0.7f } },
+		{ "$enemy_goblinking", new [] { 10f, 5f, 1.5f } }
 	};
 
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
 	public static readonly Dictionary<string, ConfigEntry<int>[]> boxMergeChances = new();
-	public static readonly Dictionary<string, ConfigEntry<int>[]> boxBossProgress = new();
+	public static readonly Dictionary<string, ConfigEntry<float>[]> boxBossProgress = new();
 
 	public static Dictionary<Effect, List<EffectDef>> SocketEffects = new();
 	public static readonly Dictionary<int, Dictionary<GemLocation, List<EffectPower>>> EffectPowers = new();
@@ -198,7 +199,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		public Action<ConfigEntryBase>? CustomDrawer;
 	}
 
-	private static readonly Localization english = new();
+	private static Localization english = null!;
 
 	public void Awake()
 	{
@@ -207,6 +208,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		configFilePaths = new List<string> { Path.GetDirectoryName(Config.ConfigFilePath), Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) };
 
 		Localizer.Load();
+		english = new Localization();
 		english.SetupLanguage("English");
 
 		AssetBundle assets = PrefabManager.RegisterAssetBundle("jewelcrafting");
@@ -286,12 +288,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		gemDropChanceSpinel = config("2 - Socket System", "Drop chance for Spinel Gemstones", 2, new ConfigDescription("Chance to drop a spinel gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		gemDropChanceRuby = config("2 - Socket System", "Drop chance for Ruby Gemstones", 2, new ConfigDescription("Chance to drop a ruby gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		gemDropChanceSulfur = config("2 - Socket System", "Drop chance for Sulfur Gemstones", 2, new ConfigDescription("Chance to drop a sulfur gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxDropRate[0] = config("3 - Fusion Box", "Drop rate for Fusion Box", 200, new ConfigDescription("Drop rate for the Common Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Rate is for base 100 HP. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxDropRate[1] = config("3 - Fusion Box", "Drop rate for Blessed Fusion Box", 500, new ConfigDescription("Drop rate for the Blessed Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Rate is for base 100 HP. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxDropRate[2] = config("3 - Fusion Box", "Drop rate for Celestial Fusion Box", 1000, new ConfigDescription("Drop rate for the Celestial Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Rate is for base 100 HP. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxMergeDuration[0] = config("3 - Fusion Box", "Merge Duration for Fusion Box", 15, new ConfigDescription("Ingame days required for the Common Crystal Fusion Box to finish merging.", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxMergeDuration[1] = config("3 - Fusion Box", "Merge Duration for Blessed Fusion Box", 40, new ConfigDescription("Ingame days required for the Blessed Crystal Fusion Box to finish merging", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxMergeDuration[2] = config("3 - Fusion Box", "Merge Duration for Celestial Fusion Box", 75, new ConfigDescription("Ingame days required for the Celestial Crystal Fusion Box to finish merging.", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxDropRate[0] = config("3 - Fusion Box", "Drop rate for Fusion Box", 200, new ConfigDescription("Drop rate for the Common Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxDropRate[1] = config("3 - Fusion Box", "Drop rate for Blessed Fusion Box", 500, new ConfigDescription("Drop rate for the Blessed Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxDropRate[2] = config("3 - Fusion Box", "Drop rate for Celestial Fusion Box", 1000, new ConfigDescription("Drop rate for the Celestial Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
+		healthBaseBoxDrop = config("3 - Fusion Box", "Base health for box drops", 500, new ConfigDescription("Base health for fusion box drops. Should be roughly set to the average creature health in your world.", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxMergeActivityProgress[0] = config("3 - Fusion Box", "Activity reward for Fusion Box", 1.5f, new ConfigDescription("Progress for the Common Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 0.7f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 0.3f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 5), new ConfigurationManagerAttributes { Order = --order }));
 		gemRespawnRate = config("2 - Socket System", "Gemstone Respawn Time", 100, new ConfigDescription("Respawn time for raw gemstones in ingame days. Use 0 to disable respawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("4 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
@@ -339,7 +342,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			boxMergeChances.Add(kv.Key, kv.Value.Select((chance, i) => config("3 - Fusion Box", $"Merge Chance {boxMergeCategory[i]} gems in {english.Localize(kv.Key)}", chance, new ConfigDescription($"Success chance while merging two {boxMergeCategory[i]} gems in a {Localization.instance.Localize(kv.Key)}", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --boxMergeOrder }))).ToArray());
 		}
 
-		foreach (KeyValuePair<string, int[]> kv in defaultBoxBossProgress)
+		foreach (KeyValuePair<string, float[]> kv in defaultBoxBossProgress)
 		{
 			AddBossBoxProgressConfig(kv.Key, kv.Value);
 		}
@@ -435,11 +438,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		slotIcons.Add(GemLocation.Weapon, slotIconAtlas.GetSprite("weapon"));*/
 	}
 
-	private static void AddBossBoxProgressConfig(string name, int[] progress)
+	private static void AddBossBoxProgressConfig(string name, float[] progress)
 	{
 		Regex regex = new("['[\"\\]]");
 
-		boxBossProgress.Add(name, progress.Select((chance, i) => config("3 - Fusion Box", $"Boss Progress {regex.Replace(english.Localize(name), "")} for {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)}", chance, new ConfigDescription($"Progress applied to {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)} when killing {regex.Replace(english.Localize(name), "")}", null, new ConfigurationManagerAttributes { Order = -boxBossProgress.Count * 3 - i - 1000 }))).ToArray());
+		boxBossProgress.Add(name, progress.Select((chance, i) => config("3 - Fusion Box", $"Boss Progress {regex.Replace(english.Localize(name), "")} {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)}", chance, new ConfigDescription($"Progress applied to {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)} when killing {regex.Replace(english.Localize(name), "")}", null, new ConfigurationManagerAttributes { Order = -boxBossProgress.Count * 3 - i - 1000 }))).ToArray());
 	}
 
 	[HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Awake))]
@@ -451,7 +454,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			{
 				if (prefab.GetComponent<Character>() is { } character && character.IsBoss() && !boxBossProgress.ContainsKey(character.m_name))
 				{
-					AddBossBoxProgressConfig(character.m_name, new[] { 0, 0, 0 });
+					AddBossBoxProgressConfig(character.m_name, new[] { 0f, 0f, 0f });
 				}
 			}
 		}

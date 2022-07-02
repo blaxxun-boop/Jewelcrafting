@@ -9,6 +9,7 @@ using ExtendedItemDataFramework;
 using HarmonyLib;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
@@ -48,7 +49,8 @@ public static class Utils
 		callback(player.m_utilityItem);
 	}
 
-	public static string ZDOName(this Effect effect) => "Jewelcrafting Socket " + effect;
+	private static readonly Dictionary<Effect, string> zdoNames = ((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(e => e, e => "Jewelcrafting Socket " + e);
+	public static string ZDOName(this Effect effect) => zdoNames[effect];
 	public static float GetEffect(this Player player, Effect effect) => player.GetEffect<DefaultPower>(effect).Power;
 
 	public static T GetEffect<T>(this Player player, Effect effect) where T : struct
@@ -138,6 +140,10 @@ public static class Utils
 			{
 				extended.Components.AddRange(components);
 				extended.Save();
+				foreach (BaseExtendedItemComponent component in components)
+				{
+					component.ItemData = extended;
+				}
 			}
 			return item;
 		}
@@ -167,6 +173,18 @@ public static class Utils
 		}
 	}
 
+	[HarmonyPatch(typeof(ExtendedItemData), nameof(ExtendedItemData.ExtendedClone))]
+	private static class ReplaceItemDataInComponentsOnClone
+	{
+		private static void Postfix(ExtendedItemData __result)
+		{
+			foreach (BaseExtendedItemComponent component in __result.Components)
+			{
+				component.ItemData = __result;
+			}
+		}
+	}
+
 	public static bool isAdmin(ZRpc? rpc)
 	{
 		return rpc is null || ZNet.instance.m_adminList.Contains(rpc.GetSocket().GetHostName());
@@ -183,5 +201,17 @@ public static class Utils
 		}
 
 		return ownSE;
+	}
+
+	public static T ConvertComponent<T, U>(GameObject gameObject) where U : MonoBehaviour where T : U
+	{
+		U component = gameObject.GetComponent<U>(); 
+		T cmp = gameObject.AddComponent<T>();
+		foreach (FieldInfo field in component.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
+		{
+			field.SetValue(cmp, field.GetValue(component));
+		}
+		Object.Destroy(component);
+		return cmp;
 	}
 }

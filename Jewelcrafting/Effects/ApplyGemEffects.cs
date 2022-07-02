@@ -116,18 +116,23 @@ public class TrackEquipmentChanges
 		int i = 0;
 		if (effectPrefabs is not null && item.Extended()?.GetComponent<Sockets>() is {} itemSockets)
 		{
+			HashSet<string> effectNames = new();
 			foreach (string socket in itemSockets.socketedGems)
 			{
 				if (effectPrefabs.TryGetValue(socket, out GameObject[] effects))
 				{
 					foreach (GameObject effect in effects)
 					{
-						zdo.m_ints[$"JewelCrafting {part} Effect {i++}".GetStableHashCode()] = effect.name.GetStableHashCode();
+						effectNames.Add(effect.name);
 					}
 				}
 			}
+			foreach (string effectName in effectNames)
+			{
+				zdo.m_ints[$"JewelCrafting {part} Effect {i++}".GetStableHashCode()] = effectName.GetStableHashCode();
+			}
 		}
-		
+
 		while (zdo.m_ints.Remove($"JewelCrafting {part} Effect {i++}".GetStableHashCode()))
 		{
 		}

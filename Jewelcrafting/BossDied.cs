@@ -69,9 +69,9 @@ public static class BossDied
 
 		private static void BossDied(long sender, string bossName)
 		{
-			if (Jewelcrafting.boxBossProgress.TryGetValue(bossName, out ConfigEntry<int>[] configs))
+			if (Jewelcrafting.boxBossProgress.TryGetValue(bossName, out ConfigEntry<float>[] configs))
 			{
-				FusionBoxSetup.IncreaseBoxProgress(configs.Select(c => (float)c.Value));
+				FusionBoxSetup.IncreaseBoxProgress(configs.Select(c => c.Value));
 			}
 		}
 	}

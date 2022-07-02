@@ -9,6 +9,8 @@ namespace Jewelcrafting.GemEffects;
 
 public static class CompendiumDisplay
 {
+	public static TextsDialog.TextInfo compendiumPage = null!;
+
 	[HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.AddActiveEffects))]
 	private class AddToCompendium
 	{
@@ -84,7 +86,8 @@ public static class CompendiumDisplay
 
 			if (Jewelcrafting.EffectPowers.Count > 0)
 			{
-				__instance.m_texts.Add(new TextsDialog.TextInfo(Localization.instance.Localize("$jc_socket_compendium"), Localization.instance.Localize(sb.ToString())));
+				compendiumPage = new TextsDialog.TextInfo(Localization.instance.Localize("$jc_socket_compendium"), Localization.instance.Localize(sb.ToString()));
+				__instance.m_texts.Add(compendiumPage);
 			}
 		}
 	}

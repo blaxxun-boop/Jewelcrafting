@@ -53,7 +53,7 @@ public class Box : Socketable
 
 	public override string Serialize()
 	{
-		return string.Join(",", socketedGems.ToArray()) + (boxSealed ? $"|{progress.ToString(CultureInfo.InvariantCulture)}" : "");
+		return string.Join(",", socketedGems.ToArray()) + (boxSealed || progress > 0 ? $"|{progress.ToString(CultureInfo.InvariantCulture)}" : "");
 	}
 
 	public override void Deserialize(string data)
@@ -62,7 +62,7 @@ public class Box : Socketable
 		if (boxData.Length > 1)
 		{
 			float.TryParse(boxData[1], NumberStyles.Float, CultureInfo.InvariantCulture, out progress);
-			boxSealed = progress != -1;
+			boxSealed = progress < 100;
 		}
 		socketedGems = boxData[0].Split(',').ToList();
 	}
@@ -70,7 +70,7 @@ public class Box : Socketable
 	public void AddProgress(float amount)
 	{
 		progress += amount;
-		if (progress >= Jewelcrafting.crystalFusionBoxMergeDuration[FusionBoxSetup.boxTier[ItemData.m_dropPrefab]].Value)
+		if (progress >= 100)
 		{
 			if (Random.value < Jewelcrafting.boxMergeChances[ItemData.m_shared.m_name][Tier].Value / 100f)
 			{
@@ -90,7 +90,7 @@ public class Box : Socketable
 			}
 
 			boxSealed = false;
-			progress = -1;
+			progress = 100;
 		}
 		Save();
 	}

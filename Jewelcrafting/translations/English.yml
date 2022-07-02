@@ -31,6 +31,7 @@ jc_gembox_seal_tier_mismatch: "The gems inside of a gembox have to have the same
 jc_gembox_seal_unique_gem: "Unique gems cannot be fused."
 jc_gembox_seal_merged_gem: "Already fused gems cannot be fused again."
 jc_gembox_interact_finished: "Press [$1] to open"
+jc_open_compendium: "Open compendium"
 jc_socket_button_text: "SOCKET"
 jc_raw_black_gemstone: "Onyx Formation"
 jc_uncut_black_stone: "Onyx Gemstone"
@@ -119,9 +120,9 @@ jc_attach_jewel: "Add Ring to Activate"
 jc_socket_adding_fail: "Adding a socket failed, your item has been destroyed"
 jc_socket_container_title: "Socketing $1"
 jc_empty_socket_text: "Empty Socket"
-jc_days: "$1 days"
-jc_one_day: "1 day"
-jc_merge_duration: "Fusing duration"
+jc_minute: "minute"
+jc_merge_progress: "Fusion progress"
+jc_merge_activity_reward: "Activity reward"
 jc_merge_success_chance: "Success chance"
 jc_merge_success_chances: "Success chances"
 jc_merge_boss_reward: "Boss rewards"
@@ -286,14 +287,35 @@ jc_socket_compendium: "Socket effects"
 jc_gem_effects_compendium: "Active sockets"
 jc_boss_crystal_1: "Elder's Root"
 jc_boss_crystal_1_description: "A gem which contains Elder's root itself."
+jc_boss_crystal_1_description_flavor: |
+  "No tree, it is said, can grow to heaven unless its roots reach down to hell."
 jc_boss_crystal_2: "Bonemass' Poison"
 jc_boss_crystal_2_description: "A gem which contains Bonemass' poison itself."
+jc_boss_crystal_2_description_flavor: |
+  "There are poisons that blind you, and poisons that open your eyes."
 jc_boss_crystal_4: "Moders's Ice"
 jc_boss_crystal_4_description: "A gem which contains Moders's ice itself."
+jc_boss_crystal_4_description_flavor: |
+  "Some say the world will end in fire,
+  Some say in ice.
+  From what I've tasted of desire,
+  I hold with those who favor fire.
+  But if it had to perish twice
+  I think I know enough of hate
+  To say that for destruction ice
+  Is also great
+  And would suffice."
 jc_boss_crystal_5: "Yagluth's Fire"
 jc_boss_crystal_5_description: "A gem which contains Yagluth's fire itself."
+jc_boss_crystal_5_description_flavor: |
+  "From the ashes a fire shall be woken,
+  A light from the shadows shall spring;
+  Renewed shall be blade that was broken,
+  The crownless again shall be king."
 jc_boss_crystal_7: "Eikthyr's Lightning"
 jc_boss_crystal_7_description: "A gem which contains Eikthyr's lightning itself."
+jc_boss_crystal_7_description_flavor: |
+  "Thunder is good, thunder is impressive; but it is lightning that does the work."
 jc_press_interact: "Press [$1] to socket"
 jc_table_required: "Visit Gemcutter to socket"
 jc_add_socket_button: "Add Socket"

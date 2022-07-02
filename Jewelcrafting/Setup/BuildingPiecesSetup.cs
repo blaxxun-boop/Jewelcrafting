@@ -1,5 +1,4 @@
-﻿using System;
-using PieceManager;
+﻿using PieceManager;
 using UnityEngine;
 
 namespace Jewelcrafting;
@@ -14,6 +13,7 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Uncut_Purple_Stone", 10, true);
 		piece.RequiredItems.Add("Uncut_Blue_Stone", 10, true);
 		piece.Category.Add(BuildPieceCategory.Crafting);
+		Utils.ConvertComponent<OpenCompendium, StationExtension>(piece.Prefab);
 
 		piece = new BuildPiece(assets, "op_transmution_table");
 		piece.RequiredItems.Add("Wood", 10, true);
