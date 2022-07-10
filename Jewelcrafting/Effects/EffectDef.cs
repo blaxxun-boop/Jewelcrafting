@@ -25,11 +25,11 @@ public enum GemLocation
 	Spear = 1 << 9,
 	Axe = 1 << 10,
 	Bow = 1 << 11,
-	Weapon = Sword | Knife | Club | Polearm | Spear | Axe,
-	Tool = 1 << 12,
-	Shield = 1 << 13,
-	Utility = 1 << 14,
-	All = (1 << 15) - 1
+	Weapon = 1 << 12,
+	Tool = 1 << 13,
+	Shield = 1 << 14,
+	Utility = 1 << 15,
+	All = 1 << 16,
 }
 
 public enum Effect
@@ -52,6 +52,7 @@ public enum Effect
 	Parrymaster,
 	Comfortable,
 	Avoidance,
+	Magnetic,
 	Hercules,
 	Vampire,
 	Masterarcher,
@@ -70,27 +71,13 @@ public enum Effect
 	Marathon,
 	Unbreakable,
 	Energetic,
+	Mountaingoat,
 	Glowingspirit,
 	Lightningspeed,
 	Rootedrevenge,
 	Poisonousdrain,
 	Icyprotection,
 	Fierydoom
-}
-
-public enum GemType
-{
-	Black = 1,
-	Blue,
-	Green,
-	Purple,
-	Red,
-	Yellow,
-	Eikthyr,
-	Elder,
-	Bonemass,
-	Moder,
-	Yagluth
 }
 
 public struct EffectPower
@@ -100,40 +87,6 @@ public struct EffectPower
 	public object Config;
 	public bool Unique;
 }
-
-[AttributeUsage(AttributeTargets.Field)]
-public abstract class PowerAttribute : Attribute
-{
-	public abstract float Add(float a, float b);
-}
-
-public class AdditivePowerAttribute : PowerAttribute
-{
-	public override float Add(float a, float b) => a + b;
-}
-
-// Use when doing 1 + effect / 100
-public class MultiplicativePercentagePowerAttribute : PowerAttribute
-{
-	public override float Add(float a, float b) => ((1 + a / 100) * (1 + b / 100) - 1) * 100;
-}
-
-// Use when doing 1 - effect / 100 or when doing Random.Value < effect power
-public class InverseMultiplicativePercentagePowerAttribute : PowerAttribute
-{
-	public override float Add(float a, float b) => (1 - (1 - a / 100) * (1 - b / 100)) * 100;
-}
-
-public class MinPowerAttribute : PowerAttribute
-{
-	public override float Add(float a, float b) => Mathf.Min(a, b);
-}
-
-public class MaxPowerAttribute : PowerAttribute
-{
-	public override float Add(float a, float b) => Mathf.Max(a, b);
-}
-
 
 [PublicAPI]
 public struct DefaultPower
@@ -156,15 +109,19 @@ public class EffectDef
 	public GemLocation Slots;
 	public bool Unique = false;
 	public object[] Power = Array.Empty<object>();
-	
+
 	public static readonly Dictionary<Effect, Type> ConfigTypes = new();
 
-	private const GemLocation ResetGemlocations = GemLocation.All + 1;
-
+	public const GemLocation AllGemlocations = GemLocation.All - 1;
+	public const GemLocation WeaponGemlocations = GemLocation.Sword | GemLocation.Knife | GemLocation.Club | GemLocation.Polearm | GemLocation.Spear | GemLocation.Axe;
+	
 	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
-	private static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
-	private static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
+	public static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
+	public static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<string, Heightmap.Biome> ValidBiomes = new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None or Heightmap.Biome.BiomesMax or Heightmap.Biome.Ocean).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.InvariantCultureIgnoreCase);
+
+	public static readonly Dictionary<GemType, string> GemTypeNames = ValidGemTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
+	public static readonly Dictionary<Effect, string> EffectNames = ValidEffects.ToDictionary(kv => kv.Value, kv => kv.Key);
 
 	private static Dictionary<string, object?> castDictToStringDict(Dictionary<object, object?> dict) => new(dict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value), StringComparer.InvariantCultureIgnoreCase);
 
@@ -266,9 +223,9 @@ public class EffectDef
 							}
 							else
 							{
-								errors.Add($"Gem chances are defined individually as a mapping of gem type and chance, or a global chance for all gems expressed by a number between 0 and 1. Got unexpected {(biomeKv.Value is string stringValue ? $"'{stringValue}'" :biomeKv.Value?.GetType().ToString() ?? "empty string (null)")}. {errorLocation}");
+								errors.Add($"Gem chances are defined individually as a mapping of gem type and chance, or a global chance for all gems expressed by a number between 0 and 1. Got unexpected {(biomeKv.Value is string stringValue ? $"'{stringValue}'" : biomeKv.Value?.GetType().ToString() ?? "empty string (null)")}. {errorLocation}");
 							}
-							
+
 							gemDistribution[biome] = spawnChance;
 						}
 						else
@@ -536,7 +493,15 @@ public class EffectDef
 
 	public class Loader : ConfigLoader.Loader
 	{
-		private readonly Dictionary<string, ParseResult> parsed = new();
+		public static Loader instance = null!;
+		
+		public readonly Dictionary<string, ParseResult> parsed = new();
+		public ParseResult DefaultConfig => parsed[""];
+
+		public Loader()
+		{
+			instance = this;
+		}
 
 		public List<string> ErrorCheck(object? yaml)
 		{
@@ -546,13 +511,41 @@ public class EffectDef
 
 		public List<string> ProcessConfig(string key, object? yaml)
 		{
-			parsed[key] = Parse(yaml, out List<string> errors);
+			ParseResult result = Parse(yaml, out List<string> errors);
+
+			Dictionary<GemType, GemLocation> usedSlots = new();
+			foreach (KeyValuePair<Effect, List<EffectDef>> effect in result.effects)
+			{
+				foreach (EffectDef def in effect.Value)
+				{
+					usedSlots.TryGetValue(def.Type, out GemLocation usedLocations);
+					usedSlots[def.Type] = usedLocations | def.Slots;
+				}
+			}
+
+			foreach (KeyValuePair<Effect, List<EffectDef>> effect in result.effects)
+			{
+				foreach (EffectDef def in effect.Value)
+				{
+					usedSlots.TryGetValue(def.Type, out GemLocation usedLocations);
+					if ((def.Slots & GemLocation.Weapon) != 0)
+					{
+						def.Slots |= WeaponGemlocations & ~usedLocations;
+					}
+					if ((def.Slots & GemLocation.All) != 0)
+					{
+						def.Slots |= AllGemlocations & ~usedLocations;
+					}
+				}
+			}
+
+			parsed[key] = result;
 			return errors;
 		}
 
 		public void Reset()
 		{
-			foreach (string key in parsed.Keys.Where(k => k != "").ToArray())
+			foreach (string key in parsed.Keys.Where(k => k != "" && !k.StartsWith("/")).ToArray())
 			{
 				parsed.Remove(key);
 			}
@@ -564,7 +557,7 @@ public class EffectDef
 			Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
 			foreach (ParseResult parse in parsed.Values)
 			{
-				foreach (KeyValuePair<Effect,List<EffectDef>> effectKv in parse.effects)
+				foreach (KeyValuePair<Effect, List<EffectDef>> effectKv in parse.effects)
 				{
 					if (effectKv.Value.Count == 0)
 					{
@@ -586,7 +579,7 @@ public class EffectDef
 						}
 					}
 				}
-				
+
 				foreach (KeyValuePair<Heightmap.Biome, Dictionary<GemType, float>> biomeKv in parse.gemDistribution)
 				{
 					if (!gemDistribution.TryGetValue(biomeKv.Key, out Dictionary<GemType, float> gems))
@@ -612,7 +605,7 @@ public class EffectDef
 					}
 				}
 			}
-			
+
 			Jewelcrafting.SocketEffects = socketEffects;
 			Jewelcrafting.GemDistribution = gemDistribution;
 			Jewelcrafting.EffectPowers.Clear();
@@ -651,7 +644,7 @@ public class EffectDef
 					ApplyToGems(GemStoneSetup.Gems[def.Type].Select(g => g.Prefab).ToList());
 					foreach (KeyValuePair<GemType, Dictionary<GemType, GameObject[]>> mergedGem in MergedGemStoneSetup.mergedGems)
 					{
-						foreach (KeyValuePair<GemType,GameObject[]> mergedKv in mergedGem.Value)
+						foreach (KeyValuePair<GemType, GameObject[]> mergedKv in mergedGem.Value)
 						{
 							if (mergedKv.Key == def.Type || mergedGem.Key == def.Type)
 							{

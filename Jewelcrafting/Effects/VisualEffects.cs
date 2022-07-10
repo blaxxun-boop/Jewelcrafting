@@ -42,6 +42,24 @@ public static class VisualEffects
 	private const int HoeVal = 0x240000;
 	private const int PickaxeIronVal = 0x260000;
 
+	[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
+	private static class FillEffectHashMapOnStart
+	{
+		private static bool initialized = false;
+		
+		[HarmonyPriority(Priority.First)]
+		public static void Prefix()
+		{
+			if (initialized)
+			{
+				return;
+			}
+			
+			FillEffectHashMap();
+			initialized = true;
+		}
+	}
+
 	private static void FillEffectHashMap()
 	{
 		void AddToEffectMap<T>(Dictionary<string, Dictionary<T, GameObject>> effectPrefabs, Dictionary<T, Dictionary<string, GameObject[]>> inverse)
@@ -100,11 +118,6 @@ public static class VisualEffects
 	[HarmonyPatch(typeof(VisEquipment), nameof(VisEquipment.UpdateEquipmentVisuals))]
 	private static class ApplyGemEffects
 	{
-		static ApplyGemEffects()
-		{
-			FillEffectHashMap();
-		}
-
 		private static readonly ConditionalWeakTable<VisEquipment, Dictionary<VisSlot, Dictionary<int, GameObject>>> activeEffects = new();
 
 		private static void Postfix(VisEquipment __instance)

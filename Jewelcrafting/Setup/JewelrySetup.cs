@@ -22,7 +22,7 @@ public static class JewelrySetup
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
-		
+
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Purple_Socket", 1);
@@ -40,7 +40,7 @@ public static class JewelrySetup
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 		greenRingHash = item.Prefab.name.GetStableHashCode();
-		
+
 		item = new Item(assets, "JC_Ring_Red");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Red_Socket", 1);
@@ -49,7 +49,7 @@ public static class JewelrySetup
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		redRingName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		upgradeableJewelry.Add(redRingName);
-		
+
 		item = new Item(assets, "JC_Necklace_Green");
 		item.Crafting.Add("op_transmution_table", 3);
 		item.RequiredItems.Add("Perfect_Green_Socket", 1);
@@ -67,7 +67,7 @@ public static class JewelrySetup
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
-		
+
 		ExtendedItemDataFramework.ExtendedItemData.NewExtendedItemData += item =>
 		{
 			if (item.m_shared.m_name == purpleRingName && item.m_quality == 1 && item.GetComponent<Sockets>() is null)

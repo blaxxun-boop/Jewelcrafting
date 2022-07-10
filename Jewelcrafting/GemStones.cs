@@ -451,14 +451,14 @@ public static class GemStones
 						{
 							string socket = sockets.socketedGems[i - 1];
 							string text = "$jc_empty_socket_text";
-							Sprite sprite = emptySocketSprite;
+							Sprite? sprite = null;
 							if (ObjectDB.instance.GetItemPrefab(socket) is { } gameObject)
 							{
 								if (sockets is not Box)
 								{
 									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(item.m_shared), out List<EffectPower> effectPowers))
 									{
-										text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{gem.Effect.ToString().ToLower()} {gem.Power}"));
+										text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()} {gem.Power}"));
 									}
 									else
 									{
@@ -473,7 +473,8 @@ public static class GemStones
 								sprite = gameObject.GetComponent<ItemDrop>().m_itemData.GetIcon();
 							}
 							transmute.GetComponent<Text>().text = Localization.instance.Localize(text);
-							transmute.Find("Transmute_1").GetComponent<Image>().sprite = sprite;
+							transmute.Find("Border/Transmute_1").gameObject.SetActive(sprite is not null);
+							transmute.Find("Border/Transmute_1").GetComponent<Image>().sprite = sprite;
 						}
 					}
 				}
@@ -497,13 +498,27 @@ public static class GemStones
 				{
 					StringBuilder sb = new("\n");
 
-					GemLocation seenGems = 0;
+					HashSet<Effect> collectEffects(GemLocation location)
+					{
+						HashSet<Effect> effects = new();
+						if (gem.TryGetValue(location, out List<EffectPower> weaponPowers))
+						{
+							foreach (EffectPower effectPower in weaponPowers)
+							{
+								effects.Add(effectPower.Effect);
+							}
+						}
+						return effects;
+					}
+					HashSet<Effect> weaponEffects = collectEffects(GemLocation.Weapon);
+					HashSet<Effect> allEffects = collectEffects(GemLocation.All);
+					
 					foreach (GemLocation gemLocation in gem.Keys.OrderByDescending(g => (int)g))
 					{
-						if ((seenGems & gemLocation) == 0)
+						List<EffectPower> specificEffects = gem[gemLocation].Where(p => ((gemLocation & EffectDef.WeaponGemlocations) == 0 || !weaponEffects.Contains(p.Effect)) && (gemLocation == GemLocation.All || !allEffects.Contains(p.Effect))).ToList();
+						if (specificEffects.Count > 0)
 						{
-							sb.Append($"\n<color=orange>$jc_socket_slot_{gemLocation.ToString().ToLower()}:</color> {string.Join(", ", gem[gemLocation].Select(effectPower => $"$jc_effect_{effectPower.Effect.ToString().ToLower()} {effectPower.Power}"))}");
-							seenGems |= gemLocation;
+							sb.Append($"\n<color=orange>$jc_socket_slot_{gemLocation.ToString().ToLower()}:</color> {string.Join(", ", specificEffects.Select(effectPower => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {effectPower.Power}"))}");
 						}
 					}
 
@@ -652,7 +667,7 @@ public static class GemStones
 					yield return null;
 					Player.m_localPlayer.GetInventory().RemoveItem(deleteBox);
 				}
-				
+
 				InventoryGui.instance.StartCoroutine(DelayedBoxDelete());
 			}
 

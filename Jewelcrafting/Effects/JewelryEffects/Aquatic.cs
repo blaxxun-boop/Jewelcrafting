@@ -6,7 +6,7 @@ public static class Aquatic
 {
 	static Aquatic()
 	{
-		TrackEquipmentChanges.OnEffectRecalc += () =>
+		API.OnEffectRecalc += () =>
 		{
 			if (Player.m_localPlayer.m_utilityItem?.m_shared.m_name != "$jc_necklace_blue")
 			{

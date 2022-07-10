@@ -3,29 +3,55 @@ using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using ItemManager;
-using Jewelcrafting.GemEffects;
 using UnityEngine;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
 
 public static class DestructibleSetup
 {
-	private static readonly Dictionary<GemType, GameObject> destructibles = new();
+	public static readonly Dictionary<GemType, GameObject> destructibles = new();
 	public static GameObject gemSpawner = null!;
+	public static GameObject customDestructiblePrefab = null!;
+
+	public static void AddDestructible(GameObject prefab, GemType type)
+	{
+		PrefabManager.RegisterPrefab(prefab);
+		prefab.AddComponent<DestructibleGem>();
+		destructibles.Add(type, prefab);
+
+		prefab.GetComponent<DropOnDestroyed>().m_dropWhenDestroyed.m_drops = new List<DropTable.DropData>
+		{
+			new()
+			{
+				m_item = GemStoneSetup.uncutGems[type],
+				m_weight = 1,
+				m_stackMin = 1,
+				m_stackMax = 1
+			}
+		};
+	}
+
+	public static GameObject CreateDestructibleFromTemplate(GameObject template, string type, Color color)
+	{
+		GameObject prefab = Object.Instantiate(template, MergedGemStoneSetup.gemList.transform);
+		prefab.name = template.name.Replace("Custom", type);
+		prefab.GetComponent<HoverText>().m_text = $"$jc_raw_{type.ToLower()}_gemstone";
+		foreach (MeshRenderer renderer in prefab.transform.Find("collider").GetComponentsInChildren<MeshRenderer>())
+		{
+			renderer.material.color = color;
+		}
+		return prefab;
+	}
 
 	public static void initializeDestructibles(AssetBundle assets)
 	{
-		destructibles.Add(GemType.Black, PrefabManager.RegisterPrefab(assets, "Raw_Black_Gemstone"));
-		destructibles.Add(GemType.Blue, PrefabManager.RegisterPrefab(assets, "Raw_Blue_Gemstone"));
-		destructibles.Add(GemType.Green, PrefabManager.RegisterPrefab(assets, "Raw_Green_Gemstone"));
-		destructibles.Add(GemType.Purple, PrefabManager.RegisterPrefab(assets, "Raw_Purple_Gemstone"));
-		destructibles.Add(GemType.Red, PrefabManager.RegisterPrefab(assets, "Raw_Red_Gemstone"));
-		destructibles.Add(GemType.Yellow, PrefabManager.RegisterPrefab(assets, "Raw_Yellow_Gemstone"));
+		customDestructiblePrefab = assets.LoadAsset<GameObject>("Raw_Custom_Gemstone");
 
-		foreach (GameObject destructible in destructibles.Values)
+		foreach (KeyValuePair<GemType, Color> color in GemStoneSetup.Colors)
 		{
-			destructible.AddComponent<DestructibleGem>();
+			AddDestructible(assets.LoadAsset<GameObject>(customDestructiblePrefab.name.Replace("Custom", color.Key.ToString())), color.Key);
 		}
 	}
 

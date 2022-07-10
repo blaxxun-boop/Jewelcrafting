@@ -20,6 +20,11 @@ shadow hit:
   gem: black
   power: [2, 3, 4]
 
+magnetic:
+  slot: spear
+  gem: black
+  power: [20, 30, 40]
+
 vampire:
   slot: weapon
   gem: yellow
@@ -73,6 +78,11 @@ marathon:
   slot: legs
   gem: yellow
   power: [7, 9, 11]
+
+mountain goat:
+  slot: legs
+  gem: purple
+  power: [10, 15, 20]
 
 # Utility
 

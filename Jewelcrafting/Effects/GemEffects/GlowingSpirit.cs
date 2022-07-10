@@ -13,7 +13,7 @@ public static class GlowingSpirit
 
 	static GlowingSpirit()
 	{
-		TrackEquipmentChanges.OnEffectRecalc += () =>
+		API.OnEffectRecalc += () =>
 		{
 			if (Player.m_localPlayer.GetEffect(Effect.Glowingspirit) == 0)
 			{

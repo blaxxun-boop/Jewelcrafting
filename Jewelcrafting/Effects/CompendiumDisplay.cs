@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using ExtendedItemDataFramework;
 using HarmonyLib;
@@ -35,7 +36,8 @@ public static class CompendiumDisplay
 							foreach (EffectPower effectPower in effectPowers)
 							{
 								gems.TryGetValue(effectPower.Effect, out KeyValuePair<float, GemLocation> power);
-								gems[effectPower.Effect] = new KeyValuePair<float, GemLocation>(power.Key + effectPower.Power, power.Value | location);
+								FieldInfo primaryPower = effectPower.Config.GetType().GetFields().First();
+								gems[effectPower.Effect] = new KeyValuePair<float, GemLocation>(primaryPower.GetCustomAttribute<PowerAttribute>().Add(power.Key, effectPower.Power), power.Value | location);
 							}
 						}
 					}
@@ -47,7 +49,7 @@ public static class CompendiumDisplay
 			{
 				foreach (KeyValuePair<Effect, KeyValuePair<float, GemLocation>> kv in gems)
 				{
-					sb.Append(Localization.instance.Localize($"\n$jc_effect_{kv.Key.ToString().ToLower()}_desc_detail", kv.Value.Key.ToString(CultureInfo.InvariantCulture)));
+					sb.Append(Localization.instance.Localize($"\n$jc_effect_{EffectDef.EffectNames[kv.Key].ToLower()}_desc_detail", kv.Value.Key.ToString(CultureInfo.InvariantCulture)));
 				}
 				__instance.m_texts[0].m_text += sb.ToString();
 			}
@@ -55,7 +57,7 @@ public static class CompendiumDisplay
 			sb.Clear();
 			foreach (KeyValuePair<GemType, List<GemDefinition>> kv in GemStoneSetup.Gems)
 			{
-				sb.Append(kv.Value.Count > 1 ? $"$jc_uncut_{kv.Key.ToString().ToLower()}_stone:\n" : $"{kv.Value[0].Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name}:\n");
+				sb.Append(kv.Value.Count > 1 ? $"$jc_uncut_{EffectDef.GemTypeNames[kv.Key].ToLower()}_stone:\n" : $"{kv.Value[0].Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name}:\n");
 				int gemHash = kv.Value[0].Prefab.name.GetStableHashCode();
 				if (Jewelcrafting.EffectPowers.ContainsKey(gemHash))
 				{
@@ -78,7 +80,7 @@ public static class CompendiumDisplay
 								seenGems |= gemLocation;
 							}
 						}*/
-						sb.Append($"<color=orange>$jc_effect_{effect.Key.ToString().ToLower()}</color> - $jc_effect_{effect.Key.ToString().ToLower()}_desc\n");
+						sb.Append($"<color=orange>$jc_effect_{EffectDef.EffectNames[effect.Key].ToLower()}</color> - $jc_effect_{EffectDef.EffectNames[effect.Key].ToLower()}_desc\n");
 					}
 				}
 				sb.Append("\n");

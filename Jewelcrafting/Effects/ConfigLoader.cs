@@ -96,18 +96,21 @@ public static class ConfigLoader
 		initialized = true;
 	}
 
-	private static void loadConfigFile(Loader loader)
+	public static void LoadBuiltinConfig()
 	{
-		if (!initialized)
+		foreach (Loader loader in loaders)
 		{
 			object builtinConfig = new DeserializerBuilder().Build().Deserialize<object>(Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes("Effects.Jewelcrafting.Sockets.yml")));
 			List<string> builtinConfigErrors = loader.ProcessConfig("", builtinConfig);
 			if (builtinConfigErrors.Count > 0)
 			{
-				Debug.LogError($"Found {Jewelcrafting.ModName} config errors in built-in config. Please report an issue:\n{string.Join("\n", builtinConfigErrors)}");
+				Debug.LogError($"Found {Jewelcrafting.ModName} config errors in built-in config. Please report the issue:\n{string.Join("\n", builtinConfigErrors)}");
 			}
 		}
+	}
 
+	private static void loadConfigFile(Loader loader)
+	{
 		List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).OrderBy(p => Path.GetFileName(p) != loader.FilePattern.Replace("*", "")).ThenBy(Path.GetFileName).ToList();
 		if (paths.Count > 0 && Jewelcrafting.useExternalYaml.Value == Jewelcrafting.Toggle.On)
 		{

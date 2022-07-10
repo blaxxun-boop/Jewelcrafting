@@ -24,7 +24,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.3";
+	private const string ModVersion = "1.1.4";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -44,24 +44,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> uniqueGemDropOnePerPlayer = null!;
 	public static ConfigEntry<int> resourceReturnRate = null!;
 	public static ConfigEntry<Toggle> badLuckRecipes = null!;
-	public static ConfigEntry<int> badLuckCostSimpleOnyx = null!;
-	public static ConfigEntry<int> badLuckCostSimpleSapphire = null!;
-	public static ConfigEntry<int> badLuckCostSimpleEmerald = null!;
-	public static ConfigEntry<int> badLuckCostSimpleSpinel = null!;
-	public static ConfigEntry<int> badLuckCostSimpleRuby = null!;
-	public static ConfigEntry<int> badLuckCostSimpleSulfur = null!;
-	public static ConfigEntry<int> badLuckCostAdvancedOnyx = null!;
-	public static ConfigEntry<int> badLuckCostAdvancedSapphire = null!;
-	public static ConfigEntry<int> badLuckCostAdvancedEmerald = null!;
-	public static ConfigEntry<int> badLuckCostAdvancedSpinel = null!;
-	public static ConfigEntry<int> badLuckCostAdvancedRuby = null!;
-	public static ConfigEntry<int> badLuckCostAdvancedSulfur = null!;
-	public static ConfigEntry<int> gemDropChanceOnyx = null!;
-	public static ConfigEntry<int> gemDropChanceSapphire = null!;
-	public static ConfigEntry<int> gemDropChanceEmerald = null!;
-	public static ConfigEntry<int> gemDropChanceSpinel = null!;
-	public static ConfigEntry<int> gemDropChanceRuby = null!;
-	public static ConfigEntry<int> gemDropChanceSulfur = null!;
 	public static readonly ConfigEntry<int>[] crystalFusionBoxDropRate = new ConfigEntry<int>[FusionBoxSetup.Boxes.Length];
 	public static ConfigEntry<int> healthBaseBoxDrop = null!;
 	public static readonly ConfigEntry<float>[] crystalFusionBoxMergeActivityProgress = new ConfigEntry<float>[FusionBoxSetup.Boxes.Length];
@@ -80,28 +62,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
 	public static readonly CustomSyncedValue<List<string>> socketEffectDefinitions = new(configSync, "socket effects", new List<string>());
 
-	private readonly Dictionary<string, float> defaultGemUpgradeChances = new()
-	{
-		{ "$jc_black_socket", 30f },
-		{ "$jc_adv_black_socket", 20f },
-		{ "$jc_perfect_black_socket", 10f },
-		{ "$jc_blue_socket", 30f },
-		{ "$jc_adv_blue_socket", 20f },
-		{ "$jc_perfect_blue_socket", 10f },
-		{ "$jc_green_socket", 30f },
-		{ "$jc_adv_green_socket", 20f },
-		{ "$jc_perfect_green_socket", 10f },
-		{ "$jc_purple_socket", 30f },
-		{ "$jc_adv_purple_socket", 20f },
-		{ "$jc_perfect_purple_socket", 10f },
-		{ "$jc_red_socket", 30f },
-		{ "$jc_adv_red_socket", 20f },
-		{ "$jc_perfect_red_socket", 10f },
-		{ "$jc_yellow_socket", 30f },
-		{ "$jc_adv_yellow_socket", 20f },
-		{ "$jc_perfect_yellow_socket", 10f }
-	};
-
 	private readonly Dictionary<string, int[]> defaultBoxMergeChances = new()
 	{
 		{ "$jc_common_gembox", new[] { 75, 25, 0 } },
@@ -111,11 +71,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private readonly Dictionary<string, float[]> defaultBoxBossProgress = new()
 	{
-		{ "$enemy_eikthyr", new [] { 3f, 0, 0 } },
-		{ "$enemy_gdking", new [] { 4f, 0.5f, 0 } },
-		{ "$enemy_bonemass", new [] { 5f, 1f, 0.3f } },
-		{ "$enemy_dragon", new [] { 7f, 3f, 0.7f } },
-		{ "$enemy_goblinking", new [] { 10f, 5f, 1.5f } }
+		{ "$enemy_eikthyr", new[] { 3f, 0, 0 } },
+		{ "$enemy_gdking", new[] { 4f, 0.5f, 0 } },
+		{ "$enemy_bonemass", new[] { 5f, 1f, 0.3f } },
+		{ "$enemy_dragon", new[] { 7f, 3f, 0.7f } },
+		{ "$enemy_goblinking", new[] { 10f, 5f, 1.5f } }
 	};
 
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
@@ -157,7 +117,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private static Jewelcrafting self = null!;
 
-	private static ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
+	public static ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
 	{
 		ConfigEntry<T> configEntry = self.Config.Bind(group, name, value, description);
 
@@ -199,7 +159,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		public Action<ConfigEntryBase>? CustomDrawer;
 	}
 
-	private static Localization english = null!;
+	internal static Localization english = null!;
 
 	public void Awake()
 	{
@@ -270,24 +230,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketMerged = config("2 - Socket System", "Merged Gem Break Chance", 0, new ConfigDescription("Chance to break a merged gem when trying to remove it from a socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 0, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostSimpleOnyx = config("2 - Socket System", "Bad Luck Cost Simple Onyx", 12, new ConfigDescription("Onyx shards required to craft a Simple Onyx.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostSimpleSapphire = config("2 - Socket System", "Bad Luck Cost Simple Sapphire", 12, new ConfigDescription("Sapphire shards required to craft a Simple Sapphire.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostSimpleEmerald = config("2 - Socket System", "Bad Luck Cost Simple Emerald", 12, new ConfigDescription("Emerald shards required to craft a Simple Emerald.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostSimpleSpinel = config("2 - Socket System", "Bad Luck Cost Simple Spinel", 12, new ConfigDescription("Spinel shards required to craft a Simple Spinel.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostSimpleRuby = config("2 - Socket System", "Bad Luck Cost Simple Ruby", 12, new ConfigDescription("Ruby shards required to craft a Simple Ruby.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostSimpleSulfur = config("2 - Socket System", "Bad Luck Cost Simple Sulfur", 12, new ConfigDescription("Sulfur shards required to craft a Simple Sulfur.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostAdvancedOnyx = config("2 - Socket System", "Bad Luck Cost Advanced Onyx", 35, new ConfigDescription("Onyx shards required to craft an Advanced Onyx.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostAdvancedSapphire = config("2 - Socket System", "Bad Luck Cost Advanced Sapphire", 35, new ConfigDescription("Sapphire shards required to craft an Advanced Sapphire.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostAdvancedEmerald = config("2 - Socket System", "Bad Luck Cost Advanced Emerald", 35, new ConfigDescription("Emerald shards required to craft an Advanced Emerald.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostAdvancedSpinel = config("2 - Socket System", "Bad Luck Cost Advanced Spinel", 35, new ConfigDescription("Spinel shards required to craft an Advanced Spinel.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostAdvancedRuby = config("2 - Socket System", "Bad Luck Cost Advanced Ruby", 35, new ConfigDescription("Ruby shards required to craft an Advanced Ruby.", null, new ConfigurationManagerAttributes { Order = --order }));
-		badLuckCostAdvancedSulfur = config("2 - Socket System", "Bad Luck Cost Advanced Sulfur", 35, new ConfigDescription("Sulfur shards required to craft an Advanced Sulfur.", null, new ConfigurationManagerAttributes { Order = --order }));
-		gemDropChanceOnyx = config("2 - Socket System", "Drop chance for Onyx Gemstones", 2, new ConfigDescription("Chance to drop an onyx gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		gemDropChanceSapphire = config("2 - Socket System", "Drop chance for Sapphire Gemstones", 2, new ConfigDescription("Chance to drop a sapphire gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		gemDropChanceEmerald = config("2 - Socket System", "Drop chance for Emerald Gemstones", 2, new ConfigDescription("Chance to drop an emerald gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		gemDropChanceSpinel = config("2 - Socket System", "Drop chance for Spinel Gemstones", 2, new ConfigDescription("Chance to drop a spinel gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		gemDropChanceRuby = config("2 - Socket System", "Drop chance for Ruby Gemstones", 2, new ConfigDescription("Chance to drop a ruby gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		gemDropChanceSulfur = config("2 - Socket System", "Drop chance for Sulfur Gemstones", 2, new ConfigDescription("Chance to drop a sulfur gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[0] = config("3 - Fusion Box", "Drop rate for Fusion Box", 200, new ConfigDescription("Drop rate for the Common Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[1] = config("3 - Fusion Box", "Drop rate for Blessed Fusion Box", 500, new ConfigDescription("Drop rate for the Blessed Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[2] = config("3 - Fusion Box", "Drop rate for Celestial Fusion Box", 1000, new ConfigDescription("Drop rate for the Celestial Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -322,12 +264,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		VisualEffectSetup.initializeVisualEffects(assets);
 		MergedGemStoneSetup.initializeMergedGemStones(assets);
 		FusionBoxSetup.initializeFusionBoxes(assets);
-
-		int upgradeOrder = 0;
-		foreach (GemDefinition gem in GemStoneSetup.Gems.Values.SelectMany(g => g).Where(g => g.DefaultUpgradeChance > 0))
-		{
-			gemUpgradeChances.Add(gem.Name, config("Socket Upgrade Chances", english.Localize(gem.Name), gem.DefaultUpgradeChance, new ConfigDescription($"Success chance while trying to create {Localization.instance.Localize(gem.Name)}.", new AcceptableValueRange<float>(0f, 100f), new ConfigurationManagerAttributes { Order = --upgradeOrder, DispName = Localization.instance.Localize(gem.Name) })));
-		}
+		ConfigLoader.LoadBuiltinConfig();
 
 		int socketAddingOrder = 0;
 		for (int i = 0; i < 5; ++i)

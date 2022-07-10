@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+
 using ItemManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
@@ -8,6 +8,15 @@ namespace Jewelcrafting;
 
 public static class MergedGemStoneSetup
 {
+	public static readonly GameObject gemList;
+
+	static MergedGemStoneSetup()
+	{
+		gemList = new GameObject("Jewelcrafting Generated Gems");
+		gemList.SetActive(false);
+		Object.DontDestroyOnLoad(gemList);
+	}
+	
 	private static readonly Dictionary<GemType, string> colors = new()
 	{
 		{ GemType.Black, "StoneBlack" },
@@ -18,102 +27,77 @@ public static class MergedGemStoneSetup
 		{ GemType.Yellow, "StoneYellow" }
 	};
 
-	public static readonly Dictionary<GemType, Dictionary<GemType, GameObject[]>> mergedGems = colors.Keys.ToDictionary(first => first, first => colors.Keys.Where(second => first != second).ToDictionary(second => second, _ => new GameObject[3]));
+	private static readonly Dictionary<GemType, Material> colorMaterials = new();
 
+	public static readonly Dictionary<GemType, Dictionary<GemType, GameObject[]>> mergedGems = new();
+
+	private static readonly List<MergedGemAsset> mergedGemAssets = new();
+	private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
+
+	private struct MergedGemAsset
+	{
+		public GameObject prefab;
+		public string localizationPrefix;
+		public int tier;
+	}
+	
 	public static void initializeMergedGemStones(AssetBundle assets)
 	{
-		GameObject gemList = new("Jewelcrafting Merged Gems");
-		gemList.SetActive(false);
-		Object.DontDestroyOnLoad(gemList);
+		mergedGemAssets.Add(new MergedGemAsset { prefab = assets.LoadAsset<GameObject>("Common_Merged_Gemstone"), localizationPrefix = "common", tier = 0 });
+		mergedGemAssets.Add(new MergedGemAsset { prefab = assets.LoadAsset<GameObject>("Advanced_Merged_Gemstone"), localizationPrefix = "adv", tier = 1 });
+		mergedGemAssets.Add(new MergedGemAsset { prefab = assets.LoadAsset<GameObject>("Perfect_Merged_Gemstone"), localizationPrefix = "perfect", tier = 2 });
 
-		const int layer = 30;
-
-		Camera camera = new GameObject("Camera", typeof(Camera)).GetComponent<Camera>();
-		camera.backgroundColor = Color.clear;
-		camera.clearFlags = CameraClearFlags.SolidColor;
-		camera.fieldOfView = 0.5f;
-		camera.farClipPlane = 10000000;
-		camera.cullingMask = 1 << layer;
-
-		Light light = new GameObject("Light", typeof(Light)).GetComponent<Light>();
-		light.transform.rotation = Quaternion.Euler(60, -5f, 0);
-		light.type = LightType.Directional;
-		light.cullingMask = 1 << layer;
-		light.intensity = 0.5f;
-
-		void SnapshotItem(ItemDrop item)
+		foreach (KeyValuePair<GemType, string> kv in colors)
 		{
-			Rect rect = new(0, 0, 64, 64);
-
-			GameObject visual = Object.Instantiate(item.transform.Find("attach").gameObject);
-			foreach (Transform child in visual.GetComponentsInChildren<Transform>())
-			{
-				child.gameObject.layer = layer;
-			}
-
-			Renderer[] renderers = visual.GetComponentsInChildren<Renderer>();
-			Vector3 min = renderers.Aggregate(Vector3.positiveInfinity, (cur, renderer) => renderer is ParticleSystemRenderer ? cur : Vector3.Min(cur, renderer.bounds.min));
-			Vector3 max = renderers.Aggregate(Vector3.negativeInfinity, (cur, renderer) => renderer is ParticleSystemRenderer ? cur : Vector3.Max(cur, renderer.bounds.max));
-			Vector3 size = max - min;
-
-			camera.targetTexture = RenderTexture.GetTemporary((int)rect.width, (int)rect.height);
-			float zDist = Mathf.Max(size.x, size.y) * 1.05f / Mathf.Tan(camera.fieldOfView * Mathf.Deg2Rad);
-			Transform transform = camera.transform;
-			transform.position = (min + max) / 2 + new Vector3(0, 0, -zDist);
-			light.transform.position = transform.position + new Vector3(-2, 0.2f) / 3 * zDist;
-
-			camera.Render();
-
-			RenderTexture currentRenderTexture = RenderTexture.active;
-			RenderTexture.active = camera.targetTexture;
-
-			Texture2D texture = new((int)rect.width, (int)rect.height, TextureFormat.RGBA32, false);
-			texture.ReadPixels(rect, 0, 0);
-			texture.Apply();
-
-			RenderTexture.active = currentRenderTexture;
-
-			item.m_itemData.m_shared.m_icons = new[] { Sprite.Create(texture, rect, new Vector2(0.5f, 0.5f)) };
-
-			Object.DestroyImmediate(visual);
-			camera.targetTexture.Release();
+			colorMaterials.Add(kv.Key, assets.LoadAsset<Material>(kv.Value));
 		}
 
-		void CollectMergedGems(string assetName, string localizationPrefix, int tier)
+		foreach (KeyValuePair<GemType, Color> first in GemStoneSetup.Colors)
 		{
-			GameObject mergedGem = assets.LoadAsset<GameObject>(assetName);
-			foreach (KeyValuePair<GemType, string> first in colors)
+			mergedGems[first.Key] = new Dictionary<GemType, GameObject[]>();
+			foreach (KeyValuePair<GemType, Color> second in GemStoneSetup.Colors)
 			{
-				foreach (KeyValuePair<GemType, string> second in colors)
+				if (first.Key != second.Key)
 				{
-					if (first.Key != second.Key)
-					{
-						GameObject prefab = Object.Instantiate(mergedGem, gemList.transform);
-						prefab.name = $"{assetName}_{first.Key}_{second.Key}";
-						prefab.transform.Find("attach/Gem_Mesh_High").GetComponent<MeshRenderer>().material = assets.LoadAsset<Material>(first.Value);
-						prefab.transform.Find("attach/Gem_Mesh_Low").GetComponent<MeshRenderer>().material = assets.LoadAsset<Material>(second.Value);
-						ItemDrop itemDrop = prefab.GetComponent<ItemDrop>();
-						string name = $"$jc_{localizationPrefix}_merged_gemstone_{first.Key.ToString().ToLower()}_{second.Key.ToString().ToLower()}";
-						if (!Localization.instance.m_translations.ContainsKey(name))
-						{
-							name = Localization.instance.Localize($"$jc_{localizationPrefix}_merged_gemstone", $"$jc_merged_gemstone_{first.Key.ToString().ToLower()}", $"$jc_merged_gemstone_{second.Key.ToString().ToLower()}");
-						}
-						itemDrop.m_itemData.m_shared.m_name = name;
-						GemStones.socketableGemStones.Add(name);
-						SnapshotItem(itemDrop);
-						_ = new Item(prefab);
-
-						mergedGems[first.Key][second.Key][tier] = prefab;
-					}
+					CreateMergedGemStone(first, second);
 				}
 			}
 		}
+	}
 
-		CollectMergedGems("Common_Merged_Gemstone", "common", 0);
-		CollectMergedGems("Advanced_Merged_Gemstone", "adv", 1);
-		CollectMergedGems("Perfect_Merged_Gemstone", "perfect", 2);
+	public static void CreateMergedGemStone(KeyValuePair<GemType, Color> first, KeyValuePair<GemType, Color> second)
+	{
+		mergedGems[first.Key][second.Key] = new GameObject[mergedGemAssets.Count];
+		foreach (MergedGemAsset asset in mergedGemAssets)
+		{
+			GameObject prefab = Object.Instantiate(asset.prefab, gemList.transform);
+			prefab.name = $"{asset.prefab.name}_{EffectDef.GemTypeNames[first.Key]}_{EffectDef.GemTypeNames[second.Key]}";
+			void SetColor(string location, KeyValuePair<GemType, Color> kv)
+			{
+				if (colorMaterials.TryGetValue(kv.Key, out Material material))
+				{
+					prefab.transform.Find($"attach/{location}").GetComponent<MeshRenderer>().material = material;
+				}
+				else
+				{
+					prefab.transform.Find($"attach/{location}").GetComponent<MeshRenderer>().material.color = kv.Value;
+					prefab.transform.Find($"attach/{location}").GetComponent<MeshRenderer>().material.SetColor(EmissionColor, kv.Value);
+				}
+			}
+			SetColor("Gem_Mesh_High", first);
+			SetColor("Gem_Mesh_Low", second);
+			ItemDrop itemDrop = prefab.GetComponent<ItemDrop>();
+			string name = $"$jc_{asset.localizationPrefix}_merged_gemstone_{EffectDef.GemTypeNames[first.Key].ToLower()}_{EffectDef.GemTypeNames[second.Key].ToLower()}";
+			if (!Localization.instance.m_translations.ContainsKey(name))
+			{
+				name = Localization.instance.Localize($"$jc_{asset.localizationPrefix}_merged_gemstone", $"$jc_merged_gemstone_{EffectDef.GemTypeNames[first.Key].ToLower()}", $"$jc_merged_gemstone_{EffectDef.GemTypeNames[second.Key].ToLower()}");
+			}
+			itemDrop.m_itemData.m_shared.m_name = name;
+			GemStones.socketableGemStones.Add(name);
+			ItemSnapshots.SnapshotItems(itemDrop);
+			_ = new Item(prefab);
 
-		Object.Destroy(camera);
-		Object.Destroy(light);
+			mergedGems[first.Key][second.Key][asset.tier] = prefab;
+		}
 	}
 }

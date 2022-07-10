@@ -11,8 +11,6 @@ namespace Jewelcrafting.GemEffects;
 [HarmonyPatch]
 public class TrackEquipmentChanges
 {
-	public static event Action? OnEffectRecalc;
-
 	private static IEnumerable<MethodInfo> TargetMethods() => new[]
 	{
 		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.SetupEquipment)),
@@ -106,7 +104,7 @@ public class TrackEquipmentChanges
 
 		zdo.IncreseDataRevision();
 
-		OnEffectRecalc?.Invoke();
+		API.InvokeEffectRecalc();
 	}
 
 	private static void StoreSocketGems(ZDO zdo, VisSlot part, ItemDrop.ItemData? item)
@@ -133,8 +131,9 @@ public class TrackEquipmentChanges
 			}
 		}
 
-		while (zdo.m_ints.Remove($"JewelCrafting {part} Effect {i++}".GetStableHashCode()))
+		while (zdo.m_ints.ContainsKey($"JewelCrafting {part} Effect {i}".GetStableHashCode()))
 		{
+			zdo.m_ints[$"JewelCrafting {part} Effect {i++}".GetStableHashCode()] = 0;
 		}
 	}
 

@@ -7,7 +7,7 @@ public static class Headhunter
 {
 	static Headhunter()
 	{
-		TrackEquipmentChanges.OnEffectRecalc += () =>
+		API.OnEffectRecalc += () =>
 		{
 			if (Player.m_localPlayer.m_utilityItem?.m_shared.m_name != "$jc_ring_green")
 			{

@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using ExtendedItemDataFramework;
 using HarmonyLib;
 using ItemManager;
@@ -162,6 +164,42 @@ public static class FusionBoxSetup
 			anchoredPosition = new Vector2(-anchoredPosition.x, -anchoredPosition.y);
 			rect.anchoredPosition = anchoredPosition;
 			SealButton.SetActive(false);
+		}
+	}
+
+	[HarmonyPatch(typeof(ItemStand), nameof(ItemStand.SetVisualItem))]
+	private static class RotateBox
+	{
+		private class Q
+		{
+			public Quaternion q;
+		}
+
+		private static readonly ConditionalWeakTable<ItemStand, Q> rotation = new();
+
+		private static void Prefix(ItemStand __instance, out GameObject __state)
+		{
+			__state = __instance.m_visualItem;
+		}
+		
+		private static void Postfix(ItemStand __instance, string itemName, GameObject __state)
+		{
+			if (__instance.m_visualItem != __state && !__instance.name.StartsWith("itemstandh", StringComparison.Ordinal))
+			{
+				Transform rotate = __instance.m_visualItem.transform.parent;
+				if (Boxes.Any(b => b.name == itemName))
+				{
+					rotation.Remove(__instance);
+					rotation.Add(__instance, new Q { q = rotate.rotation });
+					rotate.rotation = Quaternion.Euler(0, 45, 0);
+					__instance.m_visualItem.transform.localPosition = new Vector3(0.25f, -0.25f, 0);
+				}
+				else if (rotation.TryGetValue(__instance, out Q original))
+				{
+					rotate.rotation = original.q;
+					rotation.Remove(__instance);
+				}
+			}
 		}
 	}
 }

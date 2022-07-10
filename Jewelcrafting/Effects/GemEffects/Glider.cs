@@ -13,7 +13,7 @@ public static class Glider
 		[UsedImplicitly]
 		private static void Prefix(Character __instance, ref float ___m_maxAirAltitude)
 		{
-			if (__instance != Player.m_localPlayer || !__instance.m_groundContact)
+			if (__instance != Player.m_localPlayer || !__instance.m_groundContact || !__instance.IsSwiming())
 			{
 				return;
 			}
@@ -36,7 +36,7 @@ public static class Glider
 		[UsedImplicitly]
 		private static void Postfix(Player __instance)
 		{
-			if (!__instance.IsOnGround() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, 4f, Character.m_groundRayMask))
+			if (!__instance.IsOnGround() && !__instance.IsSwiming() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, 4f, Character.m_groundRayMask))
 			{
 				float effect = __instance.GetEffect(Effect.Glider);
 				if (!glidingUsed && effect > 0)

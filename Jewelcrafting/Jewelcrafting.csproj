@@ -35,6 +35,25 @@
         <ErrorReport>prompt</ErrorReport>
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'API|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\API\</OutputPath>
+        <DefineConstants>API;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'APIStub|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\APIStub\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+        <AssemblyName>JewelcraftingAPI</AssemblyName>
+    </PropertyGroup>
     <Choose>
         <When Condition="($(OS) == 'Unix' OR $(OS) == 'OSX') AND $(GamePath) == ''">
             <PropertyGroup>
@@ -136,7 +155,17 @@
             <HintPath>..\packages\YamlDotNet.11.2.1\lib\net45\YamlDotNet.dll</HintPath>
         </Reference>
     </ItemGroup>
-    <ItemGroup>
+    <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'APIStub|AnyCPU'">
+        <Compile Include="API\AssemblyResolver.cs" />
+        <EmbeddedResource Include="bin\API\Jewelcrafting.dll" Link="Jewelcrafting.dll" />
+    </ItemGroup>
+    <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU' ">
+        <Compile Include="API\API.cs" />
+        <Compile Include="API\GemType.cs" />
+        <Compile Include="API\PowerAttribute.cs" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
+        <Compile Include="Effects\GemEffects\MountainGoat.cs" />
         <Compile Include="Effects\JewelryEffects\Aquatic.cs" />
         <Compile Include="Effects\JewelryEffects\Awareness.cs" />
         <Compile Include="Effects\JewelryEffects\Headhunter.cs" />
@@ -167,6 +196,7 @@
         <Compile Include="Effects\GemEffects\IcyProtection.cs" />
         <Compile Include="Effects\GemEffects\Inconspicuous.cs" />
         <Compile Include="Effects\GemEffects\LightningSpeed.cs" />
+        <Compile Include="Effects\GemEffects\Magnetic.cs" />
         <Compile Include="Effects\GemEffects\Marathon.cs" />
         <Compile Include="Effects\GemEffects\MasterArcher.cs" />
         <Compile Include="Effects\GemEffects\MercifulDeath.cs" />
@@ -203,6 +233,7 @@
         <Compile Include="Setup\DestructibleSetup.cs" />
         <Compile Include="Setup\FusionBoxSetup.cs" />
         <Compile Include="Setup\GemStoneSetup.cs" />
+        <Compile Include="Setup\ItemSnapshots.cs" />
         <Compile Include="Setup\JewelrySetup.cs" />
         <Compile Include="Setup\MergedGemStoneSetup.cs" />
         <Compile Include="Setup\VisualEffectSetup.cs" />
@@ -211,7 +242,8 @@
         <Compile Include="BossDied.cs" />
         <Compile Include="Utils.cs" />
     </ItemGroup>
-    <ItemGroup>
+    <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
+        <Content Include="translations\Russian.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml" />
         <EmbeddedResource Include="assets\jewelcrafting" />
         <Content Include="ILRepack.targets" />
@@ -250,7 +282,7 @@
     <Target Name="AfterBuild">
     </Target>
     -->
-    <Target Name="Copy" AfterTargets="ILRepack">
+    <Target Name="Copy" AfterTargets="ILRepack" Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
         <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(GamePath)\BepInEx\plugins\$(AssemblyName).dll&quot;" />
     </Target>
 </Project>

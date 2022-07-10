@@ -49,7 +49,7 @@ public static class Utils
 		callback(player.m_utilityItem);
 	}
 
-	private static readonly Dictionary<Effect, string> zdoNames = ((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(e => e, e => "Jewelcrafting Socket " + e);
+	public static readonly Dictionary<Effect, string> zdoNames = ((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(e => e, e => "Jewelcrafting Socket " + e);
 	public static string ZDOName(this Effect effect) => zdoNames[effect];
 	public static float GetEffect(this Player player, Effect effect) => player.GetEffect<DefaultPower>(effect).Power;
 
