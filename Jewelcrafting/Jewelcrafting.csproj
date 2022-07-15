@@ -243,9 +243,10 @@
         <Compile Include="Utils.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
-        <Content Include="translations\Russian.yml" />
+        <EmbeddedResource Include="translations\Russian.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml" />
         <EmbeddedResource Include="assets\jewelcrafting" />
+        <EmbeddedResource Include="assets\jc_ui_additions" />
         <Content Include="ILRepack.targets" />
         <Content Include="Libs\ItemManager.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

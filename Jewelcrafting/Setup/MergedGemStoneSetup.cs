@@ -30,6 +30,7 @@ public static class MergedGemStoneSetup
 	private static readonly Dictionary<GemType, Material> colorMaterials = new();
 
 	public static readonly Dictionary<GemType, Dictionary<GemType, GameObject[]>> mergedGems = new();
+	public static readonly Dictionary<string, List<GemInfo>> mergedGemContents = new();
 
 	private static readonly List<MergedGemAsset> mergedGemAssets = new();
 	private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
@@ -98,6 +99,8 @@ public static class MergedGemStoneSetup
 			_ = new Item(prefab);
 
 			mergedGems[first.Key][second.Key][asset.tier] = prefab;
+			GemInfo gemInfo(GemType type) => GemStoneSetup.GemInfos[GemStoneSetup.Gems[type][asset.tier].Name];
+			mergedGemContents[prefab.name] = new List<GemInfo> { gemInfo(first.Key), gemInfo(second.Key) };
 		}
 	}
 }

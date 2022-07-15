@@ -41,9 +41,9 @@ public static class GlowingSpirit
 	}
 
 	[HarmonyPatch(typeof(Player), nameof(Player.Update))]
-	private static class MoveSpirit
+	public static class MoveSpirit
 	{
-		private static bool orbArrived = false;
+		public static bool orbArrived = false;
 		private static float duration = 2f;
 
 		private static void Postfix(Player __instance)
@@ -65,28 +65,23 @@ public static class GlowingSpirit
 			Vector3 newPosition = __instance.transform.position + offset;
 			duration = Random.Range(1f, 3f);
 
-			__instance.StartCoroutine(MoveOrb(newPosition));
+			lightOrb!.GetComponent<OrbDestroy>().StartCoroutine(MoveOrb(lightOrb, newPosition));
 		}
 
-		private static IEnumerator MoveOrb(Vector3 newPosition)
+		private static IEnumerator MoveOrb(GameObject orb, Vector3 newPosition)
 		{
-			if (lightOrb is null)
-			{
-				yield break;
-			}
-			
 			float timer = 0f;
-			Vector3 startPosition = lightOrb.transform.position;
+			Vector3 startPosition = orb.transform.position;
 			if (global::Utils.DistanceXZ(startPosition, newPosition) > 5f)
 			{
 				duration = 0.5f;
 			}
-			while (timer < duration && lightOrb)
+			while (timer < duration)
 			{
 				timer += Time.deltaTime;
 				float tmpTimer = timer / duration;
 				tmpTimer = (float)Math.Pow(tmpTimer, 3) * (tmpTimer * (6f * tmpTimer - 15f) + 10f);
-				lightOrb.transform.position = Vector3.Lerp(startPosition, newPosition, tmpTimer);
+				orb.transform.position = Vector3.Lerp(startPosition, newPosition, tmpTimer);
 
 				yield return null;
 			}
@@ -110,7 +105,7 @@ public static class GlowingSpirit
 			if (zdo.IsValid() && zdo.IsOwner())
 			{
 				ZDOMan.instance.DestroyZDO(zdo);
-				if (Player.m_localPlayer && Player.m_localPlayer.GetEffect(Effect.Glowingspirit) > 0)
+				if (Player.m_localPlayer && Player.m_localPlayer.m_seman.HaveStatusEffect(Jewelcrafting.glowingSpirit.name))
 				{
 					lightOrb = Instantiate(Jewelcrafting.glowingSpiritPrefab);
 					lightOrb.transform.position = Player.m_localPlayer.transform.position;
@@ -119,6 +114,8 @@ public static class GlowingSpirit
 				{
 					lightOrb = null;
 				}
+
+				MoveSpirit.orbArrived = false;
 			}
 		}
 	}

@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using BepInEx.Configuration;
 using JetBrains.Annotations;
 #if ! API
-using System;
 using System.Diagnostics;
 using System.Linq;
 using ExtendedItemDataFramework;
@@ -11,6 +11,7 @@ using LocalizationManager;
 using YamlDotNet.Serialization;
 #endif
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 
 namespace Jewelcrafting;
 
@@ -105,7 +106,7 @@ public static class API
 	{
 #if ! API
 		GameObject[] prefabs = new GameObject[GemStoneSetup.customGemTierPrefabs.Length];
-		Localizer.AddText($"jc_merged_gemstone_{colorName.ToLower()}", type);
+		Localizer.AddText($"jc_merged_gemstone_{colorName.Replace(" ", "_").ToLower()}", type);
 		for (int tier = 0; tier < prefabs.Length; ++tier)
 		{
 			GameObject prefab = GemStoneSetup.CreateGemFromTemplate(GemStoneSetup.customGemTierPrefabs[tier], colorName, color, tier);
@@ -137,7 +138,7 @@ public static class API
 	{
 #if ! API
 		EffectDef.ValidGemTypes[colorName] = (GemType)colorName.GetStableHashCode();
-		EffectDef.GemTypeNames[(GemType)colorName.GetStableHashCode()] = colorName;
+		EffectDef.GemTypeNames[(GemType)colorName.GetStableHashCode()] = colorName.Replace(" ", "_");
 		GemStoneSetup.RegisterGem(prefab, (GemType)colorName.GetStableHashCode());
 #endif
 	}
@@ -173,15 +174,15 @@ public static class API
 #if ! API
 		EffectDef.ConfigTypes.Add((Effect)name.GetStableHashCode(), typeof(T));
 		EffectDef.ValidEffects[name] = (Effect)name.GetStableHashCode();
-		EffectDef.EffectNames[(Effect)name.GetStableHashCode()] = name;
-		Localizer.AddText($"jc_effect_{name.ToLower()}", name);
+		EffectDef.EffectNames[(Effect)name.GetStableHashCode()] = name.Replace(" ", "_");
+		Localizer.AddText($"jc_effect_{name.Replace(" ", "_").ToLower()}", name);
 		if (englishDescription is not null)
 		{
-			Localizer.AddText($"jc_effect_{name.ToLower()}_desc", englishDescription);
+			Localizer.AddText($"jc_effect_{name.Replace(" ", "_").ToLower()}_desc", englishDescription);
 		}
 		if (englishDescriptionDetailed is not null)
 		{
-			Localizer.AddText($"jc_effect_{name.ToLower()}_desc_detail", englishDescriptionDetailed);
+			Localizer.AddText($"jc_effect_{name.Replace(" ", "_").ToLower()}_desc_detail", englishDescriptionDetailed);
 		}
 		Utils.zdoNames[(Effect)name.GetStableHashCode()] = "Jewelcrafting Socket " + name;
 #endif
@@ -191,7 +192,11 @@ public static class API
 	{
 #if ! API
 		string assemblyName = new StackTrace().GetFrame(1).GetMethod().DeclaringType.Assembly.GetName().Name;
-		ConfigLoader.loaders.Single(l => l.GetType() == typeof(EffectDef.Loader)).ProcessConfig($"/{assemblyName}.yml", new DeserializerBuilder().Build().Deserialize<object>(yaml));
+		List<string> errors = ConfigLoader.loaders.Single(l => l.GetType() == typeof(EffectDef.Loader)).ProcessConfig($"/{assemblyName}.yml", new DeserializerBuilder().Build().Deserialize<Dictionary<object, object>>(yaml));
+		foreach (string error in errors)
+		{
+			Debug.LogError($"Error in config of Gem config specified by mod {assemblyName}: {error}");
+		}
 #endif
 	}
 
@@ -235,7 +240,7 @@ public static class API
 				}
 				else
 				{
-					gems.Add(new GemInfo(prefab.name, prefab.GetComponent<ItemDrop>().m_itemData.GetIcon(), effects(socket).ToDictionary(e => EffectDef.EffectNames[e.Effect], e => e.Power)));
+					gems.Add(new GemInfo(prefab.name, prefab.GetComponent<ItemDrop>().m_itemData.GetIcon(), effects(socket).ToDictionary(e => EffectDef.EffectNames[e.Effect].Replace("_", " "), e => e.Power)));
 				}
 			}
 		}
@@ -247,6 +252,15 @@ public static class API
 	{
 #if ! API
 		return GemStones.emptySocketSprite;
+#else
+		return null!;
+#endif
+	}
+	
+	public static GameObject GetGemcuttersTable()
+	{
+#if ! API
+		return BuildingPiecesSetup.gemcuttersTable;
 #else
 		return null!;
 #endif

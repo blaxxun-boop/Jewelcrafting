@@ -58,9 +58,9 @@ public static class GemStoneSetup
 		return prefab;
 	}
 
-	public static GameObject CreateGemFromTemplate(GameObject template, string colorName, Color color, int tier) => CreateItemFromTemplate(template, colorName, $"jc_{tier switch { 1 => "adv_", 2 => "perfect_", _ => "" }}{colorName.ToLower()}_socket", color);
-	public static GameObject CreateShardFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_shattered_{colorName.ToLower()}_crystal", color);
-	public static GameObject CreateUncutFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_uncut_{colorName.ToLower()}_stone", color);
+	public static GameObject CreateGemFromTemplate(GameObject template, string colorName, Color color, int tier) => CreateItemFromTemplate(template, colorName, $"jc_{tier switch { 1 => "adv_", 2 => "perfect_", _ => "" }}{colorName.Replace(" ", "_").ToLower()}_socket", color);
+	public static GameObject CreateShardFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_shattered_{colorName.Replace(" ", "_").ToLower()}_crystal", color);
+	public static GameObject CreateUncutFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_uncut_{colorName.Replace(" ", "_").ToLower()}_stone", color);
 	
 	public static void RegisterGem(GameObject prefab, GemType color)
 	{
@@ -116,7 +116,7 @@ public static class GemStoneSetup
 				gemStone["GambleRecipe"].RequiredItems.Add($"Uncut_{colorName}_Stone", 1);
 				gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("2 - Socket System", $"Bad Luck Cost Simple {colorName}", 12, new ConfigDescription($"{colorName} shards required to craft a Simple {colorName}.")));
+				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Simple {colorName}", 12, new ConfigDescription($"{colorName} shards required to craft a Simple {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 				break;
 			case 1:
@@ -124,7 +124,7 @@ public static class GemStoneSetup
 				gemStone["GambleRecipe"].RequiredItems.Add($"Simple_{colorName}_Socket", 1);
 				gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
-				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("2 - Socket System", $"Bad Luck Cost Advanced {colorName}", 35, new ConfigDescription($"{colorName} shards required to craft an Advanced {colorName}.")));
+				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Advanced {colorName}", 35, new ConfigDescription($"{colorName} shards required to craft an Advanced {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
 				break;
 			case 2:
@@ -150,7 +150,7 @@ public static class GemStoneSetup
 		{
 			RegisterShard(assets.LoadAsset<GameObject>(customGemShardPrefab.name.Replace("Custom", gemType.Key.ToString())), gemType.Key);
 			string name = Jewelcrafting.english.Localize($"$jc_merged_gemstone_{gemType.Key.ToString().ToLower()}");
-			RegisterUncutGem(assets.LoadAsset<GameObject>(customUncutGemPrefab.name.Replace("Custom", gemType.Key.ToString())), gemType.Key, Jewelcrafting.config("2 - Socket System", $"Drop chance for {name} Gemstones", 2, new ConfigDescription($"Chance to drop {name} gemstones when killing creatures.", new AcceptableValueRange<int>(0, 100))));
+			RegisterUncutGem(assets.LoadAsset<GameObject>(customUncutGemPrefab.name.Replace("Custom", gemType.Key.ToString())), gemType.Key, Jewelcrafting.config("Gem Drops", $"Drop chance for {name} Gemstones", 2, new ConfigDescription($"Chance to drop {name} gemstones when killing creatures.", new AcceptableValueRange<int>(0, 100))));
 
 			for (int tier = 0; tier < customGemTierPrefabs.Length; ++tier)
 			{

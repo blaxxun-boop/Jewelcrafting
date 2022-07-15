@@ -80,12 +80,21 @@ public enum Effect
 	Fierydoom
 }
 
+public enum Uniqueness
+{
+	None, // Not unique
+	All, // Only one of all gems flagged by this
+	Gem, // Only one of these gems
+	Tier, // Only one gem of the same tier across all items
+	Item // Only one gem in the same item
+}
+
 public struct EffectPower
 {
 	public Effect Effect;
 	public float Power => (float)Config.GetType().GetFields().First().GetValue(Config);
 	public object Config;
-	public bool Unique;
+	public Uniqueness Unique;
 }
 
 [PublicAPI]
@@ -107,7 +116,7 @@ public class EffectDef
 
 	public GemType Type;
 	public GemLocation Slots;
-	public bool Unique = false;
+	public Uniqueness Unique = Uniqueness.None;
 	public object[] Power = Array.Empty<object>();
 
 	public static readonly Dictionary<Effect, Type> ConfigTypes = new();
@@ -115,6 +124,7 @@ public class EffectDef
 	public const GemLocation AllGemlocations = GemLocation.All - 1;
 	public const GemLocation WeaponGemlocations = GemLocation.Sword | GemLocation.Knife | GemLocation.Club | GemLocation.Polearm | GemLocation.Spear | GemLocation.Axe;
 	
+	private static readonly Dictionary<string, Uniqueness> ValidUniquenesses = new(((Uniqueness[])Enum.GetValues(typeof(Uniqueness))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
@@ -148,37 +158,18 @@ public class EffectDef
 		}
 
 		List<string> errorList = errors;
-		bool ParseBool(object? inputObj, string error)
-		{
-			if (inputObj is not string input)
-			{
-				errorList.Add(string.Format(error, $"Got unexpected {inputObj?.GetType().ToString() ?? "empty string (null)"}, expecting true or false."));
-				return false;
-			}
-
-			string[] falsy = { "0", "false", "off", "no", "nope", "nah", "-", "hell no", "pls dont", "lol no" };
-			string[] truthy = { "1", "true", "on", "yes", "yep", "yeah", "+", "hell yeah", "ok", "okay", "k" };
-			if (truthy.Contains(input.ToLower()))
-			{
-				return true;
-			}
-
-			if (!falsy.Contains(input.ToLower()))
-			{
-				errorList.Add(string.Format(error, $"Got unexpected '{input}', expecting true or false."));
-			}
-
-			return false;
-		}
-
 		foreach (KeyValuePair<string, object?> rootDictKv in castDictToStringDict(rootDict))
 		{
-			string effect = rootDictKv.Key.Replace(" ", "");
+			string effect = rootDictKv.Key;
+			if (!ValidEffects.ContainsKey(effect))
+			{
+				effect = effect.Replace(" ", "");
+			}
 			if (!ValidEffects.ContainsKey(effect))
 			{
 				if (effect != "gems")
 				{
-					errors.Add($"'{effect}' is not a valid effect name. Valid effects are: '{string.Join("', '", ValidEffects.Keys)}'. There also can be a 'gems' section to define gem spawn chances.");
+					errors.Add($"'{rootDictKv.Key}' is not a valid effect name. Valid effects are: '{string.Join("', '", ValidEffects.Keys)}'. There also can be a 'gems' section to define gem spawn chances.");
 					continue;
 				}
 
@@ -446,7 +437,14 @@ public class EffectDef
 
 				if (HasKey("unique"))
 				{
-					effectDef.Unique = ParseBool(effectDict["unique"], $"The unique flag must be a boolean. {{0}} {errorLocation}");
+					if (effectDict["unique"] is string uniqueStr && ValidUniquenesses.TryGetValue(uniqueStr, out Uniqueness uniqueness))
+					{
+						effectDef.Unique = uniqueness;
+					}
+					else
+					{
+						errorList.Add($"'{effectDict["unique"] as string ?? effectDict["unique"]?.GetType().ToString() ?? "empty string (null)"}' is not a valid identifier for the unique flag. Valid locations are: '{string.Join("', '", ValidUniquenesses.Keys)}'. {errorLocation}");
+					}
 				}
 
 				if (!effects.TryGetValue(ValidEffects[effect], out List<EffectDef> effectDefs))

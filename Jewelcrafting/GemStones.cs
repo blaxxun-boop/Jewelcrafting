@@ -487,6 +487,37 @@ public static class GemStones
 		}
 	}
 
+	public static Dictionary<GemLocation, List<EffectPower>> GroupEffectsByGemLocation(Dictionary<GemLocation, List<EffectPower>> gem)
+	{
+		HashSet<Effect> collectEffects(GemLocation location)
+		{
+			HashSet<Effect> effects = new();
+			if (gem.TryGetValue(location, out List<EffectPower> weaponPowers))
+			{
+				foreach (EffectPower effectPower in weaponPowers)
+				{
+					effects.Add(effectPower.Effect);
+				}
+			}
+			return effects;
+		}
+		HashSet<Effect> weaponEffects = collectEffects(GemLocation.Weapon);
+		HashSet<Effect> allEffects = collectEffects(GemLocation.All);
+
+		Dictionary<GemLocation, List<EffectPower>> locations = new();
+
+		foreach (GemLocation gemLocation in gem.Keys.OrderByDescending(g => (int)g))
+		{
+			List<EffectPower> specificEffects = gem[gemLocation].Where(p => ((gemLocation & EffectDef.WeaponGemlocations) == 0 || !weaponEffects.Contains(p.Effect)) && (gemLocation == GemLocation.All || !allEffects.Contains(p.Effect))).ToList();
+			if (specificEffects.Count > 0)
+			{
+				locations.Add(gemLocation, specificEffects);
+			}
+		}
+
+		return locations;
+	}
+
 	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool))]
 	private class DisplayEffectsOnGems
 	{
@@ -498,28 +529,9 @@ public static class GemStones
 				{
 					StringBuilder sb = new("\n");
 
-					HashSet<Effect> collectEffects(GemLocation location)
+					foreach (KeyValuePair<GemLocation, List<EffectPower>> kv in GroupEffectsByGemLocation(gem))
 					{
-						HashSet<Effect> effects = new();
-						if (gem.TryGetValue(location, out List<EffectPower> weaponPowers))
-						{
-							foreach (EffectPower effectPower in weaponPowers)
-							{
-								effects.Add(effectPower.Effect);
-							}
-						}
-						return effects;
-					}
-					HashSet<Effect> weaponEffects = collectEffects(GemLocation.Weapon);
-					HashSet<Effect> allEffects = collectEffects(GemLocation.All);
-					
-					foreach (GemLocation gemLocation in gem.Keys.OrderByDescending(g => (int)g))
-					{
-						List<EffectPower> specificEffects = gem[gemLocation].Where(p => ((gemLocation & EffectDef.WeaponGemlocations) == 0 || !weaponEffects.Contains(p.Effect)) && (gemLocation == GemLocation.All || !allEffects.Contains(p.Effect))).ToList();
-						if (specificEffects.Count > 0)
-						{
-							sb.Append($"\n<color=orange>$jc_socket_slot_{gemLocation.ToString().ToLower()}:</color> {string.Join(", ", specificEffects.Select(effectPower => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {effectPower.Power}"))}");
-						}
+						sb.Append($"\n<color=orange>$jc_socket_slot_{kv.Key.ToString().ToLower()}:</color> {string.Join(", ", kv.Value.Select(effectPower => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {effectPower.Power}"))}");
 					}
 
 					string flavorText = $"{item.m_shared.m_description.Substring(1)}_flavor";
@@ -852,7 +864,7 @@ public static class GemStones
 					ItemDrop.ItemData existingItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
 					if (existingItem is not null && existingItem.m_dropPrefab != item.m_dropPrefab)
 					{
-						if (!socketableGemStones.Contains(existingItem.m_shared.m_name) || AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is { progress: >= 100 })
+						if (AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is { progress: >= 100 })
 						{
 							__result = false;
 							return false;
@@ -934,22 +946,67 @@ public static class GemStones
 		}
 	}
 
+	private static List<GemDefinition> EnumerateUniqueGemsToCheckAgainst(string socketName, HashSet<Uniqueness> uniquePowers)
+	{
+		List<GemDefinition> checkAgainst;
+		if (uniquePowers.Contains(Uniqueness.All))
+		{
+			checkAgainst = Jewelcrafting.SocketEffects.Values.SelectMany(e => e).Where(d => d.Unique == Uniqueness.All).SelectMany(def => GemStoneSetup.Gems[def.Type]).ToList();
+		}
+		else if (uniquePowers.Contains(Uniqueness.Gem))
+		{
+			GemInfo info = GemStoneSetup.GemInfos[socketName];
+			checkAgainst = GemStoneSetup.Gems[info.Type];
+		}
+		else if (uniquePowers.Contains(Uniqueness.Tier))
+		{
+			GemInfo info = GemStoneSetup.GemInfos[socketName];
+			checkAgainst = new List<GemDefinition> { GemStoneSetup.Gems[info.Type][info.Tier - 1] };
+		}
+		else
+		{
+			checkAgainst = new List<GemDefinition>();
+		}
+
+		return checkAgainst;
+	}
+
 	private static string? CanAddUniqueSocket(GameObject socket, int replacedOffset)
 	{
-		if (AddFakeSocketsContainer.openEquipment is ItemDrop.ItemData targetItem && Jewelcrafting.EffectPowers.TryGetValue(socket.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(targetItem.m_shared), out List<EffectPower> effectPowers) && effectPowers.Any(e => e.Unique))
+		if (AddFakeSocketsContainer.openEquipment is not ItemDrop.ItemData targetItem)
 		{
-			if (targetItem.m_equiped && HasEquippedAnyUniqueGem() is { } otherUnique)
-			{
-				return otherUnique;
-			}
+			return null;
+		}
 
-			foreach (EffectDef def in Jewelcrafting.SocketEffects.Values.SelectMany(e => e).Where(d => d.Unique))
+		foreach (GameObject individualSocket in MergedGemStoneSetup.mergedGemContents.TryGetValue(socket.name, out List<GemInfo> gemInfos) ? gemInfos.Select(g => GemStoneSetup.Gems[g.Type][g.Tier - 1].Prefab) : new[] { socket })
+		{
+			if (Jewelcrafting.EffectPowers.TryGetValue(individualSocket.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(targetItem.m_shared), out List<EffectPower> effectPowers))
 			{
-				foreach (GemDefinition gem in GemStoneSetup.Gems[def.Type])
+				string socketName = individualSocket.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+				HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
+				List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(socketName, uniquePowers);
+				IEnumerable<GemDefinition> checkLocalInventory = checkAgainst;
+				if (uniquePowers.Contains(Uniqueness.Item))
+				{
+					GemInfo info = GemStoneSetup.GemInfos[socketName];
+					checkLocalInventory = GemStoneSetup.Gems[info.Type];
+				}
+				else if (checkAgainst.Count == 0)
+				{
+					GemInfo info = GemStoneSetup.GemInfos[socketName];
+					checkLocalInventory = new List<GemDefinition> { GemStoneSetup.Gems[info.Type][info.Tier - 1] };
+				}
+
+				if (targetItem.m_equiped && HasEquippedAnyUniqueGem(checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
+				{
+					return otherUnique;
+				}
+
+				foreach (GameObject gem in checkLocalInventory.SelectMany(EnumerateWithMergedGems))
 				{
 					if (targetItem.Extended()?.GetComponent<Sockets>() is { } itemSockets)
 					{
-						int gemIndex = itemSockets.socketedGems.IndexOf(gem.Prefab.name);
+						int gemIndex = itemSockets.socketedGems.IndexOf(gem.name);
 						if (replacedOffset != gemIndex && gemIndex != -1)
 						{
 							return targetItem.m_shared.m_name;
@@ -962,28 +1019,47 @@ public static class GemStones
 		return null;
 	}
 
-	private static string? HasEquippedAnyUniqueGem()
+	private static IEnumerable<GameObject> EnumerateWithMergedGems(GemDefinition def)
 	{
-		foreach (EffectDef def in Jewelcrafting.SocketEffects.Values.SelectMany(e => e).Where(d => d.Unique))
+		yield return def.Prefab;
+		
+		GemInfo info = GemStoneSetup.GemInfos[def.Name];
+		if (MergedGemStoneSetup.mergedGems.TryGetValue(info.Type, out Dictionary<GemType, GameObject[]> merged))
 		{
-			foreach (GemDefinition gem in GemStoneSetup.Gems[def.Type])
+			foreach (GameObject[] mergedGems in merged.Values)
 			{
-				if (HasEquippedUniqueGem(gem.Prefab.name) is { } otherUnique)
+				yield return mergedGems[info.Tier - 1];
+			}
+
+			foreach (Dictionary<GemType, GameObject[]> firstMerged in MergedGemStoneSetup.mergedGems.Values)
+			{
+				if (firstMerged.TryGetValue(info.Type, out GameObject[] mergedGems))
 				{
-					return otherUnique;
+					yield return mergedGems[info.Tier - 1];
 				}
+			}
+		}
+	}
+
+	private static string? HasEquippedAnyUniqueGem(IEnumerable<GemDefinition> checkAgainst, ExtendedItemData? ignoreContainer = null)
+	{
+		foreach (GameObject gem in checkAgainst.SelectMany(EnumerateWithMergedGems))
+		{
+			if (HasEquippedUniqueGem(gem.name, ignoreContainer) is { } otherUnique)
+			{
+				return otherUnique;
 			}
 		}
 
 		return null;
 	}
 
-	private static string? HasEquippedUniqueGem(string gem)
+	private static string? HasEquippedUniqueGem(string gem, ExtendedItemData? ignoreContainer)
 	{
 		string?[] alreadyEquipped = new string[1];
 		Utils.ApplyToAllPlayerItems(Player.m_localPlayer, slot =>
 		{
-			if (slot?.Extended() != AddFakeSocketsContainer.openEquipment && slot?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
+			if (slot?.Extended() != ignoreContainer && slot?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
 			{
 				if (itemSockets.socketedGems.Contains(gem))
 				{
@@ -1001,7 +1077,7 @@ public static class GemStones
 		{
 			if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory is not null && AddFakeSocketsContainer.openInventory != grid.m_inventory)
 			{
-				if (!socketableGemStones.Contains(item.m_shared.m_name) || AddFakeSocketsContainer.openInventory.HaveItem(item.m_shared.m_name) || item.m_stack > 1 || AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is { progress: >= 100 })
+				if (!socketableGemStones.Contains(item.m_shared.m_name) || AddFakeSocketsContainer.openInventory.HaveItem(item.m_shared.m_name) || AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is { progress: >= 100 })
 				{
 					return false;
 				}
@@ -1033,9 +1109,11 @@ public static class GemStones
 			GemLocation location = Utils.GetGemLocation(item.m_shared);
 			foreach (string gem in itemSockets.socketedGems)
 			{
-				if (Jewelcrafting.EffectPowers.TryGetValue(gem.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers) && effectPowers.Any(e => e.Unique))
+				if (Jewelcrafting.EffectPowers.TryGetValue(gem.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 				{
-					if (HasEquippedAnyUniqueGem() is { } equippedUnique)
+					HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
+					List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, uniquePowers);
+					if (HasEquippedAnyUniqueGem(checkAgainst) is { } equippedUnique)
 					{
 						Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_equipped_unique_gem", equippedUnique));
 						__result = false;

@@ -83,9 +83,9 @@ public class TrackEquipmentChanges
 		StoreSocketGems(zdo, VisSlot.BackRight, player.m_hiddenRightItem);
 
 		zdo.m_byteArrays ??= new Dictionary<int, byte[]>();
-		foreach (Effect effect in (Effect[])Enum.GetValues(typeof(Effect)))
+		foreach (string effect in Utils.zdoNames.Values)
 		{
-			zdo.m_byteArrays.Remove(effect.ZDOName().GetStableHashCode());
+			zdo.m_byteArrays[effect.GetStableHashCode()] = null;
 		}
 		foreach (KeyValuePair<Effect, object> kv in effects)
 		{

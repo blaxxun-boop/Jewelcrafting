@@ -5,6 +5,8 @@ namespace Jewelcrafting;
 
 public static class BuildingPiecesSetup
 {
+	public static GameObject gemcuttersTable = null!;
+	
 	public static void initializeBuildingPieces(AssetBundle assets)
 	{
 		BuildPiece piece = new(assets, "Odins_Stone_Transmuter");
@@ -19,6 +21,7 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Wood", 10, true);
 		piece.RequiredItems.Add("Flint", 10, true);
 		piece.Category.Add(BuildPieceCategory.Crafting);
+		gemcuttersTable = piece.Prefab;
 		
 		piece = new BuildPiece(assets, "Odins_Jewelry_Box");
 		piece.RequiredItems.Add("FineWood", 30, true);

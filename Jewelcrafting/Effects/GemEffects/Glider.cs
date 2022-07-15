@@ -13,13 +13,13 @@ public static class Glider
 		[UsedImplicitly]
 		private static void Prefix(Character __instance, ref float ___m_maxAirAltitude)
 		{
-			if (__instance != Player.m_localPlayer || !__instance.m_groundContact || !__instance.IsSwiming())
+			if (__instance != Player.m_localPlayer || (!__instance.m_groundContact && !__instance.IsSwiming()))
 			{
 				return;
 			}
-			
+
 			GlideInsteadOfFalling.glidingUsed = false;
-			
+
 			if (__instance.m_seman.HaveStatusEffect(Jewelcrafting.gliding.name))
 			{
 				___m_maxAirAltitude = Mathf.Min(3.99f + __instance.transform.position.y, ___m_maxAirAltitude);
@@ -27,12 +27,12 @@ public static class Glider
 			}
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(Player), nameof(Player.FixedUpdate))]
 	public static class GlideInsteadOfFalling
 	{
 		public static bool glidingUsed = false;
-		
+
 		[UsedImplicitly]
 		private static void Postfix(Player __instance)
 		{
@@ -45,7 +45,7 @@ public static class Glider
 					glidingUsed = true;
 				}
 			}
-			
+
 			if (__instance.m_seman.HaveStatusEffect(Jewelcrafting.gliding.name) && __instance.m_body)
 			{
 				Vector3 velocity = __instance.m_body.velocity;

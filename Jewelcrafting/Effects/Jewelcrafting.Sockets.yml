@@ -223,7 +223,7 @@ lightning speed:
     duration: 8
     attack speed: 100
     stamina: 50
-  unique: true
+  unique: all
 
 rooted revenge:
   slot: all
@@ -234,7 +234,7 @@ rooted revenge:
     max cooldown: 240
     duration: 8
     range: 10
-  unique: true
+  unique: all
 
 poisonous drain:
   slot: all
@@ -246,7 +246,7 @@ poisonous drain:
     duration: 8
     poison damage: 40
     life steal: 20
-  unique: true
+  unique: all
 
 icy protection:
   slot: all
@@ -257,7 +257,7 @@ icy protection:
     max cooldown: 210
     duration: 8
     drakes: 3
-  unique: true
+  unique: all
 
 fiery doom:
   slot: all
@@ -268,7 +268,7 @@ fiery doom:
     max cooldown: 240
     duration: 8
     fire damage: 200
-  unique: true
+  unique: all
 
 # Gem Spawn
 
