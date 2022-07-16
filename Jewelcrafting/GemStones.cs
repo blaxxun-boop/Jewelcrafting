@@ -870,9 +870,9 @@ public static class GemStones
 							return false;
 						}
 
-						if (CanAddUniqueSocket(existingItem.m_dropPrefab, item.m_gridPos.x) is { } equippedUnique)
+						if (CanAddUniqueSocket(existingItem.m_dropPrefab, item.m_gridPos.x) is { } error)
 						{
-							Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_equipped_unique_gem", equippedUnique));
+							Player.m_localPlayer.Message(MessageHud.MessageType.Center, error);
 							__result = false;
 							return false;
 						}
@@ -919,9 +919,9 @@ public static class GemStones
 					return false;
 				}
 
-				if (CanAddUniqueSocket(item.m_dropPrefab, pos.x) is { } equippedUnique)
+				if (CanAddUniqueSocket(item.m_dropPrefab, pos.x) is { } error)
 				{
-					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_equipped_unique_gem", equippedUnique));
+					Player.m_localPlayer.Message(MessageHud.MessageType.Center, error);
 					__result = false;
 					return false;
 				}
@@ -946,22 +946,28 @@ public static class GemStones
 		}
 	}
 
-	private static List<GemDefinition> EnumerateUniqueGemsToCheckAgainst(string socketName, HashSet<Uniqueness> uniquePowers)
+	private static List<GemDefinition> EnumerateUniqueGemsToCheckAgainst(string socketName, HashSet<Uniqueness> uniquePowers, out List<string> errorType)
 	{
 		List<GemDefinition> checkAgainst;
+		errorType = new List<string>();
 		if (uniquePowers.Contains(Uniqueness.All))
 		{
 			checkAgainst = Jewelcrafting.SocketEffects.Values.SelectMany(e => e).Where(d => d.Unique == Uniqueness.All).SelectMany(def => GemStoneSetup.Gems[def.Type]).ToList();
+			errorType.Add("$jc_equipped_unique_error_all");
 		}
 		else if (uniquePowers.Contains(Uniqueness.Gem))
 		{
 			GemInfo info = GemStoneSetup.GemInfos[socketName];
 			checkAgainst = GemStoneSetup.Gems[info.Type];
+			errorType.Add("$jc_equipped_unique_error_gem");
+			errorType.Add(Localization.instance.Localize((GemStoneSetup.uncutGems.TryGetValue(info.Type, out GameObject uncutGem) ? uncutGem : GemStoneSetup.Gems[info.Type][info.Tier].Prefab).GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
 		}
 		else if (uniquePowers.Contains(Uniqueness.Tier))
 		{
 			GemInfo info = GemStoneSetup.GemInfos[socketName];
 			checkAgainst = new List<GemDefinition> { GemStoneSetup.Gems[info.Type][info.Tier - 1] };
+			errorType.Add("$jc_equipped_unique_error_tier");
+			errorType.Add(Localization.instance.Localize(GemStoneSetup.Gems[info.Type][info.Tier].Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
 		}
 		else
 		{
@@ -969,6 +975,13 @@ public static class GemStones
 		}
 
 		return checkAgainst;
+	}
+
+	private static string FormatUniqueSocketError(List<string> errorType, string conflictItem)
+	{
+		string text = errorType[0];
+		errorType[0] = conflictItem;
+		return Localization.instance.Localize(text, errorType.ToArray());
 	}
 
 	private static string? CanAddUniqueSocket(GameObject socket, int replacedOffset)
@@ -984,22 +997,24 @@ public static class GemStones
 			{
 				string socketName = individualSocket.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 				HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
-				List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(socketName, uniquePowers);
+				List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(socketName, uniquePowers, out List<string> errorType);
+				if (targetItem.m_equiped && HasEquippedAnyUniqueGem(checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
+				{
+					return FormatUniqueSocketError(errorType, otherUnique);
+				}
+
 				IEnumerable<GemDefinition> checkLocalInventory = checkAgainst;
-				if (uniquePowers.Contains(Uniqueness.Item))
+				if (uniquePowers.Contains(Uniqueness.Item) && !uniquePowers.Contains(Uniqueness.All))
 				{
 					GemInfo info = GemStoneSetup.GemInfos[socketName];
 					checkLocalInventory = GemStoneSetup.Gems[info.Type];
+					errorType = new List<string> { "$jc_equipped_unique_error_item", Localization.instance.Localize((GemStoneSetup.uncutGems.TryGetValue(info.Type, out GameObject uncutGem) ? uncutGem : individualSocket).GetComponent<ItemDrop>().m_itemData.m_shared.m_name) };
 				}
 				else if (checkAgainst.Count == 0)
 				{
 					GemInfo info = GemStoneSetup.GemInfos[socketName];
 					checkLocalInventory = new List<GemDefinition> { GemStoneSetup.Gems[info.Type][info.Tier - 1] };
-				}
-
-				if (targetItem.m_equiped && HasEquippedAnyUniqueGem(checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
-				{
-					return otherUnique;
+					errorType = new List<string> { "$jc_equipped_unique_error_none", Localization.instance.Localize(individualSocket.GetComponent<ItemDrop>().m_itemData.m_shared.m_name) };
 				}
 
 				foreach (GameObject gem in checkLocalInventory.SelectMany(EnumerateWithMergedGems))
@@ -1009,7 +1024,7 @@ public static class GemStones
 						int gemIndex = itemSockets.socketedGems.IndexOf(gem.name);
 						if (replacedOffset != gemIndex && gemIndex != -1)
 						{
-							return targetItem.m_shared.m_name;
+							return FormatUniqueSocketError(errorType, targetItem.m_shared.m_name);
 						}
 					}
 				}
@@ -1022,7 +1037,7 @@ public static class GemStones
 	private static IEnumerable<GameObject> EnumerateWithMergedGems(GemDefinition def)
 	{
 		yield return def.Prefab;
-		
+
 		GemInfo info = GemStoneSetup.GemInfos[def.Name];
 		if (MergedGemStoneSetup.mergedGems.TryGetValue(info.Type, out Dictionary<GemType, GameObject[]> merged))
 		{
@@ -1081,9 +1096,9 @@ public static class GemStones
 				{
 					return false;
 				}
-				if (CanAddUniqueSocket(item.m_dropPrefab, -2) is { } equippedUnique)
+				if (CanAddUniqueSocket(item.m_dropPrefab, -2) is { } error)
 				{
-					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_equipped_unique_gem", equippedUnique));
+					Player.m_localPlayer.Message(MessageHud.MessageType.Center, error);
 					return false;
 				}
 				if (item.m_stack > 1)
@@ -1112,10 +1127,10 @@ public static class GemStones
 				if (Jewelcrafting.EffectPowers.TryGetValue(gem.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 				{
 					HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
-					List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, uniquePowers);
+					List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, uniquePowers, out List<string> errorType);
 					if (HasEquippedAnyUniqueGem(checkAgainst) is { } equippedUnique)
 					{
-						Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_equipped_unique_gem", equippedUnique));
+						Player.m_localPlayer.Message(MessageHud.MessageType.Center, FormatUniqueSocketError(errorType, equippedUnique));
 						__result = false;
 						return false;
 					}
@@ -1138,7 +1153,7 @@ public static class GemStones
 			float chance;
 			if (GemStoneSetup.GemInfos.TryGetValue(item.m_shared.m_name, out GemInfo info))
 			{
-				if (!GemStoneSetup.shardColors.ContainsKey(info.Type))
+				if (!GemStoneSetup.shardColors.ContainsKey(info.Type) || (AddFakeSocketsContainer.openEquipment is not null && (!Jewelcrafting.EffectPowers.TryGetValue(item.m_dropPrefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) || !locationPowers.TryGetValue(Utils.GetGemLocation(AddFakeSocketsContainer.openEquipment.m_shared), out List<EffectPower> powers) || powers.Count == 0)))
 				{
 					// unique gem
 					return false;

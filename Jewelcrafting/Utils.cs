@@ -214,4 +214,30 @@ public static class Utils
 		Object.Destroy(component);
 		return cmp;
 	}
+
+	[HarmonyPatch(typeof(ZPackage), nameof(ZPackage.Write), typeof(byte[]))]
+	private static class HandleNullByteArraysWrite
+	{
+		private static bool Prefix(ZPackage __instance, byte[]? array)
+		{
+			if (array is null)
+			{
+				__instance.m_writer.Write(-1);
+				return false;
+			}
+
+			return true;
+		}
+	}
+	
+	[HarmonyPatch(typeof(ZPackage), nameof(ZPackage.ReadByteArray))]
+	private static class HandleNullByteArraysRead
+	{
+		private static bool Prefix(ZPackage __instance, out byte[]? __result)
+		{
+			int length = __instance.m_reader.ReadInt32();
+			__result = length == -1 ? null : __instance.m_reader.ReadBytes(length);
+			return false;
+		}
+	}
 }

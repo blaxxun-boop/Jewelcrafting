@@ -165,6 +165,17 @@ public static class CompendiumDisplay
 			}
 		}
 	}
+	
+	[HarmonyPatch(typeof(TextsDialog),nameof(TextsDialog.OnClose))]
+	private static class ClearCompendiumPage
+	{
+
+		private static void Postfix()
+		{
+			JC_UI_Elements.ForEach(Object.Destroy);
+			JC_UI_Elements.Clear(); 
+		}
+	}
 
 	/*private static int MaterialIndex;
 	private static readonly Dictionary<GemLocation, string> MaterialPos = new();
