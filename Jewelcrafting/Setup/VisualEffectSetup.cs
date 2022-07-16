@@ -95,6 +95,10 @@ public static class VisualEffectSetup
 		yellowGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_AShield"));
 		yellowGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_BShield"));
 		yellowGemEffects.Add(VisualEffects.Blackmetal(Skills.SkillType.Blocking), PrefabManager.RegisterPrefab(assets, "JC_Avoidance_TShield"));
+		yellowGemEffects.Add(Skills.SkillType.Bows, PrefabManager.RegisterPrefab(assets, "JC_Echo_Bow"));
+		yellowGemEffects.Add(VisualEffects.FineWoodBow(), PrefabManager.RegisterPrefab(assets, "JC_Echo_FineBow"));
+		yellowGemEffects.Add(VisualEffects.BowHuntsman(), PrefabManager.RegisterPrefab(assets, "JC_Echo_HuntBow"));
+		yellowGemEffects.Add(VisualEffects.BowDraugrFang(), PrefabManager.RegisterPrefab(assets, "JC_Echo_FangBow"));
 		yellowGemEffects.Add(Skills.SkillType.Pickaxes, PrefabManager.RegisterPrefab(assets, "JC_Pick_Energetic"));
 		yellowGemEffects.Add(VisualEffects.PickaxeIron(), PrefabManager.RegisterPrefab(assets, "JC_PickIron_Energetic"));
 		

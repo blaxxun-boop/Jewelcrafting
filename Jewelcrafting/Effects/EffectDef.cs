@@ -63,6 +63,7 @@ public enum Effect
 	Inconspicuous,
 	Nimble,
 	Mirror,
+	Echo,
 	Resilience,
 	Gourmet,
 	Stealtharcher,

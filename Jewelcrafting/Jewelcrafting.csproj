@@ -183,6 +183,7 @@
         <Compile Include="Effects\GemEffects\Berserk.cs" />
         <Compile Include="Effects\GemEffects\Comfortable.cs" />
         <Compile Include="Effects\GemEffects\Defender.cs" />
+        <Compile Include="Effects\GemEffects\Echo.cs" />
         <Compile Include="Effects\GemEffects\EndlessArrows.cs" />
         <Compile Include="Effects\GemEffects\Energetic.cs" />
         <Compile Include="Effects\GemEffects\Explorer.cs" />

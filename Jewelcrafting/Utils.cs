@@ -218,26 +218,39 @@ public static class Utils
 	[HarmonyPatch(typeof(ZPackage), nameof(ZPackage.Write), typeof(byte[]))]
 	private static class HandleNullByteArraysWrite
 	{
-		private static bool Prefix(ZPackage __instance, byte[]? array)
+		private static void Prefix(ref byte[]? array, out bool __state)
 		{
-			if (array is null)
+			__state = array is null;
+			if (__state)
 			{
-				__instance.m_writer.Write(-1);
-				return false;
+				array = Array.Empty<byte>();
 			}
+		}
 
-			return true;
+		private static void Postfix(ZPackage __instance, bool __state)
+		{
+			if (__state)
+			{
+				__instance.m_writer.BaseStream.Position -= 4;
+				__instance.m_writer.Write(-1);
+			}
 		}
 	}
 	
 	[HarmonyPatch(typeof(ZPackage), nameof(ZPackage.ReadByteArray))]
 	private static class HandleNullByteArraysRead
 	{
-		private static bool Prefix(ZPackage __instance, out byte[]? __result)
+		private static bool Prefix(ZPackage __instance, ref byte[]? __result)
 		{
 			int length = __instance.m_reader.ReadInt32();
-			__result = length == -1 ? null : __instance.m_reader.ReadBytes(length);
-			return false;
+			if (length == -1)
+			{
+				__result = null;
+				return false;
+			}
+
+			__instance.m_reader.BaseStream.Position -= 4;
+			return true;
 		}
 	}
 }

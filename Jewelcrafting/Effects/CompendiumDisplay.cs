@@ -176,27 +176,4 @@ public static class CompendiumDisplay
 			JC_UI_Elements.Clear(); 
 		}
 	}
-
-	/*private static int MaterialIndex;
-	private static readonly Dictionary<GemLocation, string> MaterialPos = new();
-
-	private static Material tmpmat = null!;
-
-	[HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.Awake))]
-	private class AddIconsForSlots
-	{
-		private static void Postfix(TextsDialog __instance)
-		{
-			Texture2D texture = Jewelcrafting.slotIcons.First().Value.texture;
-			MaterialIndex = __instance.m_textArea.canvasRenderer.materialCount++;
-			tmpmat = new Material(Shader.Find("UI/Default")) { mainTexture = texture };
-			__instance.m_textArea.canvasRenderer.SetMaterial(tmpmat, MaterialIndex);
-			__instance.m_textArea.material = tmpmat;
-			foreach (KeyValuePair<GemLocation, Sprite> kv in Jewelcrafting.slotIcons)
-			{
-				Rect rect = kv.Value.textureRect;
-				MaterialPos[kv.Key] = $"x={rect.x / texture.width} y={rect.y / texture.height} width={rect.width / texture.width} height={rect.height / texture.height}";
-			}
-		}
-	}*/
 }

@@ -154,6 +154,11 @@ stealth archer:
   slot: bow
   gem: black
   power: [20, 35, 50]
+  
+echo:
+  slot: bow
+  gem: yellow
+  power: [2, 3, 4]
 
 # Cloak
 

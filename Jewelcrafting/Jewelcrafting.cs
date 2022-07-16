@@ -14,8 +14,6 @@ using LocalizationManager;
 using ServerSync;
 using SkillManager;
 using UnityEngine;
-using UnityEngine.Rendering;
-using UnityEngine.UI;
 
 namespace Jewelcrafting;
 
@@ -26,7 +24,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.6";
+	private const string ModVersion = "1.1.7";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -35,6 +33,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
 	public static ConfigEntry<Toggle> socketSystem = null!;
 	public static ConfigEntry<Toggle> inventorySocketing = null!;
+	public static ConfigEntry<Unsocketing> allowUnsocketing = null!;
 	public static ConfigEntry<InteractBehaviour> inventoryInteractBehaviour = null!;
 	public static ConfigEntry<int> breakChanceUnsocketSimple = null!;
 	public static ConfigEntry<int> breakChanceUnsocketAdvanced = null!;
@@ -87,8 +86,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static Dictionary<Effect, List<EffectDef>> SocketEffects = new();
 	public static readonly Dictionary<int, Dictionary<GemLocation, List<EffectPower>>> EffectPowers = new();
 	public static Dictionary<Heightmap.Biome, Dictionary<GemType, float>> GemDistribution = new();
-	//private static SpriteAtlas slotIconAtlas = null!;
-	//public static readonly Dictionary<GemLocation, Sprite> slotIcons = new();
 	public static List<string> configFilePaths = null!;
 
 	private static Skill jewelcrafting = null!;
@@ -142,6 +139,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Disabled = 0,
 		TrulyUnique = 1,
 		Custom = 2
+	}
+	
+	public enum Unsocketing
+	{
+		Disabled = 0,
+		UniquesOnly = 1,
+		All = 2
 	}
 
 	public enum InteractBehaviour
@@ -229,6 +233,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		uniqueGemDropSystem = config("2 - Socket System", "Drop System for Unique Gems", UniqueDrop.TrulyUnique, new ConfigDescription("Disabled: Unique Gems do not drop.\nTruly Unique: The first kill of each boss grants one Unique Gem.\nCustom: Lets you configure a drop chance and rate.", null, new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropChance = config("2 - Socket System", "Drop Chance for Unique Gems", 30, new ConfigDescription("Drop chance for Unique Gems. Has no effect, if the drop system is not set to custom.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropOnePerPlayer = config("2 - Socket System", "Drop one Gem per Player", Toggle.On, new ConfigDescription("If bosses should drop one Unique Gem per player. Has no effect, if the drop system is not set to custom.", null, new ConfigurationManagerAttributes { Order = --order }));
+		allowUnsocketing = config("2 - Socket System", "Gems can be removed from items", Unsocketing.All, new ConfigDescription("All: All gems can be removed from items.\nUnique Only: Only unique gems can be removed from items.\nDisabled: No gems can be removed from items.\nDoes not affect gems without an effect.", null, new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketSimple = config("2 - Socket System", "Simple Gem Break Chance", 0, new ConfigDescription("Chance to break a simple gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketAdvanced = config("2 - Socket System", "Advanced Gem Break Chance", 0, new ConfigDescription("Chance to break an advanced gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
@@ -360,23 +365,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_ring_green_description", "duration", headhunterDuration);
 		Localizer.AddPlaceholder("jc_se_ring_green_description", "power", headhunterDamage);
 		Localizer.AddPlaceholder("jc_se_necklace_blue_description", "power", aquaticDamageIncrease);
-
-		/*
-		foreach (UnityEngine.Object asset in assets.LoadAllAssets())
-		{
-			Debug.Log($"{asset.name} ({asset.GetType()})");
-		}
-		
-		slotIconAtlas = assets.LoadAsset<SpriteAtlas>("ppspriteatlas");
-		slotIcons.Add(GemLocation.Bow, slotIconAtlas.GetSprite("bow"));
-		slotIcons.Add(GemLocation.Chest, slotIconAtlas.GetSprite("chest"));
-		slotIcons.Add(GemLocation.Cloak, slotIconAtlas.GetSprite("cape"));
-		slotIcons.Add(GemLocation.Head, slotIconAtlas.GetSprite("head"));
-		slotIcons.Add(GemLocation.Legs, slotIconAtlas.GetSprite("legs"));
-		slotIcons.Add(GemLocation.Shield, slotIconAtlas.GetSprite("shield"));
-		slotIcons.Add(GemLocation.Tool, slotIconAtlas.GetSprite("tool"));
-		slotIcons.Add(GemLocation.Utility, slotIconAtlas.GetSprite("utility"));
-		slotIcons.Add(GemLocation.Weapon, slotIconAtlas.GetSprite("weapon"));*/
 	}
 
 	private static void AddBossBoxProgressConfig(string name, float[] progress)

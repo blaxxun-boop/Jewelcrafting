@@ -706,6 +706,7 @@ public static class GemStones
 				Vector2 anchoredPosition = takeAllButton.anchoredPosition;
 				anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
 				takeAllButton.anchoredPosition = anchoredPosition;
+				takeAllButton.gameObject.SetActive(true);
 
 				FusionBoxSetup.AddSealButton.SealButton.SetActive(false);
 
@@ -756,6 +757,10 @@ public static class GemStones
 				if (sockets is Box)
 				{
 					FusionBoxSetup.AddSealButton.SealButton.SetActive(true);
+				}
+				else if (Jewelcrafting.allowUnsocketing.Value != Jewelcrafting.Unsocketing.All)
+				{
+					takeAllButton.gameObject.SetActive(false);
 				}
 
 				Inventory inv = ReadSocketsInventory(sockets);
@@ -852,6 +857,26 @@ public static class GemStones
 		}
 	}
 
+	private static bool AllowsUnsocketing(ItemDrop.ItemData item)
+	{
+		if (Jewelcrafting.allowUnsocketing.Value == Jewelcrafting.Unsocketing.All)
+		{
+			return true;
+		}
+
+		if (!GemHasEffectInOpenEquipment(item))
+		{
+			return true;
+		}
+
+		if (Jewelcrafting.allowUnsocketing.Value == Jewelcrafting.Unsocketing.UniquesOnly)
+		{
+			return bossToGem.Values.Any(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == item.m_shared.m_name);
+		}
+
+		return false;
+	}
+
 	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.DropItem))]
 	private class AllowGemStonesOnly
 	{
@@ -861,6 +886,12 @@ public static class GemStones
 			{
 				if (fromInventory == AddFakeSocketsContainer.openInventory)
 				{
+					if (!AllowsUnsocketing(item))
+					{
+						__result = false;
+						return false;
+					}
+					
 					ItemDrop.ItemData existingItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
 					if (existingItem is not null && existingItem.m_dropPrefab != item.m_dropPrefab)
 					{
@@ -913,7 +944,7 @@ public static class GemStones
 					return true;
 				}
 
-				if (__instance.m_inventory.HaveItem(item.m_shared.m_name))
+				if ((oldItem is not null && !AllowsUnsocketing(oldItem)) || __instance.m_inventory.HaveItem(item.m_shared.m_name))
 				{
 					__result = false;
 					return false;
@@ -960,14 +991,14 @@ public static class GemStones
 			GemInfo info = GemStoneSetup.GemInfos[socketName];
 			checkAgainst = GemStoneSetup.Gems[info.Type];
 			errorType.Add("$jc_equipped_unique_error_gem");
-			errorType.Add(Localization.instance.Localize((GemStoneSetup.uncutGems.TryGetValue(info.Type, out GameObject uncutGem) ? uncutGem : GemStoneSetup.Gems[info.Type][info.Tier].Prefab).GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
+			errorType.Add(Localization.instance.Localize((GemStoneSetup.uncutGems.TryGetValue(info.Type, out GameObject uncutGem) ? uncutGem : GemStoneSetup.Gems[info.Type][info.Tier - 1].Prefab).GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
 		}
 		else if (uniquePowers.Contains(Uniqueness.Tier))
 		{
 			GemInfo info = GemStoneSetup.GemInfos[socketName];
 			checkAgainst = new List<GemDefinition> { GemStoneSetup.Gems[info.Type][info.Tier - 1] };
 			errorType.Add("$jc_equipped_unique_error_tier");
-			errorType.Add(Localization.instance.Localize(GemStoneSetup.Gems[info.Type][info.Tier].Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
+			errorType.Add(Localization.instance.Localize(GemStoneSetup.Gems[info.Type][info.Tier - 1].Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
 		}
 		else
 		{
@@ -1086,11 +1117,22 @@ public static class GemStones
 	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.OnSelectedItem))]
-	private class PreventMovingInvalidItems
+	private class PreventMovingInvalidItemsOrDestroyOnMove
 	{
-		private static bool Prefix(InventoryGrid grid, ItemDrop.ItemData? item, InventoryGrid.Modifier mod)
+		private static bool Prefix(InventoryGrid grid, ref ItemDrop.ItemData? item, InventoryGrid.Modifier mod)
 		{
-			if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory is not null && AddFakeSocketsContainer.openInventory != grid.m_inventory)
+			if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory == grid.m_inventory)
+			{
+				if (!AllowsUnsocketing(item))
+				{
+					return false;
+				}
+				if (ShallDestroyGem(item, grid.m_inventory))
+				{
+					item = null;
+				}
+			}
+			else if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory is not null && AddFakeSocketsContainer.openInventory != grid.m_inventory)
 			{
 				if (!socketableGemStones.Contains(item.m_shared.m_name) || AddFakeSocketsContainer.openInventory.HaveItem(item.m_shared.m_name) || AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is { progress: >= 100 })
 				{
@@ -1107,6 +1149,21 @@ public static class GemStones
 					return grid.m_inventory.AddItem(item, item.m_stack - 1, emptySlot.x, emptySlot.y);
 				}
 			}
+			return true;
+		}
+	}
+
+	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.DropItem))]
+	private static class PreventThrowingGemsOnGround
+	{
+		private static bool Prefix(ref bool __result, Inventory inventory)
+		{
+			if (inventory == AddFakeSocketsContainer.openInventory)
+			{
+				__result = false;
+				return false;
+			}
+
 			return true;
 		}
 	}
@@ -1141,6 +1198,8 @@ public static class GemStones
 		}
 	}
 
+	private static bool GemHasEffectInOpenEquipment(ItemDrop.ItemData item) => AddFakeSocketsContainer.openEquipment is null || (Jewelcrafting.EffectPowers.TryGetValue(item.m_dropPrefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(AddFakeSocketsContainer.openEquipment.m_shared), out List<EffectPower> powers) && powers.Count != 0);
+
 	private static bool ShallDestroyGem(ItemDrop.ItemData item, Inventory inventory)
 	{
 		if (AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is not null)
@@ -1150,14 +1209,22 @@ public static class GemStones
 
 		if (socketableGemStones.Contains(item.m_shared.m_name))
 		{
+			if (!GemHasEffectInOpenEquipment(item))
+			{
+				return false;
+			}
+			
 			float chance;
+			List<GemInfo> gemInfos;
 			if (GemStoneSetup.GemInfos.TryGetValue(item.m_shared.m_name, out GemInfo info))
 			{
-				if (!GemStoneSetup.shardColors.ContainsKey(info.Type) || (AddFakeSocketsContainer.openEquipment is not null && (!Jewelcrafting.EffectPowers.TryGetValue(item.m_dropPrefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) || !locationPowers.TryGetValue(Utils.GetGemLocation(AddFakeSocketsContainer.openEquipment.m_shared), out List<EffectPower> powers) || powers.Count == 0)))
+				if (!GemStoneSetup.shardColors.ContainsKey(info.Type))
 				{
 					// unique gem
 					return false;
 				}
+
+				gemInfos = new List<GemInfo> { info };
 
 				chance = (info.Tier switch
 				{
@@ -1169,28 +1236,37 @@ public static class GemStones
 			}
 			else
 			{
+				if (!MergedGemStoneSetup.mergedGemContents.TryGetValue(item.m_dropPrefab.name, out gemInfos))
+				{
+					gemInfos = new List<GemInfo>();
+				}
 				chance = Jewelcrafting.breakChanceUnsocketMerged.Value / 100f;
 			}
 			if (chance > Random.value)
 			{
 				Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_gemstone_remove_fail");
 				inventory.RemoveItem(item);
+
+				foreach (GemInfo gemInfo in gemInfos)
+				{
+					if (GemStoneSetup.shardColors.TryGetValue(gemInfo.Type, out GameObject shard))
+					{
+						if (!Player.m_localPlayer.m_inventory.AddItem(shard, 1))
+						{
+							Transform transform = Player.m_localPlayer.transform;
+							Vector3 position = transform.position;
+							ItemDrop itemDrop = ItemDrop.DropItem(shard.GetComponent<ItemDrop>().m_itemData, 1, position + transform.forward + transform.up, transform.rotation);
+							itemDrop.OnPlayerDrop();
+							itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
+							Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
+						}
+					}
+				}
+				
 				return true;
 			}
 		}
 
 		return false;
-	}
-
-	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.OnSelectedItem))]
-	private class DestroyGemItemOnMove
-	{
-		private static void Prefix(InventoryGrid grid, ref ItemDrop.ItemData? item, InventoryGrid.Modifier mod)
-		{
-			if (item is not null && grid.m_inventory == AddFakeSocketsContainer.openInventory && mod == InventoryGrid.Modifier.Move && ShallDestroyGem(item, grid.m_inventory))
-			{
-				item = null;
-			}
-		}
 	}
 }
