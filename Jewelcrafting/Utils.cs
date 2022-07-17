@@ -55,7 +55,7 @@ public static class Utils
 
 	public static T GetEffect<T>(this Player player, Effect effect) where T : struct
 	{
-		if (player.m_nview.m_zdo?.GetByteArray(effect.ZDOName()) is not { } effectBytes)
+		if (player.m_nview.m_zdo?.GetByteArray(effect.ZDOName()) is not { Length: > 0 } effectBytes)
 		{
 			return default;
 		}
@@ -189,7 +189,7 @@ public static class Utils
 	{
 		return rpc is null || ZNet.instance.m_adminList.Contains(rpc.GetSocket().GetHostName());
 	}
-	
+
 	public static T ConvertStatusEffect<T>(StatusEffect statusEffect) where T : StatusEffect
 	{
 		T ownSE = ScriptableObject.CreateInstance<T>();
@@ -205,7 +205,7 @@ public static class Utils
 
 	public static T ConvertComponent<T, U>(GameObject gameObject) where U : MonoBehaviour where T : U
 	{
-		U component = gameObject.GetComponent<U>(); 
+		U component = gameObject.GetComponent<U>();
 		T cmp = gameObject.AddComponent<T>();
 		foreach (FieldInfo field in component.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
 		{
@@ -213,44 +213,5 @@ public static class Utils
 		}
 		Object.Destroy(component);
 		return cmp;
-	}
-
-	[HarmonyPatch(typeof(ZPackage), nameof(ZPackage.Write), typeof(byte[]))]
-	private static class HandleNullByteArraysWrite
-	{
-		private static void Prefix(ref byte[]? array, out bool __state)
-		{
-			__state = array is null;
-			if (__state)
-			{
-				array = Array.Empty<byte>();
-			}
-		}
-
-		private static void Postfix(ZPackage __instance, bool __state)
-		{
-			if (__state)
-			{
-				__instance.m_writer.BaseStream.Position -= 4;
-				__instance.m_writer.Write(-1);
-			}
-		}
-	}
-	
-	[HarmonyPatch(typeof(ZPackage), nameof(ZPackage.ReadByteArray))]
-	private static class HandleNullByteArraysRead
-	{
-		private static bool Prefix(ZPackage __instance, ref byte[]? __result)
-		{
-			int length = __instance.m_reader.ReadInt32();
-			if (length == -1)
-			{
-				__result = null;
-				return false;
-			}
-
-			__instance.m_reader.BaseStream.Position -= 4;
-			return true;
-		}
 	}
 }

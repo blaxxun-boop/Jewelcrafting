@@ -85,7 +85,7 @@ public class TrackEquipmentChanges
 		zdo.m_byteArrays ??= new Dictionary<int, byte[]>();
 		foreach (string effect in Utils.zdoNames.Values)
 		{
-			zdo.m_byteArrays[effect.GetStableHashCode()] = null;
+			zdo.m_byteArrays[effect.GetStableHashCode()] = Array.Empty<byte>();
 		}
 		foreach (KeyValuePair<Effect, object> kv in effects)
 		{
