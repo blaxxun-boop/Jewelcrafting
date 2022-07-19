@@ -17,12 +17,12 @@ public static class MercifulDeath
 		[InverseMultiplicativePercentagePower] public float Power;
 	}
 
-	[HarmonyPatch(typeof(Player), nameof(Player.HardDeath))]
+	[HarmonyPatch(typeof(Player), nameof(Player.OnDeath))]
 	private static class PreventXPLoss
 	{
 		private static void Prefix(Player __instance)
 		{
-			if (Random.value < __instance.GetEffect(Effect.Mercifuldeath) / 100)
+			if (__instance.HardDeath() && Random.value < __instance.GetEffect(Effect.Mercifuldeath) / 100)
 			{
 				__instance.m_timeSinceDeath = 0;
 			}

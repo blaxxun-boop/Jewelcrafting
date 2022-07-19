@@ -819,11 +819,11 @@ public static class GemStones
 			{
 				return false;
 			}
-			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")) && RectTransformUtility.RectangleContainsScreenPoint(invGui.m_playerGrid.m_gridRoot, Input.mousePosition))
+			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")))
 			{
 				if (Jewelcrafting.inventoryInteractBehaviour.Value == Jewelcrafting.InteractBehaviour.Disabled)
 				{
-					return true;
+					return RectTransformUtility.RectangleContainsScreenPoint(invGui.m_playerGrid.m_gridRoot, Input.mousePosition);
 				}
 
 				Vector2 pos = Input.mousePosition;

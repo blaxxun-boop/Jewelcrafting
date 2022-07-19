@@ -24,7 +24,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.8";
+	private const string ModVersion = "1.1.9";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -292,10 +292,15 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{
 			AddBossBoxProgressConfig(kv.Key, kv.Value);
 		}
-
+		
 		Assembly assembly = Assembly.GetExecutingAssembly();
 		Harmony harmony = new(ModGUID);
 		harmony.PatchAll(assembly);
+
+		if (!ExtendedItemDataFramework.ExtendedItemDataFramework.Enabled)
+		{
+			throw new Exception("ExtendedItemDataFramework config is disabled. Fix it, then restart the game.");
+		}
 
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
 		gliding = assets.LoadAsset<SE_Stats>("JCGliding");

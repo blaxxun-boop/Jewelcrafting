@@ -81,7 +81,7 @@ public static class CompendiumDisplay
 	}
 
 	[HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.OnSelectText))]
-	private static class DisplayGemEffectOverview
+	public static class DisplayGemEffectOverview
 	{
 		private static void Postfix(TextsDialog __instance, TextsDialog.TextInfo text)
 		{
@@ -92,77 +92,83 @@ public static class CompendiumDisplay
 			content.GetComponent<VerticalLayoutGroup>().spacing = 10;
 			if (text == compendiumPage)
 			{
-				content.GetComponent<VerticalLayoutGroup>().spacing = 3;
+				Render(__instance);
+			}
+		}
 
-				foreach (KeyValuePair<GemType, List<GemDefinition>> kv in GemStoneSetup.Gems)
+		public static void Render(TextsDialog compendium)
+		{
+			Transform content = compendium.m_textArea.transform.parent;
+			content.GetComponent<VerticalLayoutGroup>().spacing = 3;
+
+			foreach (KeyValuePair<GemType, List<GemDefinition>> kv in GemStoneSetup.Gems)
+			{
+				JC_UI_Elements.Add(Object.Instantiate(emptyElement, content));
+				GameObject elementIcon = Object.Instantiate(textWithIcon, content);
+				JC_UI_Elements.Add(elementIcon);
+				string mainText = $"{(GemStoneSetup.uncutGems.TryGetValue(kv.Key, out GameObject uncutGem) ? uncutGem : kv.Value[0].Prefab).GetComponent<ItemDrop>().m_itemData.m_shared.m_name}:";
+				elementIcon.transform.Find("Text").GetComponent<Text>().text = Localization.instance.Localize(mainText);
+				elementIcon.transform.Find("Icon").GetComponent<Image>().sprite = kv.Value[0].Prefab.GetComponent<ItemDrop>().m_itemData.GetIcon();
+				int gemHash = kv.Value[0].Prefab.name.GetStableHashCode();
+
+				if (Jewelcrafting.EffectPowers.TryGetValue(gemHash, out Dictionary<GemLocation, List<EffectPower>> gem))
 				{
-					JC_UI_Elements.Add(Object.Instantiate(emptyElement, content));
-					GameObject elementIcon = Object.Instantiate(textWithIcon, content);
-					JC_UI_Elements.Add(elementIcon);
-					string mainText = $"{(GemStoneSetup.uncutGems.TryGetValue(kv.Key, out GameObject uncutGem) ? uncutGem : kv.Value[0].Prefab).GetComponent<ItemDrop>().m_itemData.m_shared.m_name}:";
-					elementIcon.transform.Find("Text").GetComponent<Text>().text = Localization.instance.Localize(mainText);
-					elementIcon.transform.Find("Icon").GetComponent<Image>().sprite = kv.Value[0].Prefab.GetComponent<ItemDrop>().m_itemData.GetIcon();
-					int gemHash = kv.Value[0].Prefab.name.GetStableHashCode();
-
-					if (Jewelcrafting.EffectPowers.TryGetValue(gemHash, out Dictionary<GemLocation, List<EffectPower>> gem))
+					Dictionary<Effect, IEnumerable<GemLocation>> effects = GemStones.GroupEffectsByGemLocation(gem).SelectMany(kv => kv.Value.Select(e => new KeyValuePair<GemLocation, Effect>(kv.Key, e.Effect))).GroupBy(g => g.Value).ToDictionary(g => g.Key, g => g.Select(kv => kv.Key));
+					foreach (KeyValuePair<Effect, IEnumerable<GemLocation>> effect in effects)
 					{
-						Dictionary<Effect, IEnumerable<GemLocation>> effects = GemStones.GroupEffectsByGemLocation(gem).SelectMany(kv => kv.Value.Select(e => new KeyValuePair<GemLocation, Effect>(kv.Key, e.Effect))).GroupBy(g => g.Value).ToDictionary(g => g.Key, g => g.Select(kv => kv.Key));
-						foreach (KeyValuePair<Effect, IEnumerable<GemLocation>> effect in effects)
+						elementIcon = Object.Instantiate(CompendiumDisplay.textWithIcon, content);
+						JC_UI_Elements.Add(elementIcon);
+						string textWithIcon = $"<color=orange>$jc_effect_{EffectDef.EffectNames[effect.Key].ToLower()}</color> - $jc_effect_{EffectDef.EffectNames[effect.Key].ToLower()}_desc";
+						elementIcon.transform.Find("Text").GetComponent<Text>().text = Localization.instance.Localize(textWithIcon);
+						bool firstMatch = true;
+						foreach (GemLocation location in effect.Value)
 						{
-							elementIcon = Object.Instantiate(CompendiumDisplay.textWithIcon, content);
-							JC_UI_Elements.Add(elementIcon);
-							string textWithIcon = $"<color=orange>$jc_effect_{EffectDef.EffectNames[effect.Key].ToLower()}</color> - $jc_effect_{EffectDef.EffectNames[effect.Key].ToLower()}_desc";
-							elementIcon.transform.Find("Text").GetComponent<Text>().text = Localization.instance.Localize(textWithIcon);
-							bool firstMatch = true;
-							foreach (GemLocation location in effect.Value)
+							string prefab = location switch
 							{
-								string prefab = location switch
-								{
-									GemLocation.Head => "HelmetBronze",
-									GemLocation.Cloak => "CapeWolf",
-									GemLocation.Legs => "ArmorWolfLegs",
-									GemLocation.Chest => "ArmorWolfChest",
-									GemLocation.Sword => "SwordIron",
-									GemLocation.Knife => "KnifeBlackMetal",
-									GemLocation.Club => "MaceSilver",
-									GemLocation.Polearm => "AtgeirIron",
-									GemLocation.Spear => "SpearBronze",
-									GemLocation.Axe => "AxeBlackMetal",
-									GemLocation.Bow => "BowFineWood",
-									GemLocation.Weapon => "SwordIron",
-									GemLocation.Tool => "Hammer",
-									GemLocation.Shield => "ShieldBlackmetal",
-									GemLocation.Utility => "JC_Necklace_Red",
-									GemLocation.All => "YagluthDrop",
-									_ => throw new ArgumentOutOfRangeException()
-								};
-								
-								Sprite spr = ZNetScene.instance.GetPrefab(prefab).GetComponent<ItemDrop>().m_itemData.GetIcon();
-								if (firstMatch)
-								{
-									elementIcon.transform.Find("Icon").GetComponent<Image>().sprite = spr;
+								GemLocation.Head => "HelmetBronze",
+								GemLocation.Cloak => "CapeWolf",
+								GemLocation.Legs => "ArmorWolfLegs",
+								GemLocation.Chest => "ArmorWolfChest",
+								GemLocation.Sword => "SwordIron",
+								GemLocation.Knife => "KnifeBlackMetal",
+								GemLocation.Club => "MaceSilver",
+								GemLocation.Polearm => "AtgeirIron",
+								GemLocation.Spear => "SpearBronze",
+								GemLocation.Axe => "AxeBlackMetal",
+								GemLocation.Bow => "BowFineWood",
+								GemLocation.Weapon => "SwordIron",
+								GemLocation.Tool => "Hammer",
+								GemLocation.Shield => "ShieldBlackmetal",
+								GemLocation.Utility => "JC_Necklace_Red",
+								GemLocation.All => "YagluthDrop",
+								_ => throw new ArgumentOutOfRangeException()
+							};
 
-									firstMatch = false;
-								}
-								else
-								{
-									GameObject newIcon = Object.Instantiate(iconElement, elementIcon.transform);
-									newIcon.transform.SetAsFirstSibling();
-									newIcon.GetComponent<Image>().sprite = spr;
-								}
+							Sprite spr = ZNetScene.instance.GetPrefab(prefab).GetComponent<ItemDrop>().m_itemData.GetIcon();
+							if (firstMatch)
+							{
+								elementIcon.transform.Find("Icon").GetComponent<Image>().sprite = spr;
+
+								firstMatch = false;
+							}
+							else
+							{
+								GameObject newIcon = Object.Instantiate(iconElement, elementIcon.transform);
+								newIcon.transform.SetAsFirstSibling();
+								newIcon.GetComponent<Image>().sprite = spr;
 							}
 						}
 					}
 				}
-
-				JC_UI_Elements.Add(Object.Instantiate(emptyElement, content));
-				
-				List<ContentSizeFitter> AllFilters = new();
-				JC_UI_Elements.ForEach(element => AllFilters.Add(element.GetComponent<ContentSizeFitter>()));
-				Canvas.ForceUpdateCanvases();
-				AllFilters.ForEach(filter => filter.enabled = false);
-				AllFilters.ForEach(filter => filter.enabled = true);
 			}
+
+			JC_UI_Elements.Add(Object.Instantiate(emptyElement, content));
+
+			List<ContentSizeFitter> AllFilters = new();
+			JC_UI_Elements.ForEach(element => AllFilters.Add(element.GetComponent<ContentSizeFitter>()));
+			Canvas.ForceUpdateCanvases();
+			AllFilters.ForEach(filter => filter.enabled = false);
+			AllFilters.ForEach(filter => filter.enabled = true);
 		}
 	}
 	
