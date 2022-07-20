@@ -41,6 +41,7 @@ public static class VisualEffects
 	private const int HammerVal = 0x220000;
 	private const int HoeVal = 0x240000;
 	private const int PickaxeIronVal = 0x260000;
+	private const int ClubVal = 0x280000;
 
 	[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
 	private static class FillEffectHashMapOnStart
@@ -111,6 +112,11 @@ public static class VisualEffects
 
 		AddToEffectMap(handAttachEffectPrefabs, handAttachPrefabsBySkill);
 		AddToEffectMap(armorEffectPrefabs, armorPrefabsByType);
+
+		foreach (GameObject effect in VisualEffectSetup.spearProjectiles.Values)
+		{
+			effectHashMap.Add(effect.name.GetStableHashCode(), effect);
+		}
 	}
 
 	private static readonly Dictionary<int, GameObject> effectHashMap = new();
@@ -287,6 +293,42 @@ public static class VisualEffects
 		}
 	}
 
+	[HarmonyPatch(typeof(Projectile), nameof(Projectile.Setup))]
+	private static class DetermineProjectileEffects
+	{
+		private static void Prefix(Projectile __instance, ItemDrop.ItemData item)
+		{
+			if (item.m_shared.m_skillType == Skills.SkillType.Spears && item.Extended()?.GetComponent<Sockets>().socketedGems is { } gems)
+			{
+				int i = 0;
+				foreach (string socket in gems)
+				{
+					if (ObjectDB.instance.GetItemPrefab(socket) is { } gem && GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo gemInfo) && VisualEffectSetup.spearProjectiles.TryGetValue(gemInfo.Type, out GameObject effect))
+					{
+						__instance.m_nview.GetZDO().Set($"Jewelcrafting Effect {i++}", effect.name.GetStableHashCode());
+					}
+				}
+				AttachProjectileEffects.Postfix(__instance);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Projectile), nameof(Projectile.Awake))]
+	private static class AttachProjectileEffects
+	{
+		public static void Postfix(Projectile __instance)
+		{
+			ZDO zdo = __instance.m_nview.GetZDO();
+			for (int i = 0; zdo.GetInt($"Jewelcrafting Effect {i}") is { } hash and not 0; ++i)
+			{
+				if (effectHashMap.TryGetValue(hash, out GameObject effect))
+				{
+					Object.Instantiate(effect, __instance.transform);
+				}
+			}
+		}
+	}
+
 	private static ItemDrop.ItemData.ItemType ItemKey(ItemDrop.ItemData.SharedData shared) => (ItemDrop.ItemData.ItemType)((int)shared.m_itemType
 		                                      | (shared.m_itemType is ItemDrop.ItemData.ItemType.Tool && shared.m_name.Contains("$item_hammer") ? HammerVal : 0)
 		                                      | (shared.m_itemType is ItemDrop.ItemData.ItemType.Tool && shared.m_name.Contains("$item_hoe") ? HoeVal : 0)
@@ -304,7 +346,8 @@ public static class VisualEffects
 		                          | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_huntsman") ? HuntsmanBowVal : 0)
 		                          | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_draugrfang") ? DraugrFangVal : 0)
 		                          | (shared.m_skillType is Skills.SkillType.Pickaxes && shared.m_name.Contains("$item_pickaxe_iron") ? PickaxeIronVal : 0)
-			);
+		                          | (shared.m_skillType is Skills.SkillType.Clubs && shared.m_name.Contains("$item_club") ? ClubVal : 0)
+		);
 
 	public static Skills.SkillType TwoHanded(Skills.SkillType type) => (Skills.SkillType)(TwoHandedVal | (int)type);
 	public static Skills.SkillType Blackmetal(Skills.SkillType type) => (Skills.SkillType)(BlackmetalVal | (int)type);
@@ -314,4 +357,5 @@ public static class VisualEffects
 	public static Skills.SkillType BowHuntsman() => (Skills.SkillType)(HuntsmanBowVal | (int)Skills.SkillType.Bows);
 	public static Skills.SkillType BowDraugrFang() => (Skills.SkillType)(DraugrFangVal | (int)Skills.SkillType.Bows);
 	public static Skills.SkillType PickaxeIron() => (Skills.SkillType)(PickaxeIronVal | (int)Skills.SkillType.Pickaxes);
+	public static Skills.SkillType Club() => (Skills.SkillType)(ClubVal | (int)Skills.SkillType.Clubs);
 }

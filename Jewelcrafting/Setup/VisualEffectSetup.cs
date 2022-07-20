@@ -21,14 +21,24 @@ public static class VisualEffectSetup
 	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> yellowArmorEffects = new();
 	public static readonly Dictionary<ItemDrop.ItemData.ItemType, GameObject> purpleArmorEffects = new();
 
+	public static readonly Dictionary<GemType, GameObject> spearProjectiles = new();
+
 	public static void initializeVisualEffects(AssetBundle assets)
 	{
+		spearProjectiles.Add(GemType.Red, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Spear_Pro"));
+		spearProjectiles.Add(GemType.Blue, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Spear_Pro"));
+		spearProjectiles.Add(GemType.Green, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Spear_Pro"));
+		spearProjectiles.Add(GemType.Black, PrefabManager.RegisterPrefab(assets, "JC_Magnetic_Spear_Pro"));
+		spearProjectiles.Add(GemType.Yellow, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Spear_Pro"));
+		spearProjectiles.Add(GemType.Purple, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Spear_Pro"));
+		
 		redGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sword"));
-		redGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Axe"));
-		redGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_FireParticles_BAxe"));
+		redGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_Opportunity_Axe"));
+		redGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_Opportunity_BAxe"));
 		redGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Knife"));
 		redGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Spear"));
 		redGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Mace"));
+		redGemEffects.Add(VisualEffects.Club(), PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Club"));
 		redGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Sledge"));
 		redGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_FireParticles_Atgeir"));
 		redGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_PainTolerance_Shield"));
@@ -46,6 +56,7 @@ public static class VisualEffectSetup
 		blueGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Knife"));
 		blueGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Spear"));
 		blueGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Mace"));
+		blueGemEffects.Add(VisualEffects.Club(), PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Club"));
 		blueGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Sledge"));
 		blueGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Atgeir"));
 		blueGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_Unfazed_Shield"));
@@ -59,6 +70,7 @@ public static class VisualEffectSetup
 		greenGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Knife"));
 		greenGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Spear"));
 		greenGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Mace"));
+		greenGemEffects.Add(VisualEffects.Club(), PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Club"));
 		greenGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Sledge"));
 		greenGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_PoisonParticles_Atgeir"));
 		greenGemEffects.Add(Skills.SkillType.Bows, PrefabManager.RegisterPrefab(assets, "JC_Necromancer_Bow"));
@@ -70,8 +82,9 @@ public static class VisualEffectSetup
 		blackGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Axe"));
 		blackGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_BAxe"));
 		blackGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Knife"));
-		blackGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Spear"));
+		blackGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_Magnetic_Spear"));
 		blackGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Mace"));
+		blackGemEffects.Add(VisualEffects.Club(), PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Club"));
 		blackGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Sledge"));
 		blackGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Atgeir"));
 		blackGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_Tank_Shield"));
@@ -89,6 +102,7 @@ public static class VisualEffectSetup
 		yellowGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Knife"));
 		yellowGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Spear"));
 		yellowGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Mace"));
+		yellowGemEffects.Add(VisualEffects.Club(), PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Club"));
 		yellowGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Sledge"));
 		yellowGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Atgeir"));
 		yellowGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_Avoidance_Shield"));
@@ -105,6 +119,15 @@ public static class VisualEffectSetup
 		yellowArmorEffects.Add(VisualEffects.Hammer(), PrefabManager.RegisterPrefab(assets, "JC_Hammer_Energetic"));
 		yellowArmorEffects.Add(VisualEffects.Hoe(), PrefabManager.RegisterPrefab(assets, "JC_Hoe_Energetic"));
 		
+		purpleGemEffects.Add(Skills.SkillType.Swords, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Sword"));
+		purpleGemEffects.Add(Skills.SkillType.Axes, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Axe"));
+		purpleGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Axes), PrefabManager.RegisterPrefab(assets, "JC_Berserk_BAxe"));
+		purpleGemEffects.Add(Skills.SkillType.Knives, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Knife"));
+		purpleGemEffects.Add(Skills.SkillType.Spears, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Spear"));
+		purpleGemEffects.Add(Skills.SkillType.Clubs, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Mace"));
+		purpleGemEffects.Add(VisualEffects.Club(), PrefabManager.RegisterPrefab(assets, "JC_Berserk_Club"));
+		purpleGemEffects.Add(VisualEffects.TwoHanded(Skills.SkillType.Clubs), PrefabManager.RegisterPrefab(assets, "JC_Berserk_Sledge"));
+		purpleGemEffects.Add(Skills.SkillType.Polearms, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Atgeir"));
 		purpleGemEffects.Add(Skills.SkillType.Blocking, PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_Shield"));
 		purpleGemEffects.Add(VisualEffects.Buckler(), PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_AShield"));
 		purpleGemEffects.Add(VisualEffects.Towershield(), PrefabManager.RegisterPrefab(assets, "JC_ParryMaster_BShield"));

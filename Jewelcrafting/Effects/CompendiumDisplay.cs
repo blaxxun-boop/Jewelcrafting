@@ -40,7 +40,7 @@ public static class CompendiumDisplay
 				return;
 			}
 
-			Dictionary<Effect, KeyValuePair<float, GemLocation>> gems = new();
+			Dictionary<Effect, KeyValuePair<float[], GemLocation>> gems = new();
 
 			Utils.ApplyToAllPlayerItems(player, item =>
 			{
@@ -53,9 +53,23 @@ public static class CompendiumDisplay
 						{
 							foreach (EffectPower effectPower in effectPowers)
 							{
-								gems.TryGetValue(effectPower.Effect, out KeyValuePair<float, GemLocation> power);
-								FieldInfo primaryPower = effectPower.Config.GetType().GetFields().First();
-								gems[effectPower.Effect] = new KeyValuePair<float, GemLocation>(primaryPower.GetCustomAttribute<PowerAttribute>().Add(power.Key, effectPower.Power), power.Value | location);
+								float[] powers;
+								FieldInfo[] powerFields = effectPower.Config.GetType().GetFields();
+								if (gems.TryGetValue(effectPower.Effect, out KeyValuePair<float[], GemLocation> power))
+								{
+									int i = 0;
+									powers = power.Key;
+									foreach (FieldInfo powerField in powerFields)
+									{
+										powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], (float)powerField.GetValue(effectPower.Config));
+										++i;
+									}
+								}
+								else
+								{
+									powers = powerFields.Select(p => (float)p.GetValue(effectPower.Config)).ToArray();
+								}
+								gems[effectPower.Effect] = new KeyValuePair<float[], GemLocation>(powers, power.Value | location);
 							}
 						}
 					}
@@ -64,10 +78,11 @@ public static class CompendiumDisplay
 
 			if (gems.Count > 0)
 			{
+				string formatNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
 				StringBuilder sb = new(Localization.instance.Localize("\n\n<color=yellow>$jc_gem_effects_compendium</color>"));
-				foreach (KeyValuePair<Effect, KeyValuePair<float, GemLocation>> kv in gems)
+				foreach (KeyValuePair<Effect, KeyValuePair<float[], GemLocation>> kv in gems)
 				{
-					sb.Append(Localization.instance.Localize($"\n$jc_effect_{EffectDef.EffectNames[kv.Key].ToLower()}_desc_detail", kv.Value.Key.ToString(CultureInfo.InvariantCulture)));
+					sb.Append(Localization.instance.Localize($"\n$jc_effect_{EffectDef.EffectNames[kv.Key].ToLower()}_desc_detail", kv.Value.Key.Select(formatNumber).ToArray()));
 				}
 				__instance.m_texts[0].m_text += sb.ToString();
 			}

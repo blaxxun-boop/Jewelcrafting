@@ -68,6 +68,7 @@ public enum Effect
 	Gourmet,
 	Stealtharcher,
 	Mercifuldeath,
+	Opportunity,
 	Turtleshell,
 	Marathon,
 	Unbreakable,

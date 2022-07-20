@@ -22,6 +22,7 @@ public static class LightningSpeed
 		[AdditivePower] public readonly float Duration;
 		[MultiplicativePercentagePower] public readonly float AttackSpeed;
 		[InverseMultiplicativePercentagePower] public readonly float Stamina;
+		[InverseMultiplicativePercentagePower] public readonly float DamageReduction;
 	}
 	
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]
@@ -49,6 +50,7 @@ public static class LightningSpeed
 				if (player.m_seman.AddStatusEffect(Jewelcrafting.lightningSpeed) is SE_Stats statusEffect)
 				{
 					statusEffect.m_speedModifier = config.MovementSpeed / 100f;
+					statusEffect.m_damageModifier = config.DamageReduction / 100f;
 				}
 			}
 		}
@@ -72,7 +74,7 @@ public static class LightningSpeed
 		public override string GetTooltipString()
 		{
 			Config config = Player.m_localPlayer.GetEffect<Config>(Effect.Lightningspeed);
-			return Localization.instance.Localize(m_tooltip, config.MovementSpeed.ToString("0.#"), config.Stamina.ToString("0.#"));
+			return Localization.instance.Localize(m_tooltip, config.MovementSpeed.ToString("0.#"), config.MinCooldown.ToString("0.#"), config.MaxCooldown.ToString("0.#"), config.Duration.ToString("0.#"), config.AttackSpeed.ToString("0.#"), config.Stamina.ToString("0.#"), config.DamageReduction.ToString("0.#"));
 		}
 	}
 }

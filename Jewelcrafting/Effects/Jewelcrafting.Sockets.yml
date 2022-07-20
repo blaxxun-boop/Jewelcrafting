@@ -20,11 +20,6 @@ shadow hit:
   gem: black
   power: [2, 3, 4]
 
-magnetic:
-  slot: spear
-  gem: black
-  power: [20, 30, 40]
-
 vampire:
   slot: weapon
   gem: yellow
@@ -34,6 +29,18 @@ berserk:
   slot: weapon
   gem: purple
   power: [1, 2, 3]
+
+# Specific Weapons
+
+magnetic:
+  slot: spear
+  gem: black
+  power: [20, 30, 40]
+  
+opportunity:
+  slot: axe
+  gem: red
+  power: [5, 7, 9]
 
 # Chest
 
@@ -228,6 +235,7 @@ lightning speed:
     duration: 8
     attack speed: 100
     stamina: 50
+    damage reduction: 50
   unique: all
 
 rooted revenge:
