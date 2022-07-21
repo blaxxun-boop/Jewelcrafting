@@ -1,10 +1,5 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
-using JetBrains.Annotations;
-using UnityEngine;
-using UnityEngine.UI;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.GemEffects;
 
