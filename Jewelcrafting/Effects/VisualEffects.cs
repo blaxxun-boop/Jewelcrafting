@@ -296,9 +296,9 @@ public static class VisualEffects
 	[HarmonyPatch(typeof(Projectile), nameof(Projectile.Setup))]
 	private static class DetermineProjectileEffects
 	{
-		private static void Prefix(Projectile __instance, ItemDrop.ItemData item)
+		private static void Prefix(Projectile __instance, ItemDrop.ItemData? item)
 		{
-			if (item.m_shared.m_skillType == Skills.SkillType.Spears && item.Extended()?.GetComponent<Sockets>()?.socketedGems is { } gems)
+			if (item?.m_shared.m_skillType == Skills.SkillType.Spears && item.Extended()?.GetComponent<Sockets>()?.socketedGems is { } gems)
 			{
 				int i = 0;
 				foreach (string socket in gems)
