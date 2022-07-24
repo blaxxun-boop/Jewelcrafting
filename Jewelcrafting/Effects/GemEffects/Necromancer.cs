@@ -2,8 +2,6 @@
 using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEngine;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.GemEffects;
 

@@ -1,6 +1,5 @@
 ﻿using System.Linq;
 using UnityEngine;
-using LightType = UnityEngine.LightType;
 
 namespace Jewelcrafting;
 

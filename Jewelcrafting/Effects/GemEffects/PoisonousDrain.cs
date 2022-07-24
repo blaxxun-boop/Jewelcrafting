@@ -3,7 +3,6 @@ using System.Runtime.InteropServices;
 using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -116,7 +115,7 @@ public static class PoisonousDrain
 	{
 		private static void Postfix(SE_Poison __instance)
 		{
-			if (__instance.m_timer == __instance.m_damageInterval && __instance.m_character.m_seman.GetStatusEffect(AddPoisonCloudStatusEffect.StatusEffect.name) is PoisonCloudEffect activeCloud)
+			if (__instance.m_timer == __instance.m_damageInterval && __instance.m_character?.m_seman.GetStatusEffect(AddPoisonCloudStatusEffect.StatusEffect.name) is PoisonCloudEffect activeCloud)
 			{
 				activeCloud.damage -= __instance.m_damagePerHit;
 				if (activeCloud.attacker is Player player)

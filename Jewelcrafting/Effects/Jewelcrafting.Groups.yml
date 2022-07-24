@@ -1,0 +1,64 @@
+leading wolf:
+  slot: cloak
+  gem: cyan
+  power: [8, 10, 12]
+
+shared healing:
+  slot: head
+  gem: cyan
+  power: [10, 20, 30]
+
+fleeting life:
+  slot: weapon
+  gem: cyan
+  power: [6, 8, 10]
+
+safe haven:
+  slot: chest
+  gem: cyan
+  power: [1, 2, 3]
+
+cowardice:
+  slot: legs
+  gem: cyan
+  power: [3, 4, 5]
+
+archery mentor:
+  slot: bow
+  gem: cyan
+  power: [20, 30, 40]
+  
+dedicated tank:
+  slot: shield
+  gem: cyan
+  power: [50, 60, 70]
+  
+together forever:
+  slot: all
+  gem: group
+  power:
+    movement speed: 30
+    min cooldown: 30
+    max cooldown: 60
+    duration: 8
+    attack speed: 20
+    damage increase: 10
+    movement speed reduction: 50
+    damage taken increase: 100
+  unique: all
+
+# Gem Spawn
+
+gems:
+  meadows:
+    cyan: 0.06
+  black forest:
+    cyan: 0.08
+  swamp:
+    cyan: 0.1
+  mountain:
+    cyan: 0.12
+  plains:
+    cyan: 0.14
+  ash lands:
+    cyan: 0.16

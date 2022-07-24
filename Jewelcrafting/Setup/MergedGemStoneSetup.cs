@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-
 using ItemManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;

@@ -2,7 +2,6 @@
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.GemEffects;
 

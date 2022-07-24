@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using ExtendedItemDataFramework;
+using Groups;
 using HarmonyLib;
 using ItemManager;
 using UnityEngine;
@@ -127,8 +128,21 @@ public static class FusionBoxSetup
 				return;
 			}
 
-			if (GemStoneSetup.GemInfos.TryGetValue(gem1.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info1) && GemStoneSetup.GemInfos.TryGetValue(gem2.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info2))
+			if (Groups.API.IsLoaded() && (gem1.name == "Boss_Crystal_7" || gem2.name == "Boss_Crystal_7") && GemStones.bossToGem.Values.Contains(gem1) && GemStones.bossToGem.Values.Contains(gem2) && Jewelcrafting.boxBossGemMergeChance.Value > 0)
 			{
+				if (box.ItemData.m_shared.m_name != "$jc_legendary_gembox")
+				{
+					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_requires_legendary"));
+					return;
+				}
+			}
+			else
+			{
+				if (!GemStoneSetup.GemInfos.TryGetValue(gem1.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info1) || !GemStoneSetup.GemInfos.TryGetValue(gem2.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info2))
+				{
+					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_merged_gem"));
+					return;
+				}
 				if (info1.Tier != info2.Tier)
 				{
 					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_tier_mismatch"));
@@ -140,16 +154,12 @@ public static class FusionBoxSetup
 					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_unique_gem"));
 					return;
 				}
-
-				box.boxSealed = true;
-				box.Save();
-				InventoryGui.instance.CloseContainer();
-				InventoryGui.instance.UpdateCraftingPanel();
 			}
-			else
-			{
-				Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_merged_gem"));
-			}
+				
+			box.boxSealed = true;
+			box.Save();
+			InventoryGui.instance.CloseContainer();
+			InventoryGui.instance.UpdateCraftingPanel();
 		}
 
 		private static void Postfix(InventoryGui __instance)

@@ -1,0 +1,41 @@
+﻿using System;
+using System.Collections.Generic;
+using HarmonyLib;
+using JetBrains.Annotations;
+using Jewelcrafting.GemEffects;
+
+namespace Jewelcrafting.Effects.GemEffects.Groups;
+
+public static class Cowardice
+{
+	static Cowardice()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Cowardice, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[MultiplicativePercentagePower] public float Power;
+	}
+	
+	[HarmonyPatch(typeof(Character), nameof(Character.RPC_Damage))]
+	public static class ReduceDamageTaken
+	{
+		[UsedImplicitly]
+		private static void Prefix(Character __instance, HitData hit)
+		{
+			if (__instance is Player player && hit.GetAttacker() is { } attacker && attacker != __instance && player.GetEffect(Effect.Cowardice) > 0)
+			{
+				List<Player> nearbyPlayers = Utils.GetNearbyGroupMembers(player, 20);
+				if (nearbyPlayers.Count > 0)
+				{
+					player.m_seman.AddStatusEffect(Jewelcrafting.cowardice, true);
+					SE_Stats coward = (SE_Stats)player.m_seman.GetStatusEffect(Jewelcrafting.cowardice.name);
+					coward.m_speedModifier += player.GetEffect(Effect.Cowardice) / 100f;
+					coward.m_speedModifier = Math.Min(player.GetEffect(Effect.Cowardice) / 100f * 5, coward.m_speedModifier);
+				}
+			}
+		}
+	}
+}

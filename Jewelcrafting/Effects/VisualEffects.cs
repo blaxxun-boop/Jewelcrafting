@@ -330,23 +330,23 @@ public static class VisualEffects
 	}
 
 	private static ItemDrop.ItemData.ItemType ItemKey(ItemDrop.ItemData.SharedData shared) => (ItemDrop.ItemData.ItemType)((int)shared.m_itemType
-		                                      | (shared.m_itemType is ItemDrop.ItemData.ItemType.Tool && shared.m_name.Contains("$item_hammer") ? HammerVal : 0)
-		                                      | (shared.m_itemType is ItemDrop.ItemData.ItemType.Tool && shared.m_name.Contains("$item_hoe") ? HoeVal : 0)
+	                                                                                                                       | (shared.m_itemType is ItemDrop.ItemData.ItemType.Tool && shared.m_name.Contains("$item_hammer") ? HammerVal : 0)
+	                                                                                                                       | (shared.m_itemType is ItemDrop.ItemData.ItemType.Tool && shared.m_name.Contains("$item_hoe") ? HoeVal : 0)
 			);
 
 	public static ItemDrop.ItemData.ItemType Hammer() => (ItemDrop.ItemData.ItemType)(HammerVal | (int)ItemDrop.ItemData.ItemType.Tool);
 	public static ItemDrop.ItemData.ItemType Hoe() => (ItemDrop.ItemData.ItemType)(HoeVal | (int)ItemDrop.ItemData.ItemType.Tool);
 
 	private static Skills.SkillType SkillKey(ItemDrop.ItemData.SharedData shared) => (Skills.SkillType)((int)shared.m_skillType
-		                          | (shared.m_skillType is Skills.SkillType.Axes or Skills.SkillType.Clubs && shared.m_itemType is ItemDrop.ItemData.ItemType.TwoHandedWeapon ? TwoHandedVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_timedBlockBonus <= 1 ? TowershieldVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_name.Contains("blackmetal") ? BlackmetalVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_name.Contains("buckler") ? BucklerVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_finewood") ? FineWoodBowVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_huntsman") ? HuntsmanBowVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_draugrfang") ? DraugrFangVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Pickaxes && shared.m_name.Contains("$item_pickaxe_iron") ? PickaxeIronVal : 0)
-		                          | (shared.m_skillType is Skills.SkillType.Clubs && shared.m_name.Contains("$item_club") ? ClubVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Axes or Skills.SkillType.Clubs && shared.m_itemType is ItemDrop.ItemData.ItemType.TwoHandedWeapon ? TwoHandedVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_timedBlockBonus <= 1 ? TowershieldVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_name.Contains("blackmetal") ? BlackmetalVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Blocking && shared.m_name.Contains("buckler") ? BucklerVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_finewood") ? FineWoodBowVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_huntsman") ? HuntsmanBowVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Bows && shared.m_name.Contains("$item_bow_draugrfang") ? DraugrFangVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Pickaxes && shared.m_name.Contains("$item_pickaxe_iron") ? PickaxeIronVal : 0)
+	                                                                                                    | (shared.m_skillType is Skills.SkillType.Clubs && shared.m_name.Contains("$item_club") ? ClubVal : 0)
 		);
 
 	public static Skills.SkillType TwoHanded(Skills.SkillType type) => (Skills.SkillType)(TwoHandedVal | (int)type);

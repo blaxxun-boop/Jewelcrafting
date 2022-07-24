@@ -3,7 +3,6 @@ using System.Linq;
 using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
 

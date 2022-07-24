@@ -10,6 +10,7 @@ using HarmonyLib;
 using ItemManager;
 using JetBrains.Annotations;
 using Jewelcrafting.GemEffects;
+using Jewelcrafting.GemEffects.Groups;
 using LocalizationManager;
 using ServerSync;
 using SkillManager;
@@ -21,10 +22,11 @@ namespace Jewelcrafting;
 [BepInIncompatibility("randyknapp.mods.epicloot")]
 [BepInIncompatibility("DasSauerkraut.Terraheim")]
 [BepInDependency("randyknapp.mods.extendeditemdataframework")]
+[BepInDependency("org.bepinex.plugins.groups", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.12";
+	private const string ModVersion = "1.1.13";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -33,6 +35,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
 	public static ConfigEntry<Toggle> socketSystem = null!;
 	public static ConfigEntry<Toggle> inventorySocketing = null!;
+	public static ConfigEntry<Toggle> displayGemcursor = null!;
 	public static ConfigEntry<Unsocketing> allowUnsocketing = null!;
 	public static ConfigEntry<InteractBehaviour> inventoryInteractBehaviour = null!;
 	public static ConfigEntry<int> breakChanceUnsocketSimple = null!;
@@ -58,6 +61,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<float> experienceGainedFactor = null!;
 	public static ConfigEntry<int> magicRepairAmount = null!;
 	private static ConfigEntry<int> aquaticDamageIncrease = null!;
+	public static ConfigEntry<int> modersBlessingDuration = null!;
+	public static ConfigEntry<int> modersBlessingCooldown = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
@@ -82,6 +87,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
 	public static readonly Dictionary<string, ConfigEntry<int>[]> boxMergeChances = new();
 	public static readonly Dictionary<string, ConfigEntry<float>[]> boxBossProgress = new();
+	public static ConfigEntry<int> boxBossGemMergeChance = null!;
 
 	public static Dictionary<Effect, List<EffectDef>> SocketEffects = new();
 	public static readonly Dictionary<int, Dictionary<GemLocation, List<EffectPower>>> EffectPowers = new();
@@ -113,6 +119,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SE_Stats poisonStart = null!;
 	public static SE_Stats iceStart = null!;
 	public static SE_Stats fireStart = null!;
+	public static SE_Stats friendshipStart = null!;
+	public static SE_Stats friendship = null!;
+	public static SE_Stats loneliness = null!;
+	public static GameObject friendshipTether = null!;
+	public static SE_Stats cowardice = null!;
 
 	private static Jewelcrafting self = null!;
 
@@ -227,6 +238,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				}
 			}
 		};
+		displayGemcursor = config("2 - Socket System", "Display Gem Cursor", Toggle.On, "Changes the cursor to a gem, while interacting with the Gemcutters Table or socketing an item.", false);
 		useExternalYaml = configSync.AddConfigEntry(Config.Bind("2 - Socket System", "Use External YAML", Toggle.Off, new ConfigDescription("If set to on, the YAML file from your config folder will be used, to override gem effects configured inside of that file.", null, new ConfigurationManagerAttributes { Order = --order })));
 		useExternalYaml.SourceConfig.SettingChanged += (_, _) => ConfigLoader.reloadConfigFile();
 		badLuckRecipes = config("2 - Socket System", "Bad Luck Recipes", Toggle.On, new ConfigDescription("Enables or disables the bad luck recipes of all gems.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -259,7 +271,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		headhunterDamage = config("Emerald Headhunter Ring", "Damage Increase", 30, new ConfigDescription("Damage increase for the Emerald Headhunter Ring effect.", new AcceptableValueRange<int>(0, 100)));
 		magicRepairAmount = config("Emerald Necklace of Magic Repair", "Repair Amount", 5, new ConfigDescription("Durability restoration per minute for the Emerald Necklace of Magic Repair effect.", new AcceptableValueRange<int>(0, 100)));
 		aquaticDamageIncrease = config("Aquatic Sapphire Necklace", "Damage Increase", 10, new ConfigDescription("Damage increase while wearing the Aquatic Sapphire Necklace and being wet.", new AcceptableValueRange<int>(0, 100)));
-
+		modersBlessingDuration = config("Ring of Moders Sapphire Blessing", "Effect Duration", 15, new ConfigDescription("Effect duration in seconds for the Ring of Moder's Sapphire Blessing."));
+		modersBlessingCooldown = config("Ring of Moders Sapphire Blessing", "Effect Cooldown", 60, new ConfigDescription("Effect cooldown in seconds for the Ring of Moder's Sapphire Blessing."));
+		
 		void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
 		{
 			setter(config.Value);
@@ -287,12 +301,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{
 			boxMergeChances.Add(kv.Key, kv.Value.Select((chance, i) => config("3 - Fusion Box", $"Merge Chance {boxMergeCategory[i]} gems in {english.Localize(kv.Key)}", chance, new ConfigDescription($"Success chance while merging two {boxMergeCategory[i]} gems in a {Localization.instance.Localize(kv.Key)}", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --boxMergeOrder }))).ToArray());
 		}
+		boxBossGemMergeChance = config("3 - Fusion Box", $"Merge Chance boss gems in {english.Localize("$jc_legendary_gembox")}", 100, new ConfigDescription($"Success chance while merging two boss gems in a {Localization.instance.Localize("$jc_legendary_gembox")}", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --boxMergeOrder }));
 
 		foreach (KeyValuePair<string, float[]> kv in defaultBoxBossProgress)
 		{
 			AddBossBoxProgressConfig(kv.Key, kv.Value);
 		}
-		
+
 		Assembly assembly = Assembly.GetExecutingAssembly();
 		Harmony harmony = new(ModGUID);
 		harmony.PatchAll(assembly);
@@ -308,7 +323,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		glowingSpiritPrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Magelight");
 		glowingSpiritPrefab.AddComponent<GlowingSpirit.OrbDestroy>();
 		lightningSpeed = Utils.ConvertStatusEffect<LightningSpeed.LightningSpeedEffect>(assets.LoadAsset<SE_Stats>("JC_Electric_Wings_SE"));
-		lightningSpeed.m_damageModifier = 0.5f;
 		poisonousDrain = assets.LoadAsset<SE_Stats>("SE_Boss_2");
 		poisonousDrainCloud = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_2");
 		rootedRevenge = assets.LoadAsset<SE_Stats>("SE_Boss_3");
@@ -327,6 +341,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		poisonStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Green");
 		iceStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Blue");
 		fireStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Red");
+		friendshipStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
+		friendship = Utils.ConvertStatusEffect<TogetherForever.TogetherForeverEffect>(assets.LoadAsset<SE_Stats>("SE_Friendship_Group"));
+		loneliness = Utils.ConvertStatusEffect<TogetherForever.LonelinessEffect>(assets.LoadAsset<SE_Stats>("SE_Loneliness_Group"));
+		friendshipTether = assets.LoadAsset<GameObject>("VFX_FriendLine_Render");
+		friendshipTether.AddComponent<FriendshipTether>();
+		cowardice = assets.LoadAsset<SE_Stats>("SE_Cowardice");
 
 		SetCfgValue(value => rigidFinger.m_damageModifier = 1 - value / 100f, rigidDamageReduction);
 		SetCfgValue(value => headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
@@ -362,14 +382,21 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Green");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Blue");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Red");
+		PrefabManager.RegisterPrefab(assets, "sfx_start_buff_2");
+		PrefabManager.RegisterPrefab(assets, "VFX_Group_Loneliness");
+		PrefabManager.RegisterPrefab(assets, "VFX_FriendLine_Render");
+		PrefabManager.RegisterPrefab(assets, "VFX_Hearts_Start");
 
-		Localizer.AddPlaceholder("jc_electric_wings_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_ring_green_description", "power", headhunterDamage);
 		Localizer.AddPlaceholder("jc_ring_green_description", "duration", headhunterDuration);
 		Localizer.AddPlaceholder("jc_se_ring_green_description", "power", headhunterDamage);
 		Localizer.AddPlaceholder("jc_se_necklace_blue_description", "power", aquaticDamageIncrease);
+		Localizer.AddPlaceholder("jc_ring_blue_description", "duration", modersBlessingDuration);
+		Localizer.AddPlaceholder("jc_ring_blue_description", "cooldown", modersBlessingCooldown);
+		Localizer.AddPlaceholder("jc_se_ring_blue_description", "duration", modersBlessingDuration);
+		Localizer.AddPlaceholder("jc_se_ring_blue_description", "cooldown", modersBlessingCooldown);
 	}
 
 	private static void AddBossBoxProgressConfig(string name, float[] progress)

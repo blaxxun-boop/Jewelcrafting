@@ -8,6 +8,24 @@ using UnityEngine.UI;
 
 namespace Jewelcrafting;
 
+public enum GemType
+{
+	Black = 1,
+	Blue,
+	Green,
+	Purple,
+	Red,
+	Yellow,
+	Orange,
+	Cyan,
+	Eikthyr,
+	Elder,
+	Bonemass,
+	Moder,
+	Yagluth,
+	Group
+}
+
 public struct GemDefinition
 {
 	public string Name;
@@ -61,7 +79,7 @@ public static class GemStoneSetup
 	public static GameObject CreateGemFromTemplate(GameObject template, string colorName, Color color, int tier) => CreateItemFromTemplate(template, colorName, $"jc_{tier switch { 1 => "adv_", 2 => "perfect_", _ => "" }}{colorName.Replace(" ", "_").ToLower()}_socket", color);
 	public static GameObject CreateShardFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_shattered_{colorName.Replace(" ", "_").ToLower()}_crystal", color);
 	public static GameObject CreateUncutFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_uncut_{colorName.Replace(" ", "_").ToLower()}_stone", color);
-	
+
 	public static void RegisterGem(GameObject prefab, GemType color)
 	{
 		if (shardColors.TryGetValue(color, out GameObject shard))
@@ -134,7 +152,7 @@ public static class GemStoneSetup
 				break;
 		}
 	}
-	
+
 	public static void initializeGemStones(AssetBundle assets)
 	{
 		SocketTooltip = assets.LoadAsset<GameObject>("CrystalText");
@@ -146,15 +164,23 @@ public static class GemStoneSetup
 		customUncutGemPrefab = assets.LoadAsset<GameObject>("Uncut_Custom_Stone");
 		customGemShardPrefab = assets.LoadAsset<GameObject>("Shattered_Custom_Crystal");
 
+		if (Groups.API.IsLoaded())
+		{
+			Colors.Add(GemType.Cyan, Color.cyan);
+		}
+
 		foreach (KeyValuePair<GemType, Color> gemType in Colors)
 		{
-			RegisterShard(assets.LoadAsset<GameObject>(customGemShardPrefab.name.Replace("Custom", gemType.Key.ToString())), gemType.Key);
+			string shardAssetName = customGemShardPrefab.name.Replace("Custom", gemType.Key.ToString());
+			RegisterShard(assets.Contains(shardAssetName) ? assets.LoadAsset<GameObject>(shardAssetName) : CreateShardFromTemplate(customGemShardPrefab, gemType.Key.ToString(), gemType.Value), gemType.Key);
+			string uncutGemShardName = customUncutGemPrefab.name.Replace("Custom", gemType.Key.ToString());
 			string name = Jewelcrafting.english.Localize($"$jc_merged_gemstone_{gemType.Key.ToString().ToLower()}");
-			RegisterUncutGem(assets.LoadAsset<GameObject>(customUncutGemPrefab.name.Replace("Custom", gemType.Key.ToString())), gemType.Key, Jewelcrafting.config("Gem Drops", $"Drop chance for {name} Gemstones", 2, new ConfigDescription($"Chance to drop {name} gemstones when killing creatures.", new AcceptableValueRange<int>(0, 100))));
+			RegisterUncutGem(assets.Contains(uncutGemShardName) ? assets.LoadAsset<GameObject>(uncutGemShardName) : CreateUncutFromTemplate(customUncutGemPrefab, gemType.Key.ToString(), gemType.Value), gemType.Key, Jewelcrafting.config("Gem Drops", $"Drop chance for {name} Gemstones", 2, new ConfigDescription($"Chance to drop {name} gemstones when killing creatures.", new AcceptableValueRange<int>(0, 100))));
 
 			for (int tier = 0; tier < customGemTierPrefabs.Length; ++tier)
 			{
-				GameObject prefab = assets.LoadAsset<GameObject>(customGemTierPrefabs[tier].name.Replace("Custom", gemType.Key.ToString()));
+				string tieredGemAssetName = customGemTierPrefabs[tier].name.Replace("Custom", gemType.Key.ToString());
+				GameObject prefab = assets.Contains(tieredGemAssetName) ? assets.LoadAsset<GameObject>(tieredGemAssetName) : CreateGemFromTemplate(customGemTierPrefabs[tier], gemType.Key.ToString(), gemType.Value, tier);
 				RegisterTieredGemItem(prefab, gemType.Key.ToString(), tier);
 				RegisterGem(prefab, gemType.Key);
 			}
@@ -177,8 +203,10 @@ public static class GemStoneSetup
 		GemStones.bossToGem.Add("GoblinKing", gemStone.Prefab);
 		gemStone = AddGem("Boss_Crystal_7", GemType.Eikthyr);
 		GemStones.bossToGem.Add("Eikthyr", gemStone.Prefab);
+
+		AddGem("Friendship_Group_Gem", GemType.Group);
 	}
-	
+
 	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
 	private class AddGemStonesToDrops
 	{

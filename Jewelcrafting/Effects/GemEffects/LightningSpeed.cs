@@ -50,7 +50,7 @@ public static class LightningSpeed
 				if (player.m_seman.AddStatusEffect(Jewelcrafting.lightningSpeed) is SE_Stats statusEffect)
 				{
 					statusEffect.m_speedModifier = config.MovementSpeed / 100f;
-					statusEffect.m_damageModifier = config.DamageReduction / 100f;
+					statusEffect.m_damageModifier = 1 - config.DamageReduction / 100f;
 				}
 			}
 		}

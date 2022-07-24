@@ -8,6 +8,7 @@
             <InputAssemblies Include="$(OutputPath)Libs\ItemManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\PieceManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\LocalizationManager.dll"/>
+            <InputAssemblies Include="$(OutputPath)Libs\GroupsAPI.dll"/>
             <InputAssemblies Include="$(OutputPath)YamlDotNet.dll"/>
         </ItemGroup>
         <ILRepack Parallel="true" DebugInfo="true" Internalize="true" InputAssemblies="@(InputAssemblies)" OutputFile="$(TargetPath)" TargetKind="SameAsPrimaryAssembly" LibraryPath="$(OutputPath)"/>

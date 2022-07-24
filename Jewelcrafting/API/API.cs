@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using JetBrains.Annotations;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
 #if ! API
 using System.Diagnostics;
 using System.Linq;
@@ -10,8 +12,6 @@ using Jewelcrafting.GemEffects;
 using LocalizationManager;
 using YamlDotNet.Serialization;
 #endif
-using UnityEngine;
-using Debug = UnityEngine.Debug;
 
 namespace Jewelcrafting;
 

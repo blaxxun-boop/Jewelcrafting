@@ -78,6 +78,11 @@ public static class ConfigLoader
 		{
 			loader.Reset();
 			loadConfigFile(loader);
+
+			if (ZNetScene.instance?.GetPrefab("_ZoneCtrl") != null)
+			{
+				loader.ApplyConfig();
+			}
 		}
 	}
 
@@ -100,11 +105,19 @@ public static class ConfigLoader
 	{
 		foreach (Loader loader in loaders)
 		{
-			object builtinConfig = new DeserializerBuilder().Build().Deserialize<object>(Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes("Effects.Jewelcrafting.Sockets.yml")));
-			List<string> builtinConfigErrors = loader.ProcessConfig("", builtinConfig);
-			if (builtinConfigErrors.Count > 0)
+			void Load(string path, string key)
 			{
-				Debug.LogError($"Found {Jewelcrafting.ModName} config errors in built-in config. Please report the issue:\n{string.Join("\n", builtinConfigErrors)}");
+				object builtinConfig = new DeserializerBuilder().Build().Deserialize<object>(Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes(path)));
+				List<string> builtinConfigErrors = loader.ProcessConfig(key, builtinConfig);
+				if (builtinConfigErrors.Count > 0)
+				{
+					Debug.LogError($"Found {Jewelcrafting.ModName} config errors in built-in {key} config. Please report the issue:\n{string.Join("\n", builtinConfigErrors)}");
+				}
+			}
+			Load("Effects.Jewelcrafting.Sockets.yml", "");
+			if (Groups.API.IsLoaded())
+			{
+				Load("Effects.Jewelcrafting.Groups.yml", "Groups");
 			}
 		}
 	}

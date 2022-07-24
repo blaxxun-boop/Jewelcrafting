@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Runtime.InteropServices;
 using ExtendedItemDataFramework;
+using Groups;
 using HarmonyLib;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
@@ -121,6 +122,13 @@ public static class Utils
 		return stream.ToArray();
 	}
 
+	public static Texture2D loadTexture(string name)
+	{
+		Texture2D texture = new(0, 0);
+		texture.LoadImage(ReadEmbeddedFileBytes("icons." + name));
+		return texture;
+	}
+
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
 	private static class TransferEIDFComponentsOnUpgrade
 	{
@@ -213,5 +221,14 @@ public static class Utils
 		}
 		Object.Destroy(component);
 		return cmp;
+	}
+
+	public static List<Player> GetNearbyGroupMembers(Player player, float range, bool includeSelf = false)
+	{
+		List<PlayerReference> groupPlayers = global::Groups.API.GroupPlayers();
+		List<Player> nearbyPlayers = new();
+		Player.GetPlayersInRange(player.transform.position, range, nearbyPlayers);
+		nearbyPlayers.RemoveAll(p => !groupPlayers.Contains(PlayerReference.fromPlayer(p)) || (!includeSelf && p == player));
+		return nearbyPlayers;
 	}
 }

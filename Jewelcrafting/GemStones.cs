@@ -10,12 +10,12 @@ using BepInEx.Configuration;
 using ExtendedItemDataFramework;
 using HarmonyLib;
 using Jewelcrafting.GemEffects;
+using SkillManager;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
-using SkillManager;
 
 namespace Jewelcrafting;
 
@@ -304,7 +304,10 @@ public static class GemStones
 			items.Clear();
 			foreach (GameObject item in __instance.m_items)
 			{
-				items[item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name] = item;
+				if (item.GetComponent<ItemDrop>() is { } itemDrop)
+				{
+					items[itemDrop.m_itemData.m_shared.m_name] = item;
+				}
 			}
 		}
 	}
@@ -566,6 +569,10 @@ public static class GemStones
 							sb.Append($"\n$jc_gem_tier_1: <color=orange>{mergeChances[0].Value}%</color>");
 							sb.Append($"\n$jc_gem_tier_2: <color=orange>{mergeChances[1].Value}%</color>");
 							sb.Append($"\n$jc_gem_tier_3: <color=orange>{mergeChances[2].Value}%</color>");
+							if (Groups.API.IsLoaded() && box.ItemData.m_shared.m_name == "$jc_legendary_gembox" && Jewelcrafting.boxBossGemMergeChance.Value > 0)
+							{
+								sb.Append($"\n$jc_gem_tier_boss: <color=orange>{Jewelcrafting.boxBossGemMergeChance.Value}%</color>");
+							}
 						}
 						sb.Append("\n\n$jc_merge_boss_reward:");
 						foreach (KeyValuePair<string, ConfigEntry<float>[]> progress in Jewelcrafting.boxBossProgress)
@@ -709,6 +716,8 @@ public static class GemStones
 				takeAllButton.gameObject.SetActive(true);
 
 				FusionBoxSetup.AddSealButton.SealButton.SetActive(false);
+				
+				GemCursor.ResetCursor(GemCursor.CursorState.Socketing);
 
 				AddFakeSocketsContainer.openEquipment = null;
 				AddFakeSocketsContainer.openInventory = null;
@@ -765,6 +774,8 @@ public static class GemStones
 
 				Inventory inv = ReadSocketsInventory(sockets);
 				inv.m_onChanged += AddFakeSocketsContainer.SaveGems;
+				
+				GemCursor.SetCursor(GemCursor.CursorState.Socketing);
 
 				AddFakeSocketsContainer.openEquipment = extended;
 				AddFakeSocketsContainer.openInventory = inv;
@@ -869,12 +880,7 @@ public static class GemStones
 			return true;
 		}
 
-		if (Jewelcrafting.allowUnsocketing.Value == Jewelcrafting.Unsocketing.UniquesOnly)
-		{
-			return bossToGem.Values.Any(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == item.m_shared.m_name);
-		}
-
-		return false;
+		return Jewelcrafting.allowUnsocketing.Value == Jewelcrafting.Unsocketing.UniquesOnly && bossToGem.Values.Any(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == item.m_shared.m_name);
 	}
 
 	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.DropItem))]

@@ -51,7 +51,8 @@ public static class DestructibleSetup
 
 		foreach (KeyValuePair<GemType, Color> color in GemStoneSetup.Colors)
 		{
-			AddDestructible(assets.LoadAsset<GameObject>(customDestructiblePrefab.name.Replace("Custom", color.Key.ToString())), color.Key);
+			string destructibleAssetName = customDestructiblePrefab.name.Replace("Custom", color.Key.ToString());
+			AddDestructible(assets.Contains(destructibleAssetName) ? assets.LoadAsset<GameObject>(destructibleAssetName) : CreateDestructibleFromTemplate(customDestructiblePrefab, color.Key.ToString(), color.Value), color.Key);
 		}
 	}
 

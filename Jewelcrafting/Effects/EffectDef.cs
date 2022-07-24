@@ -66,6 +66,13 @@ public enum Effect
 	Echo,
 	Resilience,
 	Gourmet,
+	Leadingwolf,
+	Sharedhealing,
+	Safehaven,
+	Fleetinglife,
+	Cowardice,
+	Archerymentor,
+	Dedicatedtank,
 	Stealtharcher,
 	Mercifuldeath,
 	Opportunity,
@@ -79,7 +86,8 @@ public enum Effect
 	Rootedrevenge,
 	Poisonousdrain,
 	Icyprotection,
-	Fierydoom
+	Fierydoom,
+	Togetherforever
 }
 
 public enum Uniqueness
@@ -110,7 +118,7 @@ public class EffectDef
 {
 	static EffectDef()
 	{
-		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => t.Namespace == typeof(EffectDef).Namespace))
+		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace)))
 		{
 			RuntimeHelpers.RunClassConstructor(t.TypeHandle);
 		}
@@ -128,7 +136,7 @@ public class EffectDef
 	
 	private static readonly Dictionary<string, Uniqueness> ValidUniquenesses = new(((Uniqueness[])Enum.GetValues(typeof(Uniqueness))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
-	public static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
+	public static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).Where(t => t != GemType.Cyan || global::Groups.API.IsLoaded()).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<string, Heightmap.Biome> ValidBiomes = new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None or Heightmap.Biome.BiomesMax or Heightmap.Biome.Ocean).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.InvariantCultureIgnoreCase);
 
@@ -545,7 +553,7 @@ public class EffectDef
 
 		public void Reset()
 		{
-			foreach (string key in parsed.Keys.Where(k => k != "" && !k.StartsWith("/")).ToArray())
+			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && !k.StartsWith("/")).ToArray())
 			{
 				parsed.Remove(key);
 			}

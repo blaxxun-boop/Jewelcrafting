@@ -72,7 +72,20 @@ public class Box : Socketable
 		progress += amount;
 		if (progress >= 100)
 		{
-			if (Random.value < Jewelcrafting.boxMergeChances[ItemData.m_shared.m_name][Tier].Value / 100f)
+			if (socketedGems[0] == "Boss_Crystal_7" || socketedGems[1] == "Boss_Crystal_7")
+			{
+				if (Random.value <= Jewelcrafting.boxBossGemMergeChance.Value / 100f)
+				{
+					socketedGems[0] = "Friendship_Group_Gem";
+					socketedGems.RemoveAt(1);
+				}
+				else
+				{
+					socketedGems[0] = "Shattered_Cyan_Crystal";
+					socketedGems[1] = "Shattered_Cyan_Crystal";
+				}
+			}
+			else if (Random.value < Jewelcrafting.boxMergeChances[ItemData.m_shared.m_name][Tier].Value / 100f)
 			{
 				if (GemStoneSetup.GemInfos.TryGetValue(ObjectDB.instance.GetItemPrefab(socketedGems[0]).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info1))
 				{

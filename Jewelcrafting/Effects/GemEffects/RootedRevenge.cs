@@ -3,7 +3,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Jewelcrafting.GemEffects;
 
