@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Linq;
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using UnityEngine;
@@ -43,11 +44,14 @@ public static class FieryDoom
 
 				yield return new WaitForSeconds(4);
 				
-				player.m_seman.AddStatusEffect(Jewelcrafting.fieryDoom).m_ttl = config.Duration;
-				Object.Instantiate(Jewelcrafting.fieryDoomExplosion, player.transform).GetComponent<Aoe>().Setup(player, Vector3.zero, 50, new HitData
+				StatusEffect se = player.m_seman.AddStatusEffect(Jewelcrafting.fieryDoom);
+				se.m_ttl = config.Duration;
+				GameObject aoe = Object.Instantiate(Jewelcrafting.fieryDoomExplosion, player.transform);
+				aoe.GetComponent<Aoe>().Setup(player, Vector3.zero, 50, new HitData
 				{
 					m_damage = new HitData.DamageTypes { m_fire = config.FireDamage }
 				}, null);
+				se.m_startEffectInstances = se.m_startEffectInstances.Concat(new []{ aoe }).ToArray();
 			}
 		}
 		// ReSharper disable once IteratorNeverReturns

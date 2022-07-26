@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Linq;
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using JetBrains.Annotations;
@@ -73,12 +74,15 @@ public static class PoisonousDrain
 
 				yield return new WaitForSeconds(4);
 				
-				player.m_seman.AddStatusEffect(Jewelcrafting.poisonousDrain).m_ttl = config.Duration;
-				Object.Instantiate(Jewelcrafting.poisonousDrainCloud, player.transform).GetComponent<Aoe>().Setup(player, Vector3.zero, 30, new HitData
+				StatusEffect se = player.m_seman.AddStatusEffect(Jewelcrafting.poisonousDrain);
+				se.m_ttl = config.Duration;
+				GameObject aoe = Object.Instantiate(Jewelcrafting.poisonousDrainCloud, player.transform);
+				aoe.GetComponent<Aoe>().Setup(player, Vector3.zero, 30, new HitData
 				{
 					m_damage = new HitData.DamageTypes { m_poison = config.PoisonDamage },
 					m_statusEffect = AddPoisonCloudStatusEffect.StatusEffect.name
 				}, null);
+				se.m_startEffectInstances = se.m_startEffectInstances.Concat(new []{ aoe }).ToArray();
 			}
 		}
 		// ReSharper disable once IteratorNeverReturns

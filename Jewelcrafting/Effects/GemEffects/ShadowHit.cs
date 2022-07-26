@@ -4,6 +4,8 @@ using System.Linq;
 using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -32,6 +34,7 @@ public static class ShadowHit
 				{
 					Character character = characters[Random.Range(0, characters.Count)];
 					GameObject sword = Object.Instantiate(Jewelcrafting.swordFall, character.gameObject.transform);
+					sword.AddComponent<ShadowSword>();
 					sword.transform.localPosition = new Vector3(0, 2, 0);
 					character.StartCoroutine(DamageEnemy(character, hit)); 
 				}
@@ -44,6 +47,14 @@ public static class ShadowHit
 			hit = hit.Clone();
 			hit.m_point = character.transform.position;
 			character.Damage(hit);
+		}
+	}
+
+	private class ShadowSword : MonoBehaviour
+	{
+		private void OnDestroy()
+		{
+			ZNetScene.instance.Destroy(gameObject);
 		}
 	}
 }
