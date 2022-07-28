@@ -35,6 +35,8 @@ Add a reference to the Jewelcrafting.dll in your project. Do not add a reference
 
 ### Use the API
 
+#### Adding gems
+
 Use `API.AddGems(Gem type, color name, color code)` to add your own gem, with your own name and color. This adds a Topaz, which color is light blue.
 ```csharp
 API.AddGems("Topaz", "light blue", Color.cyan);
@@ -102,6 +104,41 @@ sb.AppendLine("gems:");
 sb.AppendLine("  mountain:");
 sb.AppendLine("    light blue: 0.3");
 API.AddGemConfig(sb.ToString());
+```
+
+#### Adding Jewelry
+
+This example is adding a necklace to Jewelcrafting. It's using the [ItemManager](https://github.com/blaxxun-boop/ItemManager), for easier handling of the recipe.
+
+```cs
+public void Awake()
+{
+	Item necklace = new(API.CreateNecklaceFromTemplate("Cyan", Color.cyan));
+	necklace.Name.English("Cyan Necklace of Domination");
+	necklace.Description.English("A cyan necklace that increases your damage dealt by 1000%.");
+	necklace.Crafting.Add(API.GetGemcuttersTable().name, 3);
+	necklace.MaximumRequiredStationLevel = 3;
+	necklace.RequiredItems.Add("Coins", 1000);
+	necklace.RequiredUpgradeItems.Add("Coins", 1500);
+
+	ItemDrop.ItemData.SharedData necklaceShared = necklace.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+
+	StatusEffect domination = ScriptableObject.CreateInstance<IncreaseDamageDone>();
+	domination.name = "Domination";
+	domination.m_name = "Domination";
+	domination.m_icon = necklaceShared.m_icons[0];
+	domination.m_tooltip = "You are dominating. Your damage dealt is increased by 1000%.";
+
+	necklaceShared.m_equipStatusEffect = domination;
+}
+
+public class IncreaseDamageDone : StatusEffect
+{
+	public override void ModifyAttack(Skills.SkillType skill, ref HitData hitData)
+	{
+		hitData.ApplyModifier(10);
+	}
+}
 ```
 
 You can use `IsLoaded()` to check, if the user is using Jewelcrafting.
