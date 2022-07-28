@@ -14,8 +14,18 @@ public static class JewelrySetup
 	public static int greenRingHash;
 	public static string redRingName = null!;
 
+	private static GameObject customNecklacePrefab = null!;
+	private static GameObject customRingPrefab = null!;
+
+	public static GameObject CreateRingFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customRingPrefab, colorName, $"jc_{colorName.Replace(" ", "_").ToLower()}_ring", color);
+	public static GameObject CreateNecklaceFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customNecklacePrefab, colorName, $"jc_{colorName.Replace(" ", "_").ToLower()}_necklace", color);
+	public static void MarkJewelry(GameObject jewelry) => upgradeableJewelry.Add(jewelry.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
+
 	public static void initializeJewelry(AssetBundle assets)
 	{
+		customNecklacePrefab = assets.LoadAsset<GameObject>("JC_Custom_Necklace");
+		customRingPrefab = assets.LoadAsset<GameObject>("JC_Custom_Ring");
+
 		Item item = new(assets, "JC_Necklace_Red");
 		item.Crafting.Add("op_transmution_table", 3);
 		item.RequiredItems.Add("Perfect_Red_Socket", 1);

@@ -31,6 +31,35 @@ public static class API
 
 	internal static void InvokeEffectRecalc() => OnEffectRecalc?.Invoke();
 
+	public static GameObject CreateNecklaceFromTemplate(string colorName, Color color)
+	{
+#if ! API
+		GameObject necklace = JewelrySetup.CreateNecklaceFromTemplate(colorName, color);
+		MarkJewelry(necklace);
+		return necklace;
+#else
+		return null!;
+#endif
+	}
+
+	public static GameObject CreateRingFromTemplate(string colorName, Color color)
+	{
+#if ! API
+		GameObject ring = JewelrySetup.CreateRingFromTemplate(colorName, color);
+		MarkJewelry(ring);
+		return ring;
+#else
+		return null!;
+#endif
+	}
+
+	public static void MarkJewelry(GameObject jewelry)
+	{
+#if ! API
+		JewelrySetup.MarkJewelry(jewelry);
+#endif
+	}
+
 	public static void AddGems(string type, string colorName, Color color)
 	{
 #if ! API

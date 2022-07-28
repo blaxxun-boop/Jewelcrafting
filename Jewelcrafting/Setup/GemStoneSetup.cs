@@ -63,7 +63,7 @@ public static class GemStoneSetup
 	private static readonly int ShaderColorKey = Shader.PropertyToID("_Color");
 	private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
-	private static GameObject CreateItemFromTemplate(GameObject template, string colorName, string localizationName, Color color)
+	public static GameObject CreateItemFromTemplate(GameObject template, string colorName, string localizationName, Color color)
 	{
 		GameObject prefab = Object.Instantiate(template, MergedGemStoneSetup.gemList.transform);
 		prefab.name = template.name.Replace("Custom", colorName);

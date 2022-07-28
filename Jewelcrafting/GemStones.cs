@@ -901,6 +901,12 @@ public static class GemStones
 					ItemDrop.ItemData existingItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
 					if (existingItem is not null && existingItem.m_dropPrefab != item.m_dropPrefab)
 					{
+						if (!socketableGemStones.Contains(existingItem.m_shared.m_name))
+						{
+							__result = false;
+							return false;
+						}
+
 						if (AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is { progress: >= 100 })
 						{
 							__result = false;

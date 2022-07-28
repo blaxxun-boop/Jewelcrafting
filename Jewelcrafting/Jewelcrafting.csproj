@@ -288,7 +288,7 @@
         <None Include="packages.config" />
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="translations\German.yml" />
+      <None Include="translations\German.yml" />
       <EmbeddedResource Include="translations\Korean.yml" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
