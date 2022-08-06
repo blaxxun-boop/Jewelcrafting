@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.16";
+	private const string ModVersion = "1.1.17";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -51,7 +51,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> resourceReturnRate = null!;
 	public static ConfigEntry<Toggle> badLuckRecipes = null!;
 	public static readonly ConfigEntry<int>[] crystalFusionBoxDropRate = new ConfigEntry<int>[FusionBoxSetup.Boxes.Length];
-	public static ConfigEntry<int> healthBaseBoxDrop = null!;
 	public static readonly ConfigEntry<float>[] crystalFusionBoxMergeActivityProgress = new ConfigEntry<float>[FusionBoxSetup.Boxes.Length];
 	public static ConfigEntry<int> maximumNumberSockets = null!;
 	public static ConfigEntry<int> gemRespawnRate = null!;
@@ -100,6 +99,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	public static GameObject swordFall = null!;
 	public static StatusEffect gliding = null!;
+	public static StatusEffect glidingDark = null!;
 	public static SE_Stats glowingSpirit = null!;
 	public static GameObject glowingSpiritPrefab = null!;
 	public static SE_Stats lightningSpeed = null!;
@@ -261,7 +261,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		crystalFusionBoxDropRate[0] = config("3 - Fusion Box", "Drop rate for Fusion Box", 200, new ConfigDescription("Drop rate for the Common Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[1] = config("3 - Fusion Box", "Drop rate for Blessed Fusion Box", 500, new ConfigDescription("Drop rate for the Blessed Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[2] = config("3 - Fusion Box", "Drop rate for Celestial Fusion Box", 1000, new ConfigDescription("Drop rate for the Celestial Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
-		healthBaseBoxDrop = config("3 - Fusion Box", "Base health for box drops", 500, new ConfigDescription("Base health for fusion box drops. Should be roughly set to the average creature health in your world.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[0] = config("3 - Fusion Box", "Activity reward for Fusion Box", 1.5f, new ConfigDescription("Progress for the Common Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 0.7f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 0.3f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -328,6 +327,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
 		gliding = assets.LoadAsset<SE_Stats>("JCGliding");
+		glidingDark = assets.LoadAsset<SE_Stats>("SE_DarkWings");
 		glowingSpirit = assets.LoadAsset<SE_Stats>("SE_Crystal_Magelight");
 		glowingSpiritPrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Magelight");
 		glowingSpiritPrefab.AddComponent<GlowingSpirit.OrbDestroy>();
@@ -371,6 +371,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_6");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_7");
 		PrefabManager.RegisterPrefab(assets, "JCGliding");
+		PrefabManager.RegisterPrefab(assets, "JC_DarkWings");
 		PrefabManager.RegisterPrefab(assets, "VFX_StoneRed");
 		PrefabManager.RegisterPrefab(assets, "VFX_StoneBlack");
 		PrefabManager.RegisterPrefab(assets, "sfx_build_table");

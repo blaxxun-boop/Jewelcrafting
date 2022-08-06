@@ -19,6 +19,8 @@ public static class FusionBoxSetup
 	public static readonly Dictionary<GameObject, int> boxTier = new();
 	public static readonly GameObject[] Boxes = new GameObject[3];
 
+	private static float averageHealth = 1000;
+
 	public static void initializeFusionBoxes(AssetBundle assets)
 	{
 		Boxes[0] = new Item(assets, "JC_Common_Gembox").Prefab;
@@ -55,7 +57,7 @@ public static class FusionBoxSetup
 					{
 						continue;
 					}
-					if (Random.value < 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(__instance.GetComponent<Character>().GetMaxHealth() / Jewelcrafting.healthBaseBoxDrop.Value, 1 / 3f))
+					if (Random.value < 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(__instance.GetComponent<Character>().GetMaxHealth() / averageHealth, 1 / 3f))
 					{
 						__result.Add(new KeyValuePair<GameObject, int>(Boxes[tier], 1));
 					}
@@ -210,6 +212,16 @@ public static class FusionBoxSetup
 					rotation.Remove(__instance);
 				}
 			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Game), nameof(Game.RequestRespawn))]
+	private static class FetchAverageHealth
+	{
+		[HarmonyPriority(Priority.Last)]
+		private static void Postfix(Game __instance)
+		{
+			averageHealth = ZNetScene.instance.m_prefabs.Select(p => p.GetComponent<Character>() is { } character ? character.m_health : 0).Where(h => h > 0).Average();
 		}
 	}
 }

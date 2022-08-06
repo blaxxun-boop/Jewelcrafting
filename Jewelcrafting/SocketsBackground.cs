@@ -58,38 +58,38 @@ public static class SocketsBackground
 	private static void DoEquipedSwap(GameObject root, bool disableImage)
 	{
 		if (Jewelcrafting.displaySocketBackground.Value == Jewelcrafting.Toggle.On)
-        {
-	        if (root.transform.Find("equiped_jc_disabled") is null)
-	        {
-		        GameObject originalEquiped = root.transform.Find("equiped").gameObject;
-		        originalEquiped.name = "equiped_jc_disabled";
-		        if (disableImage)
-		        {
-			        originalEquiped.GetComponent<Image>().enabled = false;
-		        }
-		        else
-		        {
-			        originalEquiped.SetActive(false);
-		        }
-		        GameObject equiped = Object.Instantiate(background.transform.Find("JC_SelectedItem").gameObject, root.transform);
-		        equiped.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
-		        equiped.name = "equiped";
-		        equiped.transform.SetAsFirstSibling();
-	        }
-        }
-        else if (root.transform.Find("equiped_jc_disabled")?.gameObject is { } originalEquiped)
-        {
-        	Object.DestroyImmediate(root.transform.Find("equiped").gameObject);
-        	originalEquiped.name = "equiped";
-            if (disableImage)
-            {
-	            originalEquiped.GetComponent<Image>().enabled = true;
-            }
-            else
-            {
-	            originalEquiped.SetActive(true);
-            }
-        }
+		{
+			if (root.transform.Find("equiped_jc_disabled") is null)
+			{
+				GameObject originalEquiped = root.transform.Find("equiped").gameObject;
+				originalEquiped.name = "equiped_jc_disabled";
+				if (disableImage)
+				{
+					originalEquiped.GetComponent<Image>().enabled = false;
+				}
+				else
+				{
+					originalEquiped.SetActive(false);
+				}
+				GameObject equiped = Object.Instantiate(background.transform.Find("JC_SelectedItem").gameObject, root.transform);
+				equiped.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+				equiped.name = "equiped";
+				equiped.transform.SetAsFirstSibling();
+			}
+		}
+		else if (root.transform.Find("equiped_jc_disabled")?.gameObject is { } originalEquiped)
+		{
+			Object.DestroyImmediate(root.transform.Find("equiped").gameObject);
+			originalEquiped.name = "equiped";
+			if (disableImage)
+			{
+				originalEquiped.GetComponent<Image>().enabled = true;
+			}
+			else
+			{
+				originalEquiped.SetActive(true);
+			}
+		}
 	}
 
 	private static void ApplyToElementPrefab(ref GameObject activePrefab, ref GameObject? elementPrefab, bool disableImage)
@@ -162,9 +162,20 @@ public static class SocketsBackground
 	{
 		private static void Postfix(HotkeyBar __instance)
 		{
-			foreach (ItemDrop.ItemData item in __instance.m_items)
+			if (__instance.m_items.Count > 0)
 			{
-				UpdateElement(item, __instance.m_elements[item.m_gridPos.x].m_go);
+				int firstItemX = __instance.m_items[0].m_gridPos.x;
+				int firstItemElement = 0;
+				while (!__instance.m_elements[firstItemElement].m_icon.gameObject.activeSelf)
+				{
+					++firstItemElement;
+				}
+				int gridPosOffset = firstItemX - firstItemElement;
+
+				foreach (ItemDrop.ItemData item in __instance.m_items)
+				{
+					UpdateElement(item, __instance.m_elements[item.m_gridPos.x - gridPosOffset].m_go);
+				}
 			}
 
 			foreach (HotkeyBar.ElementData element in __instance.m_elements.Where(element => !element.m_used))
@@ -185,7 +196,7 @@ public static class SocketsBackground
 			}
 			return $"<color=#{ColorUtility.ToHtmlStringRGB(ItemColor(sockets))}>{name}</color>";
 		}
-		
+
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
 			FieldInfo name = AccessTools.DeclaredField(typeof(ItemDrop.ItemData.SharedData), nameof(ItemDrop.ItemData.SharedData.m_name));
