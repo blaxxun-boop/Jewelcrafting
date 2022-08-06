@@ -121,7 +121,7 @@ public static class DestructibleSetup
 			if (netView)
 			{
 				Destroy(GetComponent<SphereCollider>());
-				InvokeRepeating(nameof(CheckSpawn), 0f, 5f);
+				InvokeRepeating(nameof(CheckSpawn), netView.GetZDO()?.GetLong("destruction time") > 0 ? 5 : 0, 5);
 			}
 		}
 

@@ -11,7 +11,7 @@
         <AssemblyName>Jewelcrafting</AssemblyName>
         <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <NoWarn>0649</NoWarn>
@@ -255,10 +255,13 @@
         <Compile Include="TerminalCommands.cs" />
         <Compile Include="BossDied.cs" />
         <Compile Include="Utils.cs" />
+        <Compile Include="SocketsBackground.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
         <EmbeddedResource Include="translations\English.yml" />
         <EmbeddedResource Include="translations\Russian.yml" />
+        <None Include="translations\German.yml" />
+        <EmbeddedResource Include="translations\Korean.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Groups.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml" />
         <EmbeddedResource Include="icons\gem_cursor.png" />
@@ -286,10 +289,6 @@
     </ItemGroup>
     <ItemGroup>
         <None Include="packages.config" />
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="translations\German.yml" />
-      <EmbeddedResource Include="translations\Korean.yml" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />

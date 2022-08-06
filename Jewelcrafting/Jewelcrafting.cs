@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.15";
+	private const string ModVersion = "1.1.16";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -36,6 +36,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> socketSystem = null!;
 	public static ConfigEntry<Toggle> inventorySocketing = null!;
 	public static ConfigEntry<Toggle> displayGemcursor = null!;
+	public static ConfigEntry<Toggle> displaySocketBackground = null!;
+	public static ConfigEntry<Toggle> colorItemName = null!;
 	public static ConfigEntry<Unsocketing> allowUnsocketing = null!;
 	public static ConfigEntry<InteractBehaviour> inventoryInteractBehaviour = null!;
 	public static ConfigEntry<int> breakChanceUnsocketSimple = null!;
@@ -151,7 +153,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		TrulyUnique = 1,
 		Custom = 2
 	}
-	
+
 	public enum Unsocketing
 	{
 		Disabled = 0,
@@ -183,6 +185,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		self = this;
 
 		configFilePaths = new List<string> { Path.GetDirectoryName(Config.ConfigFilePath), Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) };
+
+		Config.SaveOnConfigSet = false;
 
 		Localizer.Load();
 		english = new Localization();
@@ -239,6 +243,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		};
 		displayGemcursor = config("2 - Socket System", "Display Gem Cursor", Toggle.On, "Changes the cursor to a gem, while interacting with the Gemcutters Table or socketing an item.", false);
+		displaySocketBackground = config("2 - Socket System", "Display Socket Background", Toggle.On, "Changes the background of items that have sockets.", false);
+		displaySocketBackground.SettingChanged += (_, _) => SocketsBackground.UpdateSocketBackground();
+		colorItemName = config("2 - Socket System", "Color Item Names", Toggle.On, "Colors the name of items according to their socket levels.", false);
 		useExternalYaml = configSync.AddConfigEntry(Config.Bind("2 - Socket System", "Use External YAML", Toggle.Off, new ConfigDescription("If set to on, the YAML file from your config folder will be used, to override gem effects configured inside of that file.", null, new ConfigurationManagerAttributes { Order = --order })));
 		useExternalYaml.SourceConfig.SettingChanged += (_, _) => ConfigLoader.reloadConfigFile();
 		badLuckRecipes = config("2 - Socket System", "Bad Luck Recipes", Toggle.On, new ConfigDescription("Enables or disables the bad luck recipes of all gems.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -259,6 +266,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 0.7f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 0.3f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 5), new ConfigurationManagerAttributes { Order = --order }));
+		maximumNumberSockets.SettingChanged += (_, _) => SocketsBackground.CalculateColors();
 		gemRespawnRate = config("2 - Socket System", "Gemstone Respawn Time", 100, new ConfigDescription("Respawn time for raw gemstones in ingame days. Use 0 to disable respawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("4 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor = config("4 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
@@ -273,7 +281,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		aquaticDamageIncrease = config("Aquatic Sapphire Necklace", "Damage Increase", 10, new ConfigDescription("Damage increase while wearing the Aquatic Sapphire Necklace and being wet.", new AcceptableValueRange<int>(0, 100)));
 		modersBlessingDuration = config("Ring of Moders Sapphire Blessing", "Effect Duration", 15, new ConfigDescription("Effect duration in seconds for the Ring of Moder's Sapphire Blessing."));
 		modersBlessingCooldown = config("Ring of Moders Sapphire Blessing", "Effect Cooldown", 60, new ConfigDescription("Effect cooldown in seconds for the Ring of Moder's Sapphire Blessing."));
-		
+
 		void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
 		{
 			setter(config.Value);
@@ -288,6 +296,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		MergedGemStoneSetup.initializeMergedGemStones(assets);
 		FusionBoxSetup.initializeFusionBoxes(assets);
 		ConfigLoader.LoadBuiltinConfig();
+		SocketsBackground.CalculateColors();
 
 		int socketAddingOrder = 0;
 		for (int i = 0; i < 5; ++i)
@@ -348,6 +357,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		friendshipTether.AddComponent<FriendshipTether>();
 		cowardice = assets.LoadAsset<SE_Stats>("SE_Cowardice");
 
+		SocketsBackground.background = assets.LoadAsset<GameObject>("JC_ItemBackground");
+
 		SetCfgValue(value => rigidFinger.m_damageModifier = 1 - value / 100f, rigidDamageReduction);
 		SetCfgValue(value => headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
 		SetCfgValue(value => headhunter.m_ttl = value, headhunterDuration);
@@ -397,6 +408,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_ring_blue_description", "cooldown", modersBlessingCooldown);
 		Localizer.AddPlaceholder("jc_se_ring_blue_description", "duration", modersBlessingDuration);
 		Localizer.AddPlaceholder("jc_se_ring_blue_description", "cooldown", modersBlessingCooldown);
+
+		Config.SaveOnConfigSet = true;
+		Config.Save();
 	}
 
 	private static void AddBossBoxProgressConfig(string name, float[] progress)

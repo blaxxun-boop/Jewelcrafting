@@ -55,4 +55,13 @@ public static class Glider
 			}
 		}
 	}
+
+	[HarmonyPatch(typeof(Character), nameof(Character.Jump))]
+	private static class CancelGliding
+	{
+		private static void Prefix(Character __instance)
+		{
+			__instance.m_seman.RemoveStatusEffect(Jewelcrafting.gliding.name, true);
+		}
+	}
 }
