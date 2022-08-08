@@ -285,13 +285,27 @@ public static class API
 		return null!;
 #endif
 	}
-	
+
 	public static GameObject GetGemcuttersTable()
 	{
 #if ! API
 		return BuildingPiecesSetup.gemcuttersTable;
 #else
 		return null!;
+#endif
+	}
+
+	public static void AddParticleEffect(string prefabName, GameObject effect, VisualEffectCondition displayCondition)
+	{
+#if ! API
+		if (VisualEffects.attachEffectPrefabs.ContainsKey(prefabName))
+		{
+			VisualEffects.attachEffectPrefabs[prefabName].Add(displayCondition, effect);
+		}
+		else
+		{
+			VisualEffects.attachEffectPrefabs[prefabName] = new Dictionary<VisualEffectCondition, GameObject> { { displayCondition, effect } };
+		}
 #endif
 	}
 }

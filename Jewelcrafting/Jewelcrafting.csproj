@@ -165,6 +165,7 @@
     <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU' ">
         <Compile Include="API\API.cs" />
         <Compile Include="API\PowerAttribute.cs" />
+        <Compile Include="API\VisualEffectCondition.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
         <Compile Include="Effects\GemEffects\MountainGoat.cs" />

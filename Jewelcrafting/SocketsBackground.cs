@@ -162,7 +162,7 @@ public static class SocketsBackground
 	{
 		private static void Postfix(HotkeyBar __instance)
 		{
-			if (__instance.m_items.Count > 0)
+			if (__instance.m_items.Count > 0 && __instance.m_elements.Count > 0)
 			{
 				int firstItemX = __instance.m_items[0].m_gridPos.x;
 				int firstItemElement = 0;
