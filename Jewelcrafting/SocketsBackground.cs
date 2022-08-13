@@ -212,31 +212,5 @@ public static class SocketsBackground
 		}
 	}
 
-	private static Color ItemColor(Sockets sockets) => CalculateItemWorth(sockets) is { } worth && worth <= maxWorth ? colors[worth] : Color.red;
-
-	private static int CalculateItemWorth(Sockets sockets)
-	{
-		int sum = sockets.socketedGems.Count * (sockets.socketedGems.Count + 1) / 2;
-
-		foreach (string socket in sockets.socketedGems.Select(i => i.Name))
-		{
-			if (ObjectDB.instance.GetItemPrefab(socket) is { } gem)
-			{
-				if (GemStones.bossToGem.Values.Contains(gem))
-				{
-					return int.MaxValue;
-				}
-				if (GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
-				{
-					sum += info.Tier;
-				}
-				else if (MergedGemStoneSetup.mergedGemContents.TryGetValue(socket, out List<GemInfo> mergedGems))
-				{
-					sum += mergedGems.Sum(info => info.Tier);
-				}
-			}
-		}
-
-		return sum;
-	}
+	private static Color ItemColor(Sockets sockets) => sockets.Worth <= maxWorth ? colors[sockets.Worth] : Color.red;
 }

@@ -37,18 +37,48 @@ public abstract class Socketable : BaseExtendedItemComponent
 
 public class Sockets : Socketable
 {
+	public int Worth = 0;
+	
 	public Sockets(ExtendedItemData parent) : base(typeof(Sockets).AssemblyQualifiedName, parent)
 	{
 	}
 
 	public override string Serialize()
 	{
+		Worth = CalculateItemWorth();
 		return string.Join(",", socketedGems.Select(i => i.Name).ToArray());
 	}
 
 	public override void Deserialize(string data)
 	{
 		socketedGems = data.Split(',').Select(s => new SocketItem(s)).ToList();
+		Worth = CalculateItemWorth();
+	}
+	
+	private int CalculateItemWorth()
+	{
+		int sum = socketedGems.Count * (socketedGems.Count + 1) / 2;
+
+		foreach (string socket in socketedGems.Select(i => i.Name))
+		{
+			if (ObjectDB.instance.GetItemPrefab(socket) is { } gem)
+			{
+				if (GemStones.bossToGem.Values.Contains(gem))
+				{
+					return int.MaxValue;
+				}
+				if (GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
+				{
+					sum += info.Tier;
+				}
+				else if (MergedGemStoneSetup.mergedGemContents.TryGetValue(socket, out List<GemInfo> mergedGems))
+				{
+					sum += mergedGems.Sum(info => info.Tier);
+				}
+			}
+		}
+
+		return sum;
 	}
 }
 

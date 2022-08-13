@@ -184,10 +184,13 @@ public static class GemStones
 			}
 			if (__instance.m_selectedRecipe.Value?.Extended()?.GetComponent<Socketable>() is { } sockets)
 			{
-				for (int i = 0; i < sockets.socketedGems.Count; ++i)
+				if (sockets is not SocketBag)
 				{
-					AddSocketIcons.socketIcons[i].SetActive(true);
-					AddSocketIcons.socketIcons[i].GetComponent<Image>().sprite = ObjectDB.instance.GetItemPrefab(sockets.socketedGems[i].Name)?.GetComponent<ItemDrop>().m_itemData.GetIcon() ?? emptySocketSprite;
+					for (int i = 0; i < sockets.socketedGems.Count; ++i)
+					{
+						AddSocketIcons.socketIcons[i].SetActive(true);
+						AddSocketIcons.socketIcons[i].GetComponent<Image>().sprite = ObjectDB.instance.GetItemPrefab(sockets.socketedGems[i].Name)?.GetComponent<ItemDrop>().m_itemData.GetIcon() ?? emptySocketSprite;
+					}
 				}
 				AddSocketIcons.socketingButton.gameObject.SetActive(AddSocketAddingTab.TabOpen());
 			}
@@ -826,14 +829,15 @@ public static class GemStones
 
 		private static bool Prefix(InventoryGui __instance)
 		{
-			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
+			ItemDrop.ItemData? item = null;
+			if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")))
 			{
-				ItemDrop.ItemData? item = null;
-				if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")))
-				{
-					Vector2 pos = Input.mousePosition;
-					item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
-				}
+				Vector2 pos = Input.mousePosition;
+				item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
+			}
+
+			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (item?.Extended() ?? AddFakeSocketsContainer.openEquipment)?.GetComponent<SocketBag>() is not null || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
+			{
 				return Open(__instance, item);
 			}
 
