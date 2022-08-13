@@ -218,7 +218,7 @@ public static class SocketsBackground
 	{
 		int sum = sockets.socketedGems.Count * (sockets.socketedGems.Count + 1) / 2;
 
-		foreach (string socket in sockets.socketedGems)
+		foreach (string socket in sockets.socketedGems.Select(i => i.Name))
 		{
 			if (ObjectDB.instance.GetItemPrefab(socket) is { } gem)
 			{

@@ -257,11 +257,11 @@ public static class API
 	{
 		List<GemInfo?> gems = new();
 #if ! API
-		if (item.Extended()?.GetComponent<Socketable>() is { } sockets and not Box { progress: >= 100 })
+		if (item.Extended()?.GetComponent<Socketable>() is { } sockets and not Box { progress: >= 100 } and not SocketBag)
 		{
 			GemLocation location = Utils.GetGemLocation(item.m_shared);
 			IEnumerable<EffectPower> effects(string socket) => Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers) ? effectPowers : Enumerable.Empty<EffectPower>();
-			foreach (string socket in sockets.socketedGems)
+			foreach (string socket in sockets.socketedGems.Select(i => i.Name))
 			{
 				if (socket == "" || ObjectDB.instance.GetItemPrefab(socket) is not { } prefab)
 				{

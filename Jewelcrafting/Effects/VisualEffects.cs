@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using ExtendedItemDataFramework;
 using HarmonyLib;
@@ -219,7 +220,7 @@ public static class VisualEffects
 		{
 			if (Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.On && prefabDict(__instance.m_itemData.m_shared) is { } effectPrefabs && __instance.m_itemData.Extended()?.GetComponent<Sockets>() is { } itemSockets)
 			{
-				foreach (string socket in itemSockets.socketedGems)
+				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 				{
 					if (effectPrefabs.TryGetValue(socket, out GameObject[] effects))
 					{
@@ -236,7 +237,7 @@ public static class VisualEffects
 		{
 			if (prefabDict(item.m_itemData.m_shared) is { } effectPrefabs && item.m_itemData.Extended()?.GetComponent<Sockets>() is { } itemSockets)
 			{
-				foreach (string socket in itemSockets.socketedGems)
+				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 				{
 					if (effectPrefabs.TryGetValue(socket, out GameObject[] effects))
 					{
@@ -265,7 +266,7 @@ public static class VisualEffects
 			if (item?.m_shared.m_skillType == Skills.SkillType.Spears && item.Extended()?.GetComponent<Sockets>()?.socketedGems is { } gems)
 			{
 				int i = 0;
-				foreach (string socket in gems)
+				foreach (string socket in gems.Select(i => i.Name))
 				{
 					if (ObjectDB.instance.GetItemPrefab(socket) is { } gem && GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo gemInfo) && VisualEffectSetup.spearProjectiles.TryGetValue(gemInfo.Type, out GameObject effect))
 					{

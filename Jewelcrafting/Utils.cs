@@ -231,4 +231,6 @@ public static class Utils
 		nearbyPlayers.RemoveAll(p => !groupPlayers.Contains(PlayerReference.fromPlayer(p)) || (!includeSelf && p == player));
 		return nearbyPlayers;
 	}
+
+	public static bool ItemAllowedInGemBag(ItemDrop.ItemData item) => GemStones.socketableGemStones.Contains(item.m_shared.m_name) || GemStoneSetup.uncutGems.ContainsValue(item.m_dropPrefab) || GemStoneSetup.shardColors.ContainsValue(item.m_dropPrefab);
 }

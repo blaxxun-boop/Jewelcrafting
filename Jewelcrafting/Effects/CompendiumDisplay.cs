@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 using ExtendedItemDataFramework;
 using HarmonyLib;
@@ -46,7 +47,7 @@ public static class CompendiumDisplay
 				if (item?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
 				{
 					GemLocation location = Utils.GetGemLocation(item.m_shared);
-					foreach (string socket in itemSockets.socketedGems.Where(s => s != ""))
+					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != ""))
 					{
 						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 						{
@@ -185,15 +186,33 @@ public static class CompendiumDisplay
 			AllFilters.ForEach(filter => filter.enabled = true);
 		}
 	}
-	
-	[HarmonyPatch(typeof(TextsDialog),nameof(TextsDialog.OnClose))]
+
+	[HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.OnClose))]
 	private static class ClearCompendiumPage
 	{
-
 		private static void Postfix()
 		{
 			JC_UI_Elements.ForEach(Object.Destroy);
-			JC_UI_Elements.Clear(); 
+			JC_UI_Elements.Clear();
+		}
+	}
+
+	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Update))]
+	private static class CloseTheCompendiumViaOnClose
+	{
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
+		{
+			FieldInfo compendiumField = AccessTools.DeclaredField(typeof(InventoryGui), nameof(InventoryGui.m_textsDialog));
+			CodeInstruction[] instructions = instructionsEnumerable.ToArray();
+			for (int i = 0; i < instructions.Length; ++i)
+			{
+				yield return instructions[i];
+				if (instructions[i].LoadsField(compendiumField) && instructions[i + 3].Calls(AccessTools.DeclaredMethod(typeof(GameObject), nameof(GameObject.SetActive))))
+				{
+					yield return new CodeInstruction(OpCodes.Callvirt, AccessTools.DeclaredMethod(typeof(TextsDialog), nameof(TextsDialog.OnClose)));
+					i += 3;
+				}
+			}
 		}
 	}
 }

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using ExtendedItemDataFramework;
-using Groups;
 using HarmonyLib;
 using ItemManager;
 using UnityEngine;
@@ -116,8 +115,8 @@ public static class FusionBoxSetup
 				return;
 			}
 
-			GameObject? gem1 = ObjectDB.instance.GetItemPrefab(box.socketedGems[0]);
-			GameObject? gem2 = ObjectDB.instance.GetItemPrefab(box.socketedGems[1]);
+			GameObject? gem1 = ObjectDB.instance.GetItemPrefab(box.socketedGems[0].Name);
+			GameObject? gem2 = ObjectDB.instance.GetItemPrefab(box.socketedGems[1].Name);
 
 			if (gem1 is null || gem2 is null)
 			{

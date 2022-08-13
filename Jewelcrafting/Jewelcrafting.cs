@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.18";
+	private const string ModVersion = "1.1.19";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -64,6 +64,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<int> aquaticDamageIncrease = null!;
 	public static ConfigEntry<int> modersBlessingDuration = null!;
 	public static ConfigEntry<int> modersBlessingCooldown = null!;
+	public static ConfigEntry<int> gemBagSlots = null!;
+	public static ConfigEntry<Toggle> gemBagAutofill = null!;
+	public static ConfigEntry<KeyboardShortcut> advancedTooltipKey = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
@@ -271,6 +274,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		experienceGainedFactor = config("4 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
 		jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
+		gemBagSlots = config("4 - Other", "Jewelers Bag Slots", 16, new ConfigDescription("Space in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(4, 32), new ConfigurationManagerAttributes { Order = --order }));
+		gemBagAutofill = config("4 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipKey = config("4 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
@@ -287,6 +293,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			config.SettingChanged += (_, _) => setter(config.Value);
 		}
 
+		MiscSetup.initializeMisc(assets);
 		BuildingPiecesSetup.initializeBuildingPieces(assets);
 		GemStoneSetup.initializeGemStones(assets);
 		DestructibleSetup.initializeDestructibles(assets);

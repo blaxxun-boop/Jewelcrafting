@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using ExtendedItemDataFramework;
@@ -41,7 +42,7 @@ public class TrackEquipmentChanges
 			{
 				GemLocation location = Utils.GetGemLocation(item.m_shared);
 
-				foreach (string socket in itemSockets.socketedGems)
+				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 				{
 					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 					{
@@ -115,7 +116,7 @@ public class TrackEquipmentChanges
 		if (effectPrefabs is not null && item.Extended()?.GetComponent<Sockets>() is {} itemSockets)
 		{
 			HashSet<string> effectNames = new();
-			foreach (string socket in itemSockets.socketedGems)
+			foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 			{
 				if (effectPrefabs.TryGetValue(socket, out GameObject[] effects))
 				{

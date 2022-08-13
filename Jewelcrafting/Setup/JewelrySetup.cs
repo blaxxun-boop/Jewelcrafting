@@ -97,7 +97,7 @@ public static class JewelrySetup
 				Sockets sockets = item.AddComponent<Sockets>();
 				for (int i = 0; i < Jewelcrafting.maximumNumberSockets.Value - 1; ++i)
 				{
-					sockets.socketedGems.Add("");
+					sockets.socketedGems.Add(new SocketItem(""));
 				}
 				sockets.Save();
 			}
