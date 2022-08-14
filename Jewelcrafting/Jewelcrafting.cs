@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.1.20";
+	private const string ModVersion = "1.1.21";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -67,6 +67,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> gemBagSlots = null!;
 	public static ConfigEntry<Toggle> gemBagAutofill = null!;
 	public static ConfigEntry<KeyboardShortcut> advancedTooltipKey = null!;
+	public static ConfigEntry<AdvancedTooltipMode> advancedTooltipMode = null!;
+	public static ConfigEntry<Toggle> advancedTooltipAlwaysOn = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
@@ -169,6 +171,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Disabled = 0,
 		Hovering = 1,
 		Enabled = 2
+	}
+	
+	public enum AdvancedTooltipMode
+	{
+		General = 0,
+		Detailed = 1
 	}
 
 	[PublicAPI]
@@ -277,6 +285,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		gemBagSlots = config("4 - Other", "Jewelers Bag Slots", 16, new ConfigDescription("Space in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(4, 32), new ConfigurationManagerAttributes { Order = --order }));
 		gemBagAutofill = config("4 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipKey = config("4 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipMode = config("4 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipAlwaysOn = config("4 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));

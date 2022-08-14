@@ -1,4 +1,7 @@
-﻿using PieceManager;
+﻿using System.Runtime.CompilerServices;
+using BepInEx.Configuration;
+using HarmonyLib;
+using PieceManager;
 using UnityEngine;
 
 namespace Jewelcrafting;
@@ -6,7 +9,8 @@ namespace Jewelcrafting;
 public static class BuildingPiecesSetup
 {
 	public static GameObject gemcuttersTable = null!;
-	
+	public static GameObject astralCutter = null!;
+
 	public static void initializeBuildingPieces(AssetBundle assets)
 	{
 		BuildPiece piece = new(assets, "Odins_Stone_Transmuter");
@@ -29,6 +33,38 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Obsidian", 4, true);
 		piece.Category.Add(BuildPieceCategory.Crafting);
 		piece.Prefab.AddComponent<RingInTheBox>();
+		
+		piece = new BuildPiece(assets, "JC_Gemstone_Furnace");
+		piece.RequiredItems.Add("Thunderstone", 1, true);
+		piece.RequiredItems.Add("SurtlingCore", 5, true);
+		piece.RequiredItems.Add("Bronze", 10, true);
+		piece.Category.Add(BuildPieceCategory.Crafting);
+		astralCutter = piece.Prefab;
+	}
+
+	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
+	private static class AddFuelItem
+	{
+		private static void Postfix(ObjectDB __instance)
+		{
+			astralCutter.GetComponent<Smelter>().m_fuelItem = __instance.GetItemPrefab("Coal")?.GetComponent<ItemDrop>();
+		}
+	}
+
+	[HarmonyPatch(typeof(Smelter), nameof(Smelter.GetItemConversion))]
+	private static class AddChanceToBreak
+	{
+		private static void Postfix(ref Smelter.ItemConversion __result)
+		{
+			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && Random.value > upgradeChance.Value / 100f)
+			{
+				__result = new Smelter.ItemConversion
+				{
+					m_from = __result.m_from,
+					m_to = GemStones.gemToShard[__result.m_to.name].GetComponent<ItemDrop>()
+				};
+			}
+		}
 	}
 	
 	private class RingInTheBox : MonoBehaviour

@@ -443,6 +443,10 @@ public static class GemStones
 					{
 						text = Localization.instance.Localize("$jc_table_required");
 					}
+					if (Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.Off && sockets is Sockets)
+					{
+						text += Localization.instance.Localize("\n$jc_hold_advanced", $"<color=yellow><b>{Jewelcrafting.advancedTooltipKey.Value.MainKey}</b></color>");
+					}
 					interact.GetComponent<Text>().text = text;
 					interact.gameObject.SetActive(!sockets.boxSealed);
 				}
@@ -469,7 +473,16 @@ public static class GemStones
 									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(item.m_shared), out List<EffectPower> effectPowers))
 									{
 										ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
-										text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (ReplaceTooltipText.keyDown ? "_desc" : $" {gem.Power}")));
+										bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
+										if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
+										{
+											text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? "_desc" : $" {gem.Power}")));
+										}
+										else
+										{
+											string formatNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
+											text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? Localization.instance.Localize($" - $jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}_desc_detail", gem.Config.GetType().GetFields().Select(p => formatNumber((float)p.GetValue(gem.Config))).ToArray()) : $" {gem.Power}")));
+										}
 									}
 									else
 									{

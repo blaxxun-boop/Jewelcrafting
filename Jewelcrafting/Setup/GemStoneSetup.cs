@@ -136,6 +136,13 @@ public static class GemStoneSetup
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Simple {colorName}", 12, new ConfigDescription($"{colorName} shards required to craft a Simple {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
+				
+				_ = new Conversion(gemStone)
+				{
+					Input = $"Uncut_{colorName}_Stone",
+					Custom = "JC_Gemstone_Furnace"
+				};
+				
 				break;
 			case 1:
 				gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
@@ -144,6 +151,13 @@ public static class GemStoneSetup
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Advanced {colorName}", 35, new ConfigDescription($"{colorName} shards required to craft an Advanced {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
+				
+				_ = new Conversion(gemStone)
+				{
+					Input = $"Simple_{colorName}_Socket",
+					Custom = "JC_Gemstone_Furnace"
+				};
+				
 				break;
 			case 2:
 				gemStone.Crafting.Add("op_transmution_table", 2);
