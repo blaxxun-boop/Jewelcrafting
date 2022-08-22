@@ -22,7 +22,7 @@ public static class TurtleShell
 	{
 		private static void Prefix(Character __instance, HitData hit)
 		{
-			if (__instance is Player player && Mathf.Abs(Vector3.SignedAngle(player.transform.forward, hit.m_point - player.transform.position, Vector3.up)) > 90)
+			if (__instance is Player player && (Mathf.Abs(Vector3.SignedAngle(player.transform.forward, hit.m_point - player.transform.position, Vector3.up)) > 90 || player.GetEffect(Effect.Turtleembrace) / 100f > Random.value))
 			{
 				hit.ApplyModifier(1 - player.GetEffect(Effect.Turtleshell) / 100f);
 			}

@@ -14,7 +14,7 @@ public static class ApplySkillIncreases
 		{
 			if (Effects.TryGetValue(skillType, out Effect effect))
 			{
-				__result += __instance.m_player.GetEffect(effect);
+				__result += __instance.m_player.GetEffect(effect) * (1 + __instance.m_player.GetEffect(Effect.Eternalstudent) / 100f);
 			}
 		}
 	}

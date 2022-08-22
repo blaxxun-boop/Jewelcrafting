@@ -257,6 +257,12 @@
         <Compile Include="BossDied.cs" />
         <Compile Include="Utils.cs" />
         <Compile Include="SocketsBackground.cs" />
+        <Compile Include="Effects\SynergyEffects\Equilibrium.cs" />
+        <Compile Include="Effects\SynergyEffects\Pyromaniac.cs" />
+        <Compile Include="Effects\SynergyEffects\ResonatingEchoes.cs" />
+        <Compile Include="PositionStorage.cs" />
+        <Compile Include="Synergy\Synergy.cs" />
+        <Compile Include="Synergy\SynergyDef.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
         <EmbeddedResource Include="translations\English.yml" />
@@ -265,6 +271,7 @@
         <EmbeddedResource Include="translations\Korean.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Groups.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml" />
+        <EmbeddedResource Include="Synergy\Jewelcrafting.Synergy.yml" />
         <EmbeddedResource Include="icons\gem_cursor.png" />
         <EmbeddedResource Include="assets\jewelcrafting" />
         <EmbeddedResource Include="assets\jc_ui_additions" />

@@ -67,9 +67,9 @@ public static class TogetherForever
 					tether.GetComponent<ZNetView>().GetZDO().Set("Jewelcrafting Friendship PlayerStart", player.GetZDOID());
 					tether.GetComponent<ZNetView>().GetZDO().Set("Jewelcrafting Friendship PlayerEnd", target.GetZDOID());
 				}
-				else if (player.m_seman.AddStatusEffect(Jewelcrafting.loneliness) is SE_Stats statusEffectDebuff)
+				else if (player.GetEffect(Effect.Neveralone) is { } neverAlone and < 100 && player.m_seman.AddStatusEffect(Jewelcrafting.loneliness) is SE_Stats statusEffectDebuff)
 				{
-					statusEffectDebuff.m_speedModifier = -config.MovementSpeedReduction / 100f;
+					statusEffectDebuff.m_speedModifier = -config.MovementSpeedReduction / 100f * (1 - neverAlone / 100f);
 				}
 			}
 		}
@@ -80,16 +80,17 @@ public static class TogetherForever
 	{
 		public override void OnDamaged(HitData hit, Character attacker)
 		{
-			if (m_character is Player player && attacker != player)
+			if (m_character is Player player && attacker != player && player.GetEffect(Effect.Neveralone) is { } neverAlone and < 100)
 			{
-				hit.ApplyModifier(1 + player.GetEffect<Config>(Effect.Togetherforever).DamageTakenIncrease / 100f);
+				hit.ApplyModifier(1 + player.GetEffect<Config>(Effect.Togetherforever).DamageTakenIncrease / 100f * (1 - neverAlone / 100f));
 			}
 		}
 
 		public override string GetTooltipString()
 		{
 			Config config = Player.m_localPlayer.GetEffect<Config>(Effect.Togetherforever);
-			return Localization.instance.Localize(m_tooltip, config.MovementSpeed.ToString("0.#"), config.MinCooldown.ToString("0.#"), config.MaxCooldown.ToString("0.#"), config.Duration.ToString("0.#"), config.AttackSpeed.ToString("0.#"), config.DamageIncrease.ToString("0.#"), config.MovementSpeedReduction.ToString("0.#"), config.DamageTakenIncrease.ToString("0.#"));
+			float neverAloneMultiplier = 1 - Player.m_localPlayer.GetEffect(Effect.Neveralone);
+			return Localization.instance.Localize(m_tooltip, config.MovementSpeed.ToString("0.#"), config.MinCooldown.ToString("0.#"), config.MaxCooldown.ToString("0.#"), config.Duration.ToString("0.#"), config.AttackSpeed.ToString("0.#"), config.DamageIncrease.ToString("0.#"), (config.MovementSpeedReduction * neverAloneMultiplier).ToString("0.#"), (config.DamageTakenIncrease * neverAloneMultiplier).ToString("0.#"));
 		}
 	}
 

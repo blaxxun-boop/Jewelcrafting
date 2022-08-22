@@ -24,7 +24,7 @@ public static class Vampire
 		{
 			if (hit.GetAttacker() is Player attacker && Random.value < attacker.GetEffect(Effect.Vampire) / 100f)
 			{
-				attacker.Heal(Random.value * 6);
+				attacker.Heal(Random.value * 6 * (1 + attacker.GetEffect(Effect.Bloodthirsty) / 100f));
 			}
 		}
 	}

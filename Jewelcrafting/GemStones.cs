@@ -35,7 +35,7 @@ public static class GemStones
 			{
 				player.RaiseSkill("Jewelcrafting");
 
-				if (!Player.m_localPlayer.m_noPlacementCost && Random.value > upgradeChance.Value / 100f * (1 + player.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f))
+				if (!Player.m_localPlayer.m_noPlacementCost && Random.value > upgradeChance.Value / 100f * (1 + player.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + player.GetEffect(Effect.Carefulcutting) / 100f)
 				{
 					if (player.HaveRequirements(__instance.m_craftRecipe, false, 1))
 					{
@@ -231,7 +231,7 @@ public static class GemStones
 				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources[0].m_amount == 1)
 				{
 					__instance.m_itemCraftType.horizontalOverflow = HorizontalWrapMode.Wrap;
-					__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_gem_cutting_warning", Math.Min(Mathf.RoundToInt(chance.Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f)), 100).ToString());
+					__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_gem_cutting_warning", Math.Min(Mathf.RoundToInt(chance.Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + Player.m_localPlayer.GetEffect(Effect.Carefulcutting)), 100).ToString());
 
 					if (!displayGemChance)
 					{
@@ -327,7 +327,10 @@ public static class GemStones
 
 			int recipeIndex = __instance.GetSelectedRecipeIndex(true);
 
-			Player.m_localPlayer.RaiseSkill("Jewelcrafting");
+			if (Jewelcrafting.socketingItemsExperience.Value == Jewelcrafting.Toggle.On)
+			{
+				Player.m_localPlayer.RaiseSkill("Jewelcrafting");
+			}
 
 			int socketNumber = Math.Min(__instance.m_craftUpgradeItem.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0, 4);
 
@@ -352,8 +355,14 @@ public static class GemStones
 
 				if (Jewelcrafting.resourceReturnRate.Value > 0 && ObjectDB.instance.GetRecipe(__instance.m_craftUpgradeItem) is { } recipe)
 				{
+					bool returnNonTeleportable = !(Jewelcrafting.resourceReturnRateDistance.Value > 0 && __instance.m_craftUpgradeItem.Extended()?.GetComponent<PositionStorage>() is { } positionStorage && global::Utils.DistanceXZ(positionStorage.Position, Player.m_localPlayer.transform.position) > Jewelcrafting.resourceReturnRateDistance.Value);
+
 					foreach (Piece.Requirement requirement in recipe.m_resources)
 					{
+						if (!returnNonTeleportable && !requirement.m_resItem.m_itemData.m_shared.m_teleportable)
+						{
+							continue;
+						}
 						int amount = Mathf.FloorToInt(Random.value + requirement.m_amount * (Jewelcrafting.resourceReturnRate.Value / 100f));
 						if (amount > 0 && !Player.m_localPlayer.m_inventory.AddItem(ItemSharedMap.items[requirement.m_resItem.m_itemData.m_shared.m_name], amount))
 						{
@@ -480,8 +489,7 @@ public static class GemStones
 										}
 										else
 										{
-											string formatNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
-											text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? Localization.instance.Localize($" - $jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}_desc_detail", gem.Config.GetType().GetFields().Select(p => formatNumber((float)p.GetValue(gem.Config))).ToArray()) : $" {gem.Power}")));
+											text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, gem.Effect, gem.Config.GetType().GetFields().Select(p => (float)p.GetValue(gem.Config)).ToArray()) : $" {gem.Power}")));
 										}
 									}
 									else
@@ -1099,7 +1107,7 @@ public static class GemStones
 				string socketName = individualSocket.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 				HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
 				List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(socketName, uniquePowers, out List<string> errorType);
-				if (targetItem.m_equiped && HasEquippedAnyUniqueGem(checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
+				if (IsEquippedItem(Player.m_localPlayer, targetItem) && HasEquippedAnyUniqueGem(checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
 				{
 					return FormatUniqueSocketError(errorType, otherUnique);
 				}
@@ -1247,12 +1255,14 @@ public static class GemStones
 		}
 	}
 
+	private static bool IsEquippedItem(Humanoid human, ItemDrop.ItemData item) => human.IsItemEquiped(item) || human.m_hiddenLeftItem == item || human.m_hiddenRightItem == item;
+
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.EquipItem))]
 	private class PreventEquippingMultipleUniqueGems
 	{
 		private static bool Prefix(Humanoid __instance, ItemDrop.ItemData item, ref bool __result)
 		{
-			if (__instance.IsItemEquiped(item) || item.Extended()?.GetComponent<Sockets>() is not { } itemSockets)
+			if (IsEquippedItem(__instance, item) || item.Extended()?.GetComponent<Sockets>() is not { } itemSockets)
 			{
 				return true;
 			}

@@ -62,3 +62,11 @@ gems:
     cyan: 0.14
   ash lands:
     cyan: 0.16
+
+# Synergies
+
+cyan is the most common color:
+  conditions:
+    - cyan > max other
+  effect:
+    never alone: 100

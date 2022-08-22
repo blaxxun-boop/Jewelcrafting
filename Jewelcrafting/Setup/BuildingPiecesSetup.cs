@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using BepInEx.Configuration;
+﻿using BepInEx.Configuration;
 using HarmonyLib;
 using PieceManager;
 using UnityEngine;
@@ -9,7 +8,7 @@ namespace Jewelcrafting;
 public static class BuildingPiecesSetup
 {
 	public static GameObject gemcuttersTable = null!;
-	public static GameObject astralCutter = null!;
+	private static GameObject astralCutter = null!;
 
 	public static void initializeBuildingPieces(AssetBundle assets)
 	{

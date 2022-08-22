@@ -10,7 +10,7 @@ public static class Echo
 	{
 		private static void Postfix(Attack __instance)
 		{
-			if (__instance.m_character is Player player && Random.value < player.GetEffect(Effect.Echo) / 100f)
+			if (__instance.m_character is Player player && player.GetEffect(Effect.Echo) / 100f is { } echoChance && Random.value < echoChance * (1 + player.GetEffect(Effect.Resonatingechoes) / 100f))
 			{
 				__instance.m_projectileAttackStarted = true;
 				__instance.m_projectileBursts *= 2;

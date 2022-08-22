@@ -78,11 +78,11 @@ public static class CompendiumDisplay
 
 			if (gems.Count > 0)
 			{
-				string formatNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
 				StringBuilder sb = new(Localization.instance.Localize("\n\n<color=yellow>$jc_gem_effects_compendium</color>"));
 				foreach (KeyValuePair<Effect, KeyValuePair<float[], GemLocation>> kv in gems)
 				{
-					sb.Append(Localization.instance.Localize($"\n$jc_effect_{EffectDef.EffectNames[kv.Key].ToLower()}_desc_detail", kv.Value.Key.Select(formatNumber).ToArray()));
+					sb.Append("\n");
+					sb.Append(Utils.LocalizeDescDetail(player, kv.Key, kv.Value.Key));
 				}
 				__instance.m_texts[0].m_text += sb.ToString();
 			}

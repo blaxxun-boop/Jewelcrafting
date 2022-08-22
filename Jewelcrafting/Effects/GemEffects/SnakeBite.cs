@@ -12,19 +12,24 @@ public static class SnakeBite
 	}
 	
 	[PublicAPI]
-	private struct Config
+	public struct Config
 	{
-		[MultiplicativePercentagePower] public float Power;
+		[AdditivePower] public float Power;
+		[MaxPower] [OptionalPower(20f)] public float Chance;
 	}
 
 	[HarmonyPatch(typeof(Character), nameof(Character.Damage))]
-	private class AddBonusPoisonDamage
+	private class AddBonusFrostDamage
 	{
 		private static void Prefix(HitData hit)
 		{
-			if (hit.GetAttacker() is Player attacker && Random.value <= 0.2)
+			if (hit.GetAttacker() is Player attacker)
 			{
-				hit.m_damage.m_poison += hit.GetTotalDamage() * attacker.GetEffect(Effect.Snakebite) / 100f;
+				Config config = attacker.GetEffect<Config>(Effect.Snakebite);
+				if (Random.value <= config.Chance)
+				{
+					hit.m_damage.m_poison += hit.GetTotalDamage() * config.Power / 100f;
+				}
 			}
 		}
 	}

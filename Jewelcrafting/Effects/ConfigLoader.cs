@@ -115,6 +115,7 @@ public static class ConfigLoader
 				}
 			}
 			Load("Effects.Jewelcrafting.Sockets.yml", "");
+			Load("Synergy.Jewelcrafting.Synergy.yml", "Synergies");
 			if (Groups.API.IsLoaded())
 			{
 				Load("Effects.Jewelcrafting.Groups.yml", "Groups");

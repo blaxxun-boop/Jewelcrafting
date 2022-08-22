@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -80,7 +81,7 @@ public static class Utils
 		float maxSeconds = maxWait(config);
 		if (minSeconds > 0)
 		{
-			return new WaitForSeconds(Mathf.Max(4, Random.Range(minSeconds, maxSeconds)));
+			return new WaitForSeconds(Mathf.Max(4, Random.Range(minSeconds, maxSeconds) * (1 - player.GetEffect(Effect.Timewarp) / 100f)));
 		}
 
 		float wait = 0;
@@ -128,6 +129,8 @@ public static class Utils
 		texture.LoadImage(ReadEmbeddedFileBytes("icons." + name));
 		return texture;
 	}
+	
+	public static Sprite loadSprite(string name, int width, int height) => Sprite.Create(loadTexture(name), new Rect(0, 0, width, height), Vector2.zero);
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
 	private static class TransferEIDFComponentsOnUpgrade
@@ -233,4 +236,19 @@ public static class Utils
 	}
 
 	public static bool ItemAllowedInGemBag(ItemDrop.ItemData item) => GemStones.socketableGemStones.Contains(item.m_shared.m_name) || GemStoneSetup.uncutGems.ContainsValue(item.m_dropPrefab) || GemStoneSetup.shardColors.ContainsValue(item.m_dropPrefab);
+
+	public static string GetHumanFriendlyTime(int seconds) => TimeSpan.FromSeconds(seconds).ToString("c");
+
+	public static string FormatShortNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
+	public static string LocalizeDescDetail(Player player, Effect effect, float[] numbers)
+	{
+		if (EffectDef.DescriptionOverrides.TryGetValue(effect, out EffectDef.OverrideDescription overrideDesc))
+		{
+			if (overrideDesc(player, ref numbers) is { } desc)
+			{
+				return desc;
+			}
+		}
+		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_detail", numbers.Select(FormatShortNumber).ToArray());
+	}
 }

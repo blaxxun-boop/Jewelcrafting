@@ -1,0 +1,53 @@
+at least six red and no blue:
+  conditions:
+    - red > 5
+    - blue = 0
+  effect:
+    pyromaniac: 20
+
+exactly three yellow:
+  conditions:
+    - yellow = 3
+  effect:
+    resonating echoes: 20
+    
+same number of all colors:
+  conditions:
+    - min all = max all
+  effect:
+    equilibrium: 3
+    
+more red than black and purple combined:
+  conditions:
+    - red > purple + black
+    - purple >= 2
+    - black >= 2
+  effect:
+    eternal student: 20
+
+same number of green and blue:
+  conditions:
+    - green = blue
+    - green >= 2
+  effect:
+    time warp: 10
+    
+many gems:
+  conditions:
+    - sum all >= 15
+  effect:
+    careful cutting: 2
+    
+twice as much yellow than black:
+  conditions:
+    - yellow = black * 2
+    - yellow > 0
+  effect:
+    turtle embrace: 20
+    
+purple as the most common:
+  conditions:
+    - purple > max other
+    - purple > 0
+  effect:
+    bloodthirsty: 10

@@ -37,6 +37,7 @@ public enum Effect
 	Sprinter,
 	Defender,
 	Firestarter,
+	Pyromaniac,
 	Iceheart,
 	Snakebite,
 	Vitality,
@@ -55,6 +56,7 @@ public enum Effect
 	Magnetic,
 	Hercules,
 	Vampire,
+	Bloodthirsty,
 	Masterarcher,
 	Tank,
 	Paintolerance,
@@ -64,6 +66,7 @@ public enum Effect
 	Nimble,
 	Mirror,
 	Echo,
+	Resonatingechoes,
 	Resilience,
 	Gourmet,
 	Leadingwolf,
@@ -77,6 +80,7 @@ public enum Effect
 	Mercifuldeath,
 	Opportunity,
 	Turtleshell,
+	Turtleembrace,
 	Marathon,
 	Unbreakable,
 	Energetic,
@@ -87,7 +91,12 @@ public enum Effect
 	Poisonousdrain,
 	Icyprotection,
 	Fierydoom,
-	Togetherforever
+	Togetherforever,
+	Neveralone,
+	Equilibrium,
+	Eternalstudent,
+	Timewarp,
+	Carefulcutting
 }
 
 public enum Uniqueness
@@ -118,7 +127,7 @@ public class EffectDef
 {
 	static EffectDef()
 	{
-		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace)))
+		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace) || (t.Namespace ?? "").StartsWith("Jewelcrafting.SynergyEffects")))
 		{
 			RuntimeHelpers.RunClassConstructor(t.TypeHandle);
 		}
@@ -130,6 +139,9 @@ public class EffectDef
 	public object[] Power = Array.Empty<object>();
 
 	public static readonly Dictionary<Effect, Type> ConfigTypes = new();
+
+	public delegate string? OverrideDescription(Player player, ref float[] numbers);
+	public static readonly Dictionary<Effect, OverrideDescription> DescriptionOverrides = new();
 
 	public const GemLocation AllGemlocations = GemLocation.All - 1;
 	public const GemLocation WeaponGemlocations = GemLocation.Sword | GemLocation.Knife | GemLocation.Club | GemLocation.Polearm | GemLocation.Spear | GemLocation.Axe;
@@ -143,19 +155,21 @@ public class EffectDef
 	public static readonly Dictionary<GemType, string> GemTypeNames = ValidGemTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
 	public static readonly Dictionary<Effect, string> EffectNames = ValidEffects.ToDictionary(kv => kv.Value, kv => kv.Key);
 
-	private static Dictionary<string, object?> castDictToStringDict(Dictionary<object, object?> dict) => new(dict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value), StringComparer.InvariantCultureIgnoreCase);
+	public static Dictionary<string, object?> castDictToStringDict(Dictionary<object, object?> dict) => new(dict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value), StringComparer.InvariantCultureIgnoreCase);
 
 	public struct ParseResult
 	{
 		public Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution;
 		public Dictionary<Effect, List<EffectDef>> effects;
+		public Dictionary<string, SynergyDef> Synergy;
 	}
 
 	public static ParseResult Parse(object? rootDictObj, out List<string> errors)
 	{
 		Dictionary<Effect, List<EffectDef>> effects = new();
 		Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
-		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects };
+		Dictionary<string, SynergyDef> synergies = new();
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)
@@ -171,12 +185,27 @@ public class EffectDef
 		foreach (KeyValuePair<string, object?> rootDictKv in castDictToStringDict(rootDict))
 		{
 			string effect = rootDictKv.Key;
+			if (rootDictKv.Value is Dictionary<object, object?> synergyDict && synergyDict.ContainsKey("conditions"))
+			{
+				if (SynergyDef.Parse(rootDictKv.Key, castDictToStringDict(synergyDict), errors) is { } synergy)
+				{
+					synergies.Add(rootDictKv.Key, synergy);
+				}
+
+				continue;
+			}
+			
 			if (!ValidEffects.ContainsKey(effect))
 			{
 				effect = effect.Replace(" ", "");
 			}
 			if (!ValidEffects.ContainsKey(effect))
 			{
+				if (rootDictKv.Value is "unset")
+				{
+					synergies.Add(rootDictKv.Key, new SynergyDef());
+				}
+				
 				if (effect != "gems")
 				{
 					errors.Add($"'{rootDictKv.Key}' is not a valid effect name. Valid effects are: '{string.Join("', '", ValidEffects.Keys)}'. There also can be a 'gems' section to define gem spawn chances.");
@@ -346,6 +375,17 @@ public class EffectDef
 							effectDef.Power[i] = Activator.CreateInstance(configType);
 						}
 
+						foreach (FieldInfo field in configFields.Values)
+						{
+							if (field.GetCustomAttribute<OptionalPowerAttribute>() is { } optional)
+							{
+								for (int i = 0; i < tiers; ++i)
+								{
+									field.SetValue(effectDef.Power[i], optional.DefaultValue);
+								}
+							}
+						}
+
 						bool ParseTiers(object? powerObj, FieldInfo? field = null)
 						{
 							bool hasField = field is not null;
@@ -373,7 +413,7 @@ public class EffectDef
 									}
 								}
 							}
-							else if (!hasField && configFields.Count > 1)
+							else if (!hasField && configFields.Count(kv => kv.Value.GetCustomAttribute<OptionalPowerAttribute>() is null) > 1)
 							{
 								errorList.Add($"There are multiple configurable values for this effect. Specify values for all of {string.Join(", ", configFields.Keys)}. {errorLocation}");
 								return false;
@@ -613,6 +653,8 @@ public class EffectDef
 					}
 				}
 			}
+
+			SynergyDef.Apply(parsed.Values.SelectMany(v => v.Synergy).GroupBy(kv => kv.Key).Select(kv => kv.Last().Value));
 
 			Jewelcrafting.SocketEffects = socketEffects;
 			Jewelcrafting.GemDistribution = gemDistribution;

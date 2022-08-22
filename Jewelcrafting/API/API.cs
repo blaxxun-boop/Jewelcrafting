@@ -91,6 +91,7 @@ public static class API
 		EffectDef.Loader.instance.parsed.Add($"/{assemblyName}/{type}.yml", new EffectDef.ParseResult
 		{
 			effects = new Dictionary<Effect, List<EffectDef>>(),
+			Synergy = new Dictionary<string, SynergyDef>(),
 			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float> { { (GemType)colorName.GetStableHashCode(), 0.04f } })
 		});
 

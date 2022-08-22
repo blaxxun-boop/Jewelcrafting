@@ -35,3 +35,10 @@ public class MaxPowerAttribute : PowerAttribute
 {
 	public override float Add(float a, float b) => Mathf.Max(a, b);
 }
+
+[AttributeUsage(AttributeTargets.Field)]
+public class OptionalPowerAttribute : Attribute
+{
+	public readonly float DefaultValue;
+	public OptionalPowerAttribute(float defaultValue) => DefaultValue = defaultValue;
+}

@@ -36,6 +36,28 @@ public class TrackEquipmentChanges
 
 		Dictionary<Effect, object> effects = new();
 
+		void ApplyEffectPowers(List<EffectPower> effectPowers, float multiplier = 1)
+		{
+			foreach (EffectPower effectPower in effectPowers)
+			{
+				if (!effects.TryGetValue(effectPower.Effect, out object effectValue))
+				{
+					effectValue = effects[effectPower.Effect] = Utils.Clone(effectPower.Config);
+					foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+					{
+						field.SetValue(effectValue, (float)field.GetValue(effectValue) * multiplier);
+					}
+				}
+				else
+				{
+					foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+					{
+						field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.Config) * multiplier));
+					}
+				}
+			}
+		}
+		
 		Utils.ApplyToAllPlayerItems(player, item =>
 		{
 			if (item?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
@@ -47,29 +69,23 @@ public class TrackEquipmentChanges
 					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 					{
 						float multiplier = item == player.m_rightItem || item == player.m_leftItem || item == player.m_hiddenRightItem || item == player.m_hiddenRightItem ? weaponMultiplier : 1;
-
-						foreach (EffectPower effectPower in effectPowers)
-						{
-							if (!effects.TryGetValue(effectPower.Effect, out object effectValue))
-							{
-								effectValue = effects[effectPower.Effect] = Utils.Clone(effectPower.Config);
-								foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
-								{
-									field.SetValue(effectValue, (float)field.GetValue(effectValue) * multiplier);
-								}
-							}
-							else
-							{
-								foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
-								{
-									field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.Config) * multiplier));
-								}
-							}
-						}
+						ApplyEffectPowers(effectPowers, multiplier);
 					}
 				}
 			}
 		});
+
+		Dictionary<GemType, int> gemDistribution = Synergy.GetGemDistribution();
+		List<SynergyDef> synergies = Jewelcrafting.Synergies.Where(synergy => synergy.IsActive(gemDistribution)).ToList();
+		foreach (SynergyDef synergy in synergies)
+		{
+			ApplyEffectPowers(synergy.EffectPowers);
+		}
+
+		if (Synergy.activeSynergyDisplay)
+		{
+			Synergy.activeSynergyDisplay.text.text = synergies.Count.ToString();
+		}
 
 		if (player.m_nview.m_zdo is not { } zdo)
 		{
