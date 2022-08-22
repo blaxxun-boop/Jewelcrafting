@@ -33,7 +33,7 @@ public static class Synergy
 			{
 				foreach (SocketItem socket in itemSockets.socketedGems)
 				{
-					if (ObjectDB.instance.GetItemPrefab(socket.Name) is { } gem && GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
+					if (ObjectDB.instance.GetItemPrefab(socket.Name) is { } gem && GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info) && GemStoneSetup.shardColors.ContainsKey(info.Type))
 					{
 						gemTypes.Add(info.Type);
 					}
