@@ -593,7 +593,7 @@ public class EffectDef
 
 		public void Reset()
 		{
-			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && !k.StartsWith("/")).ToArray())
+			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && k != "Synergies" && !k.StartsWith("/")).ToArray())
 			{
 				parsed.Remove(key);
 			}
