@@ -267,7 +267,6 @@
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
         <EmbeddedResource Include="translations\English.yml" />
         <EmbeddedResource Include="translations\Russian.yml" />
-        <None Include="translations\German.yml" />
         <EmbeddedResource Include="translations\Korean.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Groups.yml" />
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml" />
@@ -300,6 +299,9 @@
     </ItemGroup>
     <ItemGroup>
       <Compile Include="Setup\MiscSetup.cs" />
+    </ItemGroup>
+    <ItemGroup>
+      <EmbeddedResource Include="translations\Spanish.yml" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />

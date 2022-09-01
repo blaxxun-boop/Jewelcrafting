@@ -262,7 +262,7 @@ public static class GemStones
 
 	private static bool CanAddMoreSockets(ItemDrop.ItemData item)
 	{
-		return item.Extended()?.GetComponent<Box>() is null && (item.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0) < Jewelcrafting.maximumNumberSockets.Value;
+		return item.Extended()?.GetComponent<Box>() is null && item.Extended()?.GetComponent<SocketBag>() is null && (item.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0) < Jewelcrafting.maximumNumberSockets.Value;
 	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipeList))]

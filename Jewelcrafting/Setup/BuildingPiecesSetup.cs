@@ -72,6 +72,7 @@ public static class BuildingPiecesSetup
 		
 		public void Awake()
 		{
+			GetComponent<WearNTear>().m_onDestroyed += GetComponentInChildren<ItemStand>().OnDestroyed;
 			stationMaxDistance = GetComponent<StationExtension>().m_maxStationDistance;
 		}
 

@@ -29,7 +29,8 @@ public static class ApplyAttackSpeed
 				return;
 			}
 
-			___m_animator.speed = ___m_animator.speed * (1 + Modifiers.Sum(m => m(player))) + 19e-7f; // number with single bit in mantissa set
+			double speed = ___m_animator.speed * (1 + Modifiers.Sum(m => m(player)));
+			___m_animator.speed = (float)(speed - speed % 1e-5 + 19e-7); // number with single bit in mantissa set
 		}
 	}
 }
