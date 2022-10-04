@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.2.4";
+	private const string ModVersion = "1.2.5";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -365,9 +365,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		heardIcon = assets.LoadAsset<GameObject>("JC_Eyeball_Obj");
 		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
 		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
+		headhunter.m_modifyAttackSkill = Skills.SkillType.All;
 		rigidFinger = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Purple");
+		rigidFinger.m_modifyAttackSkill = Skills.SkillType.All;
 		magicRepair = PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
 		aquatic = assets.LoadAsset<SE_Stats>("JC_Se_Necklace_Blue");
+		aquatic.m_modifyAttackSkill = Skills.SkillType.All;
 		lightningStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
 		rootStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Brown");
 		poisonStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Green");

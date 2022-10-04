@@ -59,6 +59,7 @@ public static class TogetherForever
 					{
 						friendshipEffect.m_speedModifier = config.MovementSpeed / 100f;
 						friendshipEffect.m_damageModifier = 1 + config.DamageIncrease / 100f;
+						friendshipEffect.m_modifyAttackSkill = Skills.SkillType.All;
 					}
 					GameObject tether = Object.Instantiate(Jewelcrafting.friendshipTether, player.transform);
 					StatusEffect statusEffect = player.m_seman.GetStatusEffect(Jewelcrafting.friendship.name);
@@ -127,6 +128,7 @@ public static class TogetherForever
 			{
 				statusEffect.m_speedModifier = config.MovementSpeed / 100f;
 				statusEffect.m_damageModifier = 1 + config.DamageIncrease / 100f;
+				statusEffect.m_modifyAttackSkill = Skills.SkillType.All;
 			}
 		}
 	}

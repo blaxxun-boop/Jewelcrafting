@@ -51,6 +51,7 @@ public static class LightningSpeed
 				{
 					statusEffect.m_speedModifier = config.MovementSpeed / 100f;
 					statusEffect.m_damageModifier = 1 - config.DamageReduction / 100f;
+					statusEffect.m_modifyAttackSkill = Skills.SkillType.All;
 				}
 			}
 		}
