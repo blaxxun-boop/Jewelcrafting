@@ -95,7 +95,7 @@ public static class MergedGemStoneSetup
 			itemDrop.m_itemData.m_shared.m_name = name;
 			GemStones.socketableGemStones.Add(name);
 			ItemSnapshots.SnapshotItems(itemDrop);
-			_ = new Item(prefab);
+			_ = new Item(prefab) { Configurable = Configurability.Disabled };
 
 			mergedGems[first.Key][second.Key][asset.tier] = prefab;
 			GemInfo gemInfo(GemType type) => GemStoneSetup.GemInfos[GemStoneSetup.Gems[type][asset.tier].Name];

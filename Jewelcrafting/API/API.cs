@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using JetBrains.Annotations;
+using Jewelcrafting.WorldBosses;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
 #if ! API
@@ -92,7 +93,8 @@ public static class API
 		{
 			effects = new Dictionary<Effect, List<EffectDef>>(),
 			Synergy = new Dictionary<string, SynergyDef>(),
-			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float> { { (GemType)colorName.GetStableHashCode(), 0.04f } })
+			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float> { { (GemType)colorName.GetStableHashCode(), 0.04f } }),
+			Prizes = new List<Prizes>()
 		});
 
 		return prefab;

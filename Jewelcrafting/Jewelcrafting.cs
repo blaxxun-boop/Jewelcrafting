@@ -11,6 +11,7 @@ using ItemManager;
 using JetBrains.Annotations;
 using Jewelcrafting.GemEffects;
 using Jewelcrafting.GemEffects.Groups;
+using Jewelcrafting.WorldBosses;
 using LocalizationManager;
 using ServerSync;
 using SkillManager;
@@ -26,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.2.6";
+	private const string ModVersion = "1.3.0";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -71,6 +72,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<KeyboardShortcut> advancedTooltipKey = null!;
 	public static ConfigEntry<AdvancedTooltipMode> advancedTooltipMode = null!;
 	public static ConfigEntry<Toggle> advancedTooltipAlwaysOn = null!;
+	public static ConfigEntry<int> bossSpawnTimer = null!;
+	public static ConfigEntry<int> bossTimeLimit = null!;
+	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
+	public static ConfigEntry<int> frameOfChanceChance = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
@@ -134,6 +139,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SE_Stats loneliness = null!;
 	public static GameObject friendshipTether = null!;
 	public static SE_Stats cowardice = null!;
+	public static SE_Stats fireBossDebuff = null!;
+	public static SE_Stats frostBossDebuff = null!;
+	public static SE_Stats poisonBossDebuff = null!;
 
 	private static Jewelcrafting self = null!;
 
@@ -175,7 +183,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Hovering = 1,
 		Enabled = 2
 	}
-	
+
 	public enum AdvancedTooltipMode
 	{
 		General = 0,
@@ -283,15 +291,19 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		crystalFusionBoxMergeActivityProgress[0] = config("3 - Fusion Box", "Activity reward for Fusion Box", 1.5f, new ConfigDescription("Progress for the Common Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 0.7f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 0.3f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
-		upgradeChanceIncrease = config("4 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		experienceGainedFactor = config("4 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
+		bossSpawnTimer = config("4 - World Boss", "Time between Boss Spawns", 120, new ConfigDescription("Time in minutes between boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
+		bossTimeLimit = config("4 - World Boss", "Time Limit", 30, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
+		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
+		upgradeChanceIncrease = config("5 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		experienceGainedFactor = config("5 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
 		jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
-		gemBagSlots = config("4 - Other", "Jewelers Bag Slots", 16, new ConfigDescription("Space in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(4, 32), new ConfigurationManagerAttributes { Order = --order }));
-		gemBagAutofill = config("4 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		advancedTooltipKey = config("4 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		advancedTooltipMode = config("4 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		advancedTooltipAlwaysOn = config("4 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		gemBagSlots = config("5 - Other", "Jewelers Bag Slots", 16, new ConfigDescription("Space in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(4, 32), new ConfigurationManagerAttributes { Order = --order }));
+		gemBagAutofill = config("5 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		frameOfChanceChance = config("5 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(1, 100), new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipKey = config("5 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipMode = config("5 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipAlwaysOn = config("5 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
@@ -318,6 +330,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		FusionBoxSetup.initializeFusionBoxes(assets);
 		Synergy.initializeSynergy(assets);
 		ConfigLoader.LoadBuiltinConfig();
+		GachaSetup.initializeGacha(assets);
+		BossSetup.initializeBosses(assets);
 		SocketsBackground.CalculateColors();
 
 		int socketAddingOrder = 0;
@@ -382,6 +396,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		friendshipTether = assets.LoadAsset<GameObject>("VFX_FriendLine_Render");
 		friendshipTether.AddComponent<FriendshipTether>();
 		cowardice = assets.LoadAsset<SE_Stats>("SE_Cowardice");
+		fireBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Fire");
+		frostBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Frost");
+		poisonBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Poison");
 
 		SocketsBackground.background = assets.LoadAsset<GameObject>("JC_ItemBackground");
 
@@ -424,6 +441,35 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "VFX_Group_Loneliness");
 		PrefabManager.RegisterPrefab(assets, "VFX_FriendLine_Render");
 		PrefabManager.RegisterPrefab(assets, "VFX_Hearts_Start");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_offering");
+		PrefabManager.RegisterPrefab(assets, "VFX_Crystal_Explosion_Red");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_idle");
+		PrefabManager.RegisterPrefab(assets, "vfx_reaper_hit");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_attack");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_death");
+		PrefabManager.RegisterPrefab(assets, "VFX_Boss_Death");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_attack_hit");
+		PrefabManager.RegisterPrefab(assets, "vfx_reaper_destroyed");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_hurt");
+		PrefabManager.RegisterPrefab(assets, "JC_Boss_AOE_Hit_2");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_rock_destroyed");
+		PrefabManager.RegisterPrefab(assets, "JC_Boss_Projectile_Fire");
+		PrefabManager.RegisterPrefab(assets, "JC_Boss_Projectile_Frost");
+		PrefabManager.RegisterPrefab(assets, "JC_Boss_Projectile_Poison");
+		PrefabManager.RegisterPrefab(assets, "JC_Boss_Explosion_Flames");
+		PrefabManager.RegisterPrefab(assets, "JC_Boss_Explosion_Frost");
+		PrefabManager.RegisterPrefab(assets, "JC_Boss_Explosion_Poison");
+		PrefabManager.RegisterPrefab(assets, "sfx_reaper_alert");
+		PrefabManager.RegisterPrefab(assets, "sfx_open_box");
+		PrefabManager.RegisterPrefab(assets, "SFX_Reaper_Bow_Draw");
+		PrefabManager.RegisterPrefab(assets, "SFX_Reaper_Bow_Fire");
+		PrefabManager.RegisterPrefab(assets, "SFX_Reaper_Weapon_Blocked");
+		PrefabManager.RegisterPrefab(assets, "SFX_Reaper_Weapon_Hit");
+		PrefabManager.RegisterPrefab(assets, "SFX_Reaper_Weapon_Swing");
+		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Bow_Fire");
+		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_CamShake");
+		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_Hit");
+		PrefabManager.RegisterPrefab(assets, "VFX_Crystal_Explosion_Blue");
 
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);
@@ -435,9 +481,15 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_ring_blue_description", "cooldown", modersBlessingCooldown);
 		Localizer.AddPlaceholder("jc_se_ring_blue_description", "duration", modersBlessingDuration);
 		Localizer.AddPlaceholder("jc_se_ring_blue_description", "cooldown", modersBlessingCooldown);
+		Localizer.AddPlaceholder("jc_reaper_sword_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_axe_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_bow_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_pickaxe_description", "power", worldBossBonusWeaponDamage);
 
 		Config.SaveOnConfigSet = true;
 		Config.Save();
+
+		BossSpawn.SetupBossSpawn();
 	}
 
 	private static void AddBossBoxProgressConfig(string name, float[] progress)

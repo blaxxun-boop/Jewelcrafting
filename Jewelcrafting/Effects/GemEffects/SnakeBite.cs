@@ -26,7 +26,7 @@ public static class SnakeBite
 			if (hit.GetAttacker() is Player attacker)
 			{
 				Config config = attacker.GetEffect<Config>(Effect.Snakebite);
-				if (Random.value <= config.Chance)
+				if (Random.value <= config.Chance / 100f)
 				{
 					hit.m_damage.m_poison += hit.GetTotalDamage() * config.Power / 100f;
 				}

@@ -2,6 +2,7 @@
 using System.Linq;
 using BepInEx.Configuration;
 using HarmonyLib;
+using Jewelcrafting.WorldBosses;
 using UnityEngine;
 
 namespace Jewelcrafting;
@@ -14,20 +15,28 @@ public static class BossDied
 		[HarmonyPriority(Priority.VeryLow - 1)]
 		private static void Postfix(CharacterDrop __instance, List<KeyValuePair<GameObject, int>> __result)
 		{
-			if (__instance.m_character.IsBoss() && Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(__instance.gameObject), out GameObject bossDrop))
+			if (__instance.m_character.IsBoss())
 			{
-				if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique)
+				if (__instance.m_character.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 				{
-					if (BossKilled(__instance.m_character))
-					{
-						return;
-					}
-
-					__result.Add(new KeyValuePair<GameObject, int>(bossDrop, 1));
+					__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, ZNet.instance.GetNrOfPlayers()));
 				}
-				else if (Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f)
+				
+				if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(__instance.gameObject), out GameObject bossDrop))
 				{
-					__result.Add(new KeyValuePair<GameObject, int>(bossDrop, Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? ZNet.instance.GetNrOfPlayers() : 1));
+					if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique)
+					{
+						if (BossKilled(__instance.m_character))
+						{
+							return;
+						}
+
+						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, 1));
+					}
+					else if (Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f)
+					{
+						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? ZNet.instance.GetNrOfPlayers() : 1));
+					}
 				}
 			}
 		}
@@ -44,7 +53,7 @@ public static class BossDied
 			{
 				return;
 			}
-			
+
 			List<Player> nearbyPlayers = new();
 			Player.GetPlayersInRange(__instance.transform.position, 50f, nearbyPlayers);
 

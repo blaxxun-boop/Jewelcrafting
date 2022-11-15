@@ -89,7 +89,10 @@ public static class VisualEffectSetup
 		blackGemEffects.Add(FineWoodBow, PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_FineBow"));
 		blackGemEffects.Add(BowHuntsman, PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_HuntBow"));
 		blackGemEffects.Add(BowDraugrFang, PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_FangBow"));
-
+		blackGemEffects.Add(Pickaxes, PrefabManager.RegisterPrefab(assets, "JC_Pick_Frenzy"));
+		blackGemEffects.Add(Hammer, PrefabManager.RegisterPrefab(assets, "JC_Hammer_Frenzy"));
+		blackGemEffects.Add(Hoe, PrefabManager.RegisterPrefab(assets, "JC_Hoe_Frenzy"));
+		
 		yellowGemEffects.Add(Swords, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Sword"));
 		yellowGemEffects.Add(Axes, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Axe"));
 		yellowGemEffects.Add(Axes | TwoHanded, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_BAxe"));

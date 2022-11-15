@@ -26,7 +26,7 @@ public static class FireStarter
 			if (hit.GetAttacker() is Player attacker)
 			{
 				Config config = attacker.GetEffect<Config>(Effect.Firestarter);
-				if (Random.value <= config.Chance * (1 + attacker.GetEffect(Effect.Pyromaniac) / 100))
+				if (Random.value <= config.Chance / 100f * (1 + attacker.GetEffect(Effect.Pyromaniac) / 100))
 				{
 					hit.m_damage.m_fire += hit.GetTotalDamage() * config.Power / 100f;
 				}

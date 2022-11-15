@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Jewelcrafting.WorldBosses;
 using ServerSync;
 using UnityEngine;
 
@@ -61,6 +62,7 @@ public enum Effect
 	Tank,
 	Paintolerance,
 	Berserk,
+	Frenzy,
 	Ninja,
 	Inconspicuous,
 	Nimble,
@@ -162,6 +164,7 @@ public class EffectDef
 		public Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution;
 		public Dictionary<Effect, List<EffectDef>> effects;
 		public Dictionary<string, SynergyDef> Synergy;
+		public List<Prizes> Prizes;
 	}
 
 	public static ParseResult Parse(object? rootDictObj, out List<string> errors)
@@ -169,7 +172,8 @@ public class EffectDef
 		Dictionary<Effect, List<EffectDef>> effects = new();
 		Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
 		Dictionary<string, SynergyDef> synergies = new();
-		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies };
+		List<Prizes> prizes = new();
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)
@@ -190,6 +194,16 @@ public class EffectDef
 				if (SynergyDef.Parse(rootDictKv.Key, castDictToStringDict(synergyDict), errors) is { } synergy)
 				{
 					synergies.Add(rootDictKv.Key, synergy);
+				}
+
+				continue;
+			}
+			
+			if (rootDictKv.Value is Dictionary<object, object?> prizeDict && prizeDict.ContainsKey("prizes"))
+			{
+				if (GachaDef.Parse(rootDictKv.Key, castDictToStringDict(prizeDict), errors) is { } prize)
+				{
+					prizes.Add(prize);
 				}
 
 				continue;
@@ -593,7 +607,7 @@ public class EffectDef
 
 		public void Reset()
 		{
-			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && k != "Synergies" && !k.StartsWith("/")).ToArray())
+			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && k != "Synergies" && k != "Gacha" && !k.StartsWith("/")).ToArray())
 			{
 				parsed.Remove(key);
 			}
@@ -656,6 +670,11 @@ public class EffectDef
 
 			SynergyDef.Apply(parsed.Values.SelectMany(v => v.Synergy).GroupBy(kv => kv.Key).Select(kv => kv.Last().Value));
 
+			if (parsed.Values.LastOrDefault(p => p.Prizes.Count > 0) is { Prizes: not null } result)
+			{
+				GachaDef.Apply(result.Prizes);
+			}
+
 			Jewelcrafting.SocketEffects = socketEffects;
 			Jewelcrafting.GemDistribution = gemDistribution;
 			Jewelcrafting.EffectPowers.Clear();
@@ -711,7 +730,7 @@ public class EffectDef
 			}
 		}
 
-		public string FilePattern => "Jewelcrafting.Sockets*.yml";
+		public string FilePattern => "Jewelcrafting.*.yml";
 		public string EditButtonName => Localization.instance.Localize("$jc_edit_socket_yaml_config");
 		public CustomSyncedValue<List<string>> FileData => Jewelcrafting.socketEffectDefinitions;
 		public bool Enabled => Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On;

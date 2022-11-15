@@ -181,7 +181,7 @@ public static class DestructibleSetup
 				}
 
 				long lastDestruction = netView.GetZDO().GetLong("destruction time");
-				if (lastDestruction != 0 && (ZNet.instance.GetTime() - new DateTime(lastDestruction)).TotalSeconds < Jewelcrafting.gemRespawnRate.Value * EnvMan.instance.m_dayLengthSec)
+				if (lastDestruction != 0 && (Jewelcrafting.gemRespawnRate.Value == 0 ||  (ZNet.instance.GetTime() - new DateTime(lastDestruction)).TotalSeconds < Jewelcrafting.gemRespawnRate.Value * EnvMan.instance.m_dayLengthSec))
 				{
 					return;
 				}

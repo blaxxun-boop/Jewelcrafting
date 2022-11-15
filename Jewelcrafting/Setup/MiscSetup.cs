@@ -1,4 +1,5 @@
-﻿using ExtendedItemDataFramework;
+﻿using System.Collections.Generic;
+using ExtendedItemDataFramework;
 using HarmonyLib;
 using ItemManager;
 using UnityEngine;
@@ -8,6 +9,11 @@ namespace Jewelcrafting;
 public static class MiscSetup
 {
 	private static string gemBagName = null!;
+	public static string chaosFrameName = null!;
+	public static string chanceFrameName = null!;
+	public static string blessedMirrorName = null!;
+	public static string celestialMirrorName = null!;
+	public static readonly List<GameObject> framePrefabs = new();
 	
 	public static void initializeMisc(AssetBundle assets)
 	{
@@ -19,6 +25,17 @@ public static class MiscSetup
 		item.RequiredItems.Add("GreydwarfEye", 1);
 		gemBagName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		
+		item = new Item(assets, "Blue_Crystal_Frame");
+		framePrefabs.Add(item.Prefab);
+		chaosFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		item = new Item(assets, "Black_Crystal_Frame");
+		framePrefabs.Add(item.Prefab);
+		chanceFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		item = new Item(assets, "JC_Blessed_Crystal_Mirror");
+		blessedMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		item = new Item(assets, "JC_Celestial_Crystal_Mirror");
+		celestialMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+
 		ExtendedItemData.NewExtendedItemData += item =>
 		{
 			if (item.m_shared.m_name == gemBagName && item.m_quality == 1 && item.GetComponent<SocketBag>() is null)
@@ -29,6 +46,11 @@ public static class MiscSetup
 					sockets.socketedGems.Add(new SocketItem(""));
 				}
 				sockets.Save();
+			}
+
+			if ((item.m_shared.m_name == chaosFrameName || item.m_shared.m_name == chanceFrameName || item.m_shared.m_name == blessedMirrorName || item.m_shared.m_name == celestialMirrorName) && item.GetComponent<Frame>() is null)
+			{
+				item.AddComponent<Frame>().Save();
 			}
 		};
 	}

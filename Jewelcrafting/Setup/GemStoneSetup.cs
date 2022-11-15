@@ -108,12 +108,12 @@ public static class GemStoneSetup
 
 	public static void RegisterShard(GameObject prefab, GemType color)
 	{
-		shardColors[color] = new Item(prefab).Prefab;
+		shardColors[color] = new Item(prefab) { Configurable = Configurability.Disabled }.Prefab;
 	}
 
 	public static void RegisterUncutGem(GameObject prefab, GemType color, ConfigEntry<int>? dropChance = null)
 	{
-		Item gemStone = new(prefab);
+		Item gemStone = new(prefab) { Configurable = Configurability.Disabled };
 		uncutGems[color] = prefab;
 		if (dropChance is not null)
 		{
@@ -126,7 +126,7 @@ public static class GemStoneSetup
 		string gemName = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		Jewelcrafting.gemUpgradeChances.Add(gemName, Jewelcrafting.config("Socket Upgrade Chances", Jewelcrafting.english.Localize(gemName), tier switch { 0 => 30f, 1 => 20f, _ => 10f }, new ConfigDescription($"Success chance while trying to create {Localization.instance.Localize(gemName)}.", new AcceptableValueRange<float>(0f, 100f), new Jewelcrafting.ConfigurationManagerAttributes { DispName = Localization.instance.Localize(gemName) })));
 
-		Item gemStone = new(prefab) { Configurable = false };
+		Item gemStone = new(prefab) { Configurable = Configurability.Disabled };
 		switch (tier)
 		{
 			case 0:
@@ -202,7 +202,7 @@ public static class GemStoneSetup
 
 		Item AddGem(string prefab, GemType color)
 		{
-			Item gemStone = new(assets, prefab) { Configurable = false };
+			Item gemStone = new(assets, prefab) { Configurable = Configurability.Disabled };
 			RegisterGem(gemStone.Prefab, color);
 			return gemStone;
 		}

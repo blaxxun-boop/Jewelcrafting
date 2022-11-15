@@ -1,0 +1,71 @@
+Celestial Blessing:
+  duration: 14
+  prizes:
+    celestial bone pickaxe:
+      chance: 0.02
+      sockets:
+        - perfect spinel
+        - perfect sulfur
+        - perfect onyx
+    frame of chaos:
+      chance: 0.05
+Divine Intervention:
+  duration: 14
+  prizes:
+    celestial bone sword:
+      chance: 0.02
+      sockets:
+        - perfect ruby
+        - perfect emerald
+        - perfect sapphire
+    blessed crystal mirror:
+      chance: 0.05
+Heavenly Dominance:
+  duration: 14
+  prizes:
+    celestial bone bow:
+      chance: 0.02
+      sockets:
+        - perfect ruby
+        - perfect spinel
+        - perfect emerald
+    frame of chance:
+      chance: 0.05
+Stellar Impact:
+  duration: 14
+  prizes:
+    celestial bone axe:
+      chance: 0.02
+      sockets:
+        - perfect ruby
+        - perfect spinel
+        - perfect sulfur
+    celestial crystal mirror:
+      chance: 0.02
+      
+# If you want to create your own Event, you can use the following example.     
+#Example Event:
+#  start:
+#    year: 2022
+#    month: 11
+#    day: 01
+#    hour: 00
+#    minute: 00
+#  end:
+#    year: 2022
+#    month: 11
+#    day: 20
+#    hour: 10
+#    minute: 01
+#  prizes:
+#    celestial bone sword:
+#      chance: 0.02
+#      sockets:
+#        - perfect ruby
+#        - perfect merged gem
+#        - empty
+#        - empty
+#    celestial bone bow:
+#      chance: 0.02
+#      sockets:
+#        - perfect sapphire

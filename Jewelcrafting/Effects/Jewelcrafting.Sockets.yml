@@ -222,6 +222,11 @@ energetic:
   slot: tool
   gem: yellow
   power: [15, 25, 30]
+  
+frenzy:
+  slot: tool
+  gem: black
+  power: [5, 10, 15]
 
 # Boss
 

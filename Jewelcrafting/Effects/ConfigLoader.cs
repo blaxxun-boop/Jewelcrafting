@@ -116,6 +116,7 @@ public static class ConfigLoader
 			}
 			Load("Effects.Jewelcrafting.Sockets.yml", "");
 			Load("Synergy.Jewelcrafting.Synergy.yml", "Synergies");
+			Load("WorldBosses.Jewelcrafting.Gacha.yml", "Gacha");
 			if (Groups.API.IsLoaded())
 			{
 				Load("Effects.Jewelcrafting.Groups.yml", "Groups");
@@ -123,9 +124,11 @@ public static class ConfigLoader
 		}
 	}
 
+	private static bool isAcceptableConfigFile(string p) => !Path.GetFileName(p).StartsWith("Jewelcrafting.") || !Localization.instance.m_languages.Contains(Path.GetFileName(p).Split('.')[1]);
+
 	private static void loadConfigFile(Loader loader)
 	{
-		List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).OrderBy(p => Path.GetFileName(p) != loader.FilePattern.Replace("*", "")).ThenBy(Path.GetFileName).ToList();
+		List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).Where(isAcceptableConfigFile).OrderBy(p => Path.GetFileName(p) != loader.FilePattern.Replace("*", "")).ThenBy(Path.GetFileName).ToList();
 		if (paths.Count > 0 && Jewelcrafting.useExternalYaml.Value == Jewelcrafting.Toggle.On)
 		{
 			Dictionary<string, string> files = paths.ToDictionary(p => p, File.ReadAllText);
@@ -248,7 +251,7 @@ public static class ConfigLoader
 				continue;
 			}
 
-			List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).ToList();
+			List<string> paths = Jewelcrafting.configFilePaths.SelectMany(path => Directory.GetFiles(path, loader.FilePattern)).Where(isAcceptableConfigFile).ToList();
 			if (paths.Count > 0)
 			{
 				Dictionary<string, string> files = paths.ToDictionary(p => p, File.ReadAllText);

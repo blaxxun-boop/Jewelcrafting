@@ -99,6 +99,22 @@ public class SocketBag : Socketable
 	}
 }
 
+public class Frame : Socketable
+{
+	public Frame(ExtendedItemData parent) : base(typeof(Frame).AssemblyQualifiedName, parent)
+	{
+	}
+
+	public override string Serialize()
+	{
+		return "";
+	}
+
+	public override void Deserialize(string data)
+	{
+	}
+}
+
 public class Box : Socketable
 {
 	public float progress;

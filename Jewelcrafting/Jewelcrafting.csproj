@@ -101,6 +101,9 @@
         <Reference Include="LocalizationManager">
             <HintPath>Libs\LocalizationManager.dll</HintPath>
         </Reference>
+        <Reference Include="LocationManager">
+            <HintPath>Libs\LocationManager.dll</HintPath>
+        </Reference>
         <Reference Include="Microsoft.CSharp" />
         <Reference Include="PieceManager">
             <HintPath>Libs\PieceManager.dll</HintPath>
@@ -298,13 +301,30 @@
         <None Include="packages.config" />
     </ItemGroup>
     <ItemGroup>
-      <Compile Include="Setup\MiscSetup.cs" />
+        <Compile Include="Effects\GemEffects\Frenzy.cs" />
+        <Compile Include="WorldBosses\BossMechanics.cs" />
+        <Compile Include="WorldBosses\BossSpawn.cs" />
+        <Compile Include="WorldBosses\GachaChest.cs" />
+        <Compile Include="WorldBosses\GachaSetup.cs" />
+        <Compile Include="WorldBosses\GachaDef.cs" />
+        <Compile Include="WorldBosses\GemStoneInteract.cs" />
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="translations\Spanish.yml" />
+        <Content Include="Libs\LocationManager.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
+        <EmbeddedResource Include="translations\French.yml" />
+        <EmbeddedResource Include="WorldBosses\Jewelcrafting.Gacha.yml" />
     </ItemGroup>
     <ItemGroup>
-      <EmbeddedResource Include="translations\Chinese.yml" />
+        <Compile Include="Setup\BossSetup.cs" />
+        <Compile Include="Setup\MiscSetup.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="translations\Spanish.yml" />
+    </ItemGroup>
+    <ItemGroup>
+        <EmbeddedResource Include="translations\Chinese.yml" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
     <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />

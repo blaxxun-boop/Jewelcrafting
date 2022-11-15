@@ -262,7 +262,7 @@ public static class GemStones
 
 	private static bool CanAddMoreSockets(ItemDrop.ItemData item)
 	{
-		return item.Extended()?.GetComponent<Box>() is null && item.Extended()?.GetComponent<SocketBag>() is null && (item.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0) < Jewelcrafting.maximumNumberSockets.Value;
+		return item.Extended()?.GetComponent<Box>() is null && item.Extended()?.GetComponent<SocketBag>() is null && item.Extended()?.GetComponent<Frame>() is null && (item.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0) < Jewelcrafting.maximumNumberSockets.Value;
 	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipeList))]
@@ -405,7 +405,7 @@ public static class GemStones
 	}
 
 	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.CreateItemTooltip))]
-	private class DisplaySocketTooltip
+	public class DisplaySocketTooltip
 	{
 		private static GameObject originalTooltip = null!;
 		public static readonly ConditionalWeakTable<UITooltip, ExtendedItemData> tooltipItem = new();
@@ -440,7 +440,11 @@ public static class GemStones
 				if (UITooltip.m_tooltip.transform.Find("Bkg (1)/Transmute_Press_Interact") is { } interact)
 				{
 					string text;
-					if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && sockets is SocketBag)
+					if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && sockets is Frame)
+					{
+						text = Localization.instance.Localize("$jc_press_frame_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+					}
+					else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && sockets is SocketBag)
 					{
 						text = Localization.instance.Localize("$jc_press_gem_bag_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
 					}
@@ -461,7 +465,7 @@ public static class GemStones
 				}
 
 				int numSockets = 0;
-				if (sockets is not Box { progress: >= 100 } and not SocketBag)
+				if (sockets is not Box { progress: >= 100 } and not SocketBag and not Frame)
 				{
 					numSockets = sockets.socketedGems.Count;
 				}
@@ -483,6 +487,7 @@ public static class GemStones
 									{
 										ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
 										bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
+										// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
 										if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
 										{
 											text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? "_desc" : $" {gem.Power}")));
@@ -523,7 +528,7 @@ public static class GemStones
 	private static class ReplaceTooltipText
 	{
 		public static bool keyDown = false;
-		
+
 		private static void Postfix(UITooltip __instance)
 		{
 			if (__instance == UITooltip.m_current && keyDown != Jewelcrafting.advancedTooltipKey.Value.IsPressed())
@@ -836,7 +841,7 @@ public static class GemStones
 
 				invGui.m_container.gameObject.SetActive(true);
 				invGui.m_containerGrid.UpdateInventory(inventory, null, invGui.m_dragItem);
-				invGui.m_containerName.text = weapon.GetComponent<SocketBag>() is null ? Localization.instance.Localize("$jc_socket_container_title", Localization.instance.Localize(weapon.m_shared.m_name)) : Localization.instance.Localize(weapon.m_shared.m_name);
+				invGui.m_containerName.text = weapon.GetComponent<SocketBag>() is null ? Localization.instance.Localize(weapon.GetComponent<Frame>() is not null ? "$jc_frame_container_title" : "$jc_socket_container_title", Localization.instance.Localize(weapon.m_shared.m_name)) : Localization.instance.Localize(weapon.m_shared.m_name);
 				if (invGui.m_firstContainerUpdate)
 				{
 					invGui.m_containerGrid.ResetView();
@@ -928,6 +933,90 @@ public static class GemStones
 		return Jewelcrafting.allowUnsocketing.Value == Jewelcrafting.Unsocketing.UniquesOnly && bossToGem.Values.Any(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == item.m_shared.m_name);
 	}
 
+	private static void HandleSocketingFrameAndMirrors(ItemDrop.ItemData container, ItemDrop.ItemData item)
+	{
+		bool socketingFrame = container.m_shared.m_name == MiscSetup.chanceFrameName || container.m_shared.m_name == MiscSetup.chaosFrameName;
+
+		Sockets? existingSockets = item.Extended().GetComponent<Sockets>();
+		if (socketingFrame && !Utils.IsSocketableItem(item.m_shared))
+		{
+			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_frame_not_socketable");
+		}
+		if (socketingFrame && existingSockets?.socketedGems.Any(s => s.Count > 0) == true)
+		{
+			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_frame_requires_empty_sockets");
+		}
+		else if (container.m_shared.m_name == MiscSetup.blessedMirrorName && !socketableGemStones.Contains(item.m_shared.m_name))
+		{
+			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_blessed_mirror_no_gem");
+		}
+		else if (container.m_shared.m_name == MiscSetup.celestialMirrorName && !Utils.IsSocketableItem(item.m_shared))
+		{
+			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_celestial_mirror_not_socketable");
+		}
+		else if (!socketingFrame || existingSockets?.socketedGems.Count != Jewelcrafting.maximumNumberSockets.Value)
+		{
+			IEnumerator DelayedFrameDelete()
+			{
+				yield return null;
+				InventoryGui.instance.CloseContainer();
+				InventoryGui.instance.SetupDragItem(null, null, 1);
+				yield return null;
+				Player.m_localPlayer.GetInventory().RemoveItem(container, 1);
+
+				if (socketingFrame)
+				{
+					int newSockets;
+					// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+					if (container.m_shared.m_name == MiscSetup.chaosFrameName)
+					{
+						newSockets = Random.Range(0, Jewelcrafting.maximumNumberSockets.Value + 1);
+					}
+					else
+					{
+						newSockets = Math.Max((existingSockets?.socketedGems.Count ?? 0) + (Random.Range(0, 100) < Jewelcrafting.frameOfChanceChance.Value ? -1 : 1), 0);
+					}
+
+					if (newSockets == 0)
+					{
+						if (existingSockets is not null)
+						{
+							item.Extended().RemoveComponent<Sockets>();
+						}
+					}
+					else
+					{
+						existingSockets ??= item.Extended().AddComponent<Sockets>();
+						existingSockets.socketedGems = Enumerable.Repeat(new SocketItem(""), newSockets).ToList();
+					}
+					item.Extended().Save();
+
+					// refresh tooltip
+					yield return null;
+					if (UITooltip.m_current)
+					{
+						UITooltip.m_current.OnHoverStart(UITooltip.m_hovered);
+						UITooltip.m_tooltip.SetActive(true);
+					}
+				}
+				else if (container.m_shared.m_name == MiscSetup.blessedMirrorName || container.m_shared.m_name == MiscSetup.celestialMirrorName)
+				{
+					if (!Player.m_localPlayer.m_inventory.AddItem(item.Clone()))
+					{
+						Transform transform = Player.m_localPlayer.transform;
+						Vector3 position = transform.position;
+						ItemDrop itemDrop = ItemDrop.DropItem(item.Clone(), 1, position + transform.forward + transform.up, transform.rotation);
+						itemDrop.OnPlayerDrop();
+						itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
+						Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
+					}
+				}
+			}
+
+			InventoryGui.instance.StartCoroutine(DelayedFrameDelete());
+		}
+	}
+
 	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.DropItem))]
 	private class AllowGemStonesOnly
 	{
@@ -948,7 +1037,7 @@ public static class GemStones
 						__result = false;
 						return false;
 					}
-					
+
 					if (!AllowsUnsocketing(item))
 					{
 						__result = false;
@@ -1004,6 +1093,13 @@ public static class GemStones
 				return true;
 			}
 
+			if (AddFakeSocketsContainer.openEquipment?.GetComponent<Frame>() is not null)
+			{
+				HandleSocketingFrameAndMirrors(AddFakeSocketsContainer.openEquipment, item);
+				__result = false;
+				return false;
+			}
+
 			if (AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is not null)
 			{
 				if (Utils.ItemAllowedInGemBag(item))
@@ -1013,7 +1109,7 @@ public static class GemStones
 				__result = false;
 				return false;
 			}
-			
+
 			if (socketableGemStones.Contains(item.m_shared.m_name) && AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is not { progress: >= 100 })
 			{
 				ItemDrop.ItemData? oldItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
@@ -1201,11 +1297,12 @@ public static class GemStones
 		{
 			if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory == grid.m_inventory)
 			{
+				// Moving outside of container, into inventory
 				if (AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is not null)
 				{
 					return true;
 				}
-				
+
 				if (!AllowsUnsocketing(item))
 				{
 					return false;
@@ -1217,6 +1314,12 @@ public static class GemStones
 			}
 			else if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory is not null && AddFakeSocketsContainer.openInventory != grid.m_inventory)
 			{
+				// Moving into container
+				if (AddFakeSocketsContainer.openEquipment?.GetComponent<Frame>() is not null)
+				{
+					HandleSocketingFrameAndMirrors(AddFakeSocketsContainer.openEquipment, item);
+					return false;
+				}
 				if (AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is not null)
 				{
 					return Utils.ItemAllowedInGemBag(item);

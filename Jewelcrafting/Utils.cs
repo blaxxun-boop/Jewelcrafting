@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -40,9 +39,7 @@ public static class Utils
 	public static void ApplyToAllPlayerItems(Player player, Action<ItemDrop.ItemData?> callback)
 	{
 		callback(player.m_rightItem);
-		callback(player.m_hiddenRightItem);
 		callback(player.m_leftItem);
-		callback(player.m_hiddenLeftItem);
 		callback(player.m_chestItem);
 		callback(player.m_legItem);
 		callback(player.m_ammoItem);
@@ -236,9 +233,40 @@ public static class Utils
 	}
 
 	public static bool ItemAllowedInGemBag(ItemDrop.ItemData item) => GemStones.socketableGemStones.Contains(item.m_shared.m_name) || GemStoneSetup.uncutGems.ContainsValue(item.m_dropPrefab) || GemStoneSetup.shardColors.ContainsValue(item.m_dropPrefab);
+	
+	public static string GetHumanFriendlyTime(int seconds)
+	{
+		TimeSpan timeSpan = TimeSpan.FromSeconds(seconds);
 
-	public static string GetHumanFriendlyTime(int seconds) => TimeSpan.FromSeconds(seconds).ToString("c");
-
+		if (timeSpan.TotalSeconds < 60)
+		{
+			return "less than 1 minute";
+		}
+		
+		string timeString = "";
+		if (timeSpan.TotalDays >= 1)
+		{
+			timeString += $"{(int)timeSpan.TotalDays} day" + (timeSpan.TotalDays >= 2 ? "s" : "");
+		}
+		if (timeSpan.Hours >= 1 && timeSpan.TotalDays < 30)
+		{
+			if (timeSpan.TotalDays >= 1)
+			{
+				timeString += " and ";
+			}
+			timeString += $"{timeSpan.Hours} hour" + (timeSpan.Hours >= 2 ? "s" : "");
+		}
+		if (timeSpan.Minutes >= 1 && timeSpan.TotalHours < 24)
+		{
+			if (timeSpan.TotalDays >= 1 || timeSpan.Hours >= 1)
+			{
+				timeString += " and ";
+			}
+			timeString += $"{timeSpan.Minutes} minute" + (timeSpan.Minutes >= 2 ? "s" : "");
+		}
+		return timeString;
+	}
+	
 	public static string FormatShortNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
 	public static string LocalizeDescDetail(Player player, Effect effect, float[] numbers)
 	{
@@ -250,5 +278,16 @@ public static class Utils
 			}
 		}
 		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_detail", numbers.Select(FormatShortNumber).ToArray());
+	}
+
+	public static ItemDrop? getRandomGem(int tier = 0, GemType? type = null)
+	{
+		if (tier == -1)
+		{
+			return (type is not null ? GemStoneSetup.shardColors[type.Value] : GemStoneSetup.shardColors.Values.ElementAt(Random.Range(0, GemStoneSetup.shardColors.Count))).GetComponent<ItemDrop>();
+		}
+		IEnumerable<List<GemDefinition>> defLists = GemStoneSetup.Gems.Where(kv => type is null || kv.Key == type).Select(kv => kv.Value).Where(g => g.Count > 1);
+		List<GemDefinition> defs = (tier == 0 ? defLists.SelectMany(g => g) : defLists.Where(g => g.Count > tier - 1).Select(g => g[tier - 1])).ToList();
+		return defs.Count > 0 ? defs[Random.Range(0, defs.Count)].Prefab.GetComponent<ItemDrop>() : null;
 	}
 }
