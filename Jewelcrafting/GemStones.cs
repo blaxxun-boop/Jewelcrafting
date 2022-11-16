@@ -776,7 +776,9 @@ public static class GemStones
 
 	private static Inventory ReadSocketsInventory(Socketable sockets)
 	{
-		Inventory inv = new("Sockets", Player.m_localPlayer.GetInventory().m_bkg, Math.Min(8, sockets.socketedGems.Count), (sockets.socketedGems.Count + 7) / 8);
+		int size = sockets.socketedGems.Count;
+		int width = size % Jewelcrafting.gemBagSlotsColumns.Value == 0 && size / Jewelcrafting.gemBagSlotsColumns.Value <= 4 ? Jewelcrafting.gemBagSlotsColumns.Value : Enumerable.Range(1, 8).Reverse().First(n => size % n == 0);
+		Inventory inv = new("Sockets", Player.m_localPlayer.GetInventory().m_bkg, width, sockets.socketedGems.Count / width);
 		int slot = 0;
 		foreach (SocketItem gem in sockets.socketedGems)
 		{

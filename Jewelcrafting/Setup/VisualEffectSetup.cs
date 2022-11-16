@@ -90,6 +90,7 @@ public static class VisualEffectSetup
 		blackGemEffects.Add(BowHuntsman, PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_HuntBow"));
 		blackGemEffects.Add(BowDraugrFang, PrefabManager.RegisterPrefab(assets, "JC_StealthArcher_FangBow"));
 		blackGemEffects.Add(Pickaxes, PrefabManager.RegisterPrefab(assets, "JC_Pick_Frenzy"));
+		blackGemEffects.Add(PickaxeIron, PrefabManager.RegisterPrefab(assets, "JC_Pick_Frenzy_Iron"));
 		blackGemEffects.Add(Hammer, PrefabManager.RegisterPrefab(assets, "JC_Hammer_Frenzy"));
 		blackGemEffects.Add(Hoe, PrefabManager.RegisterPrefab(assets, "JC_Hoe_Frenzy"));
 		

@@ -41,7 +41,7 @@ public static class MiscSetup
 			if (item.m_shared.m_name == gemBagName && item.m_quality == 1 && item.GetComponent<SocketBag>() is null)
 			{
 				SocketBag sockets = item.AddComponent<SocketBag>();
-				for (int i = 0; i < Jewelcrafting.gemBagSlots.Value - 1; ++i)
+				for (int i = 0; i < Jewelcrafting.gemBagSlotsRows.Value * Jewelcrafting.gemBagSlotsColumns.Value - 1; ++i)
 				{
 					sockets.socketedGems.Add(new SocketItem(""));
 				}

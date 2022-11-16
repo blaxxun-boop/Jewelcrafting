@@ -66,8 +66,8 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 			{
 				endDate = GachaChest.Expiration(prizes).Date;
 			}
-			window.transform.Find("Bkg/Middle_Season_Banner/Season_Time").GetComponent<Text>().text = endDate != DateTime.MaxValue ? $"Time left: {Utils.GetHumanFriendlyTime((int)(endDate - DateTime.Now).TotalSeconds)}" : "";
-			window.transform.Find("Bkg/Coins_Middle/Middle_Coins_Text").GetComponent<Text>().text = "Celestial Coins: " + Player.m_localPlayer.m_inventory.CountItems(gachaCoinName);
+			window.transform.Find("Bkg/Middle_Season_Banner/Season_Time").GetComponent<Text>().text = endDate != DateTime.MaxValue ? Localization.instance.Localize("$jc_gacha_time_left", Utils.GetHumanFriendlyTime((int)(endDate - DateTime.Now).TotalSeconds)) : "";
+			window.transform.Find("Bkg/Coins_Middle/Middle_Coins_Text").GetComponent<Text>().text = Localization.instance.Localize("$jc_gacha_coins: ") + Player.m_localPlayer.m_inventory.CountItems(gachaCoinName);
 
 			window.transform.Find("Bkg/Middle_Roll_Button").GetComponent<Button>().onClick.AddListener(() =>
 			{
@@ -77,14 +77,14 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 					{
 						if (chest.GetInventory().m_inventory.Count != 0 || chest.m_nview.GetZDO().GetInt("Jewelcrafting Gacha Chest") > 0)
 						{
-							Player.m_localPlayer.Message(MessageHud.MessageType.Center, "Please make sure that all chests are empty");
+							Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gacha_chest_not_empty"));
 							return;
 						}
 					}
 
 					if (coins > 15)
 					{
-						Player.m_localPlayer.Message(MessageHud.MessageType.Center, "You cannot use more than 15 coins at once");
+						Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gacha_too_many_coins"));
 						return;
 					}
 					
@@ -134,7 +134,7 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 				itemTooltip.m_text = item.GetTooltip();
 
 				itemNameText.text = item.m_shared.m_name;
-				chanceText.text = Utils.FormatShortNumber(prize.Chance * 100) + "% chance to get!";
+				chanceText.text = Localization.instance.Localize("$jc_gacha_win_chance", Utils.FormatShortNumber(prize.Chance * 100));
 				itemImage.sprite = item.GetIcon();
 			}
 

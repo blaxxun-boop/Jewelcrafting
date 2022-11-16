@@ -38,6 +38,12 @@ public static class BossSpawn
 				{
 					while (true)
 					{
+						if (Jewelcrafting.bossSpawnTimer.Value <= 0)
+						{
+							yield return new WaitForSeconds(1);
+							continue;
+						}
+						
 						int oldRemainingTime = int.MaxValue;
 						int remainingTime = int.MaxValue - 1;
 						while (oldRemainingTime > remainingTime || oldRemainingTime > 50)
@@ -79,7 +85,10 @@ public static class BossSpawn
 
 							yield return new WaitForSeconds(1);
 							oldRemainingTime = remainingTime;
-							remainingTime = Jewelcrafting.bossSpawnTimer.Value * 60 - (int)ZNet.instance.GetTimeSeconds() % (Jewelcrafting.bossSpawnTimer.Value * 60);
+							if (Jewelcrafting.bossSpawnTimer.Value > 0)
+							{
+								remainingTime = Jewelcrafting.bossSpawnTimer.Value * 60 - (int)ZNet.instance.GetTimeSeconds() % (Jewelcrafting.bossSpawnTimer.Value * 60);
+							}
 						}
 						SpawnBoss();
 					}
@@ -143,26 +152,27 @@ public static class BossSpawn
 				__instance.m_locationIcons.Add(new Minimap.LocationSpriteData { m_icon = kv.Value, m_name = locations[kv.Key].name });
 			}
 			
-			RectTransform rect = (RectTransform)__instance.m_largeRoot.transform.Find("PingPanel").transform;
 			bossTimer = Object.Instantiate(__instance.m_largeRoot.transform.Find("PingPanel/Label"), __instance.m_largeRoot.transform).GetComponent<Text>();
 			bossTimer.name = "Jewelcrafting Boss Timer";
-			Vector2 anchoredPosition = rect.anchoredPosition;
-			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
-			bossTimer.GetComponent<RectTransform>().sizeDelta = rect.sizeDelta;
 			bossTimer.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
 			bossTimer.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
+			UpdateBossTimerPosition();
+			UpdateBossTimerVisibility();
 			IEnumerator Check()
 			{
 				while (true)
 				{
-					int nextBossSpawn = Jewelcrafting.bossSpawnTimer.Value * 60 - (int)ZNet.instance.GetTimeSeconds() % (Jewelcrafting.bossSpawnTimer.Value * 60) - 1;
-					bossTimer.text = $"Next Boss: {TimeSpan.FromSeconds(nextBossSpawn):c}";
-
-					foreach (Minimap.PinData pin in __instance.m_pins.Where(p => bossIcons.ContainsValue(p.m_icon)))
+					if (Jewelcrafting.bossSpawnTimer.Value > 0)
 					{
-						pin.m_name = TimeSpan.FromSeconds((int)pin.m_pos.y - (int)ZNet.instance.GetTimeSeconds()).ToString("c");
-					}
+						int nextBossSpawn = Jewelcrafting.bossSpawnTimer.Value * 60 - (int)ZNet.instance.GetTimeSeconds() % (Jewelcrafting.bossSpawnTimer.Value * 60) - 1;
+						bossTimer.text = Localization.instance.Localize("$jc_gacha_world_boss_spawn", TimeSpan.FromSeconds(nextBossSpawn).ToString("c"));
 
+						foreach (Minimap.PinData pin in __instance.m_pins.Where(p => bossIcons.ContainsValue(p.m_icon)))
+						{
+							pin.m_name = TimeSpan.FromSeconds((int)pin.m_pos.y - (int)ZNet.instance.GetTimeSeconds()).ToString("c");
+						}
+					}
+					
 					yield return new WaitForSeconds(1);
 				}
 				// ReSharper disable once IteratorNeverReturns
@@ -171,6 +181,25 @@ public static class BossSpawn
 		}
 	}
 
+	public static void UpdateBossTimerVisibility()
+	{
+		if (bossTimer)
+		{
+			bossTimer.gameObject.SetActive(Jewelcrafting.bossSpawnTimer.Value > 0);
+		}
+	}
+
+	public static void UpdateBossTimerPosition()
+	{
+		if (Minimap.instance)
+		{
+			RectTransform rect = (RectTransform)Minimap.instance.m_largeRoot.transform.Find("PingPanel").transform;
+			Vector2 anchoredPosition = rect.anchoredPosition;
+			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y + Jewelcrafting.worldBossCountdownDisplayOffset.Value);
+			bossTimer.GetComponent<RectTransform>().sizeDelta = rect.sizeDelta;
+		}
+	}
+	
 	private static void SpawnBoss()
 	{
 		if (GetRandomSpawnPoint() is { } pos)
