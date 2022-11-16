@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.0";
+	private const string ModVersion = "1.3.1";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -74,6 +74,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> advancedTooltipAlwaysOn = null!;
 	public static ConfigEntry<int> bossSpawnTimer = null!;
 	public static ConfigEntry<int> bossTimeLimit = null!;
+	public static ConfigEntry<int> bossCoinDrop = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
 
@@ -293,6 +294,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 0.3f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnTimer = config("4 - World Boss", "Time between Boss Spawns", 120, new ConfigDescription("Time in minutes between boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossTimeLimit = config("4 - World Boss", "Time Limit", 30, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
+		bossCoinDrop = config("4 - World Boss", "Coins per Boss Kill", 1, new ConfigDescription("Number of Celestial Coins dropped by bosses per player.", new AcceptableValueRange<int>(0, 20), new ConfigurationManagerAttributes { Order = --order }));
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("5 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor = config("5 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));

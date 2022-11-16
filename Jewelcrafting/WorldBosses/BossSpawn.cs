@@ -108,7 +108,13 @@ public static class BossSpawn
 		{
 			if (__instance.m_nview?.GetZDO() is { } zdo && zdo.GetLong("Jewelcrafting World Boss", long.MaxValue) < ZNet.instance.GetTimeSeconds())
 			{
-				ZNetScene.instance.Destroy(__instance.gameObject);
+				__instance.gameObject.SetActive(false);
+				IEnumerator DestroyCharacter()
+				{
+					yield return null;
+					ZNetScene.instance.Destroy(__instance.gameObject);
+				}
+				__instance.StartCoroutine(DestroyCharacter());
 			}
 		}
 	}

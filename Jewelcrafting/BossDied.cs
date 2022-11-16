@@ -19,7 +19,7 @@ public static class BossDied
 			{
 				if (__instance.m_character.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 				{
-					__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, ZNet.instance.GetNrOfPlayers()));
+					__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, ZNet.instance.GetNrOfPlayers() * Jewelcrafting.bossCoinDrop.Value));
 				}
 				
 				if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(__instance.gameObject), out GameObject bossDrop))

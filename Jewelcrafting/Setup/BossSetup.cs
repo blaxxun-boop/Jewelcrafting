@@ -26,7 +26,7 @@ public static class BossSetup
 	{
 		public void Start()
 		{
-			long destruction = GetComponent<ZNetView>().GetZDO().GetLong("Jewelcrafting World Boss", long.MaxValue);
+			long destruction = GetComponent<ZNetView>().GetZDO().GetLong("Jewelcrafting World Boss", long.MaxValue / 2);
 			if (destruction < ZNet.instance.GetTimeSeconds())
 			{
 				ZNetScene.instance.Destroy(gameObject);
