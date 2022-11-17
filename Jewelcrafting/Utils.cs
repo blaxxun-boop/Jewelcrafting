@@ -89,7 +89,7 @@ public static class Utils
 		return new WaitForSeconds(Mathf.Max(wait, 4));
 	}
 
-	public static GemLocation GetGemLocation(ItemDrop.ItemData.SharedData item) => item.m_itemType switch
+	public static GemLocation GetGemLocation(ItemDrop.ItemData.SharedData item, Player? player = null) => item.m_itemType switch
 	{
 		ItemDrop.ItemData.ItemType.Helmet => GemLocation.Head,
 		ItemDrop.ItemData.ItemType.Chest => GemLocation.Chest,
@@ -105,7 +105,7 @@ public static class Utils
 			Skills.SkillType.Polearms => GemLocation.Polearm,
 			Skills.SkillType.Spears => GemLocation.Spear,
 			Skills.SkillType.Blocking => GemLocation.Shield,
-			Skills.SkillType.Axes => GemLocation.Axe,
+			Skills.SkillType.Axes => player?.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.yellowNecklaceHash ? GemLocation.Tool : GemLocation.Axe,
 			Skills.SkillType.Bows => GemLocation.Bow,
 			Skills.SkillType.Pickaxes => GemLocation.Tool,
 			Skills.SkillType.Unarmed when item.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon => GemLocation.Knife,

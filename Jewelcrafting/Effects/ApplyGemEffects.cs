@@ -62,7 +62,7 @@ public class TrackEquipmentChanges
 		{
 			if (item?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
 			{
-				GemLocation location = Utils.GetGemLocation(item.m_shared);
+				GemLocation location = Utils.GetGemLocation(item.m_shared, player);
 
 				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 				{

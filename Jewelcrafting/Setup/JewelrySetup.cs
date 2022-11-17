@@ -13,6 +13,7 @@ public static class JewelrySetup
 
 	public static int greenRingHash;
 	public static string redRingName = null!;
+	public static int yellowNecklaceHash;
 
 	private static GameObject customNecklacePrefab = null!;
 	private static GameObject customRingPrefab = null!;
@@ -53,6 +54,15 @@ public static class JewelrySetup
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 		greenNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<MagicRepair>(greenNecklaceShared.m_equipStatusEffect);
 
+		item = new Item(assets, "JC_Necklace_Yellow");
+		item.Crafting.Add("op_transmution_table", 3);
+		item.RequiredItems.Add("Perfect_Yellow_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
+		yellowNecklaceHash = item.Prefab.name.GetStableHashCode();
+		
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Purple_Socket", 1);

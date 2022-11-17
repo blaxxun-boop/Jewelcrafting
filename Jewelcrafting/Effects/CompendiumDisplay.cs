@@ -46,7 +46,7 @@ public static class CompendiumDisplay
 			{
 				if (item?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
 				{
-					GemLocation location = Utils.GetGemLocation(item.m_shared);
+					GemLocation location = Utils.GetGemLocation(item.m_shared, player);
 					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != ""))
 					{
 						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))

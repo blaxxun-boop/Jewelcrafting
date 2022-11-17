@@ -483,7 +483,7 @@ public static class GemStones
 							{
 								if (sockets is not Box)
 								{
-									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(item.m_shared), out List<EffectPower> effectPowers))
+									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(item.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
 									{
 										ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
 										bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;

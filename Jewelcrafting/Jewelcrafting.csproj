@@ -302,10 +302,11 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Effects\GemEffects\Frenzy.cs" />
+        <Compile Include="Effects\JewelryEffects\Lumberjacking.cs" />
+        <Compile Include="Setup\GachaSetup.cs" />
         <Compile Include="WorldBosses\BossMechanics.cs" />
         <Compile Include="WorldBosses\BossSpawn.cs" />
         <Compile Include="WorldBosses\GachaChest.cs" />
-        <Compile Include="WorldBosses\GachaSetup.cs" />
         <Compile Include="WorldBosses\GachaDef.cs" />
         <Compile Include="WorldBosses\GemStoneInteract.cs" />
     </ItemGroup>

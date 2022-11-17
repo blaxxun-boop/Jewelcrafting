@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.2";
+	private const string ModVersion = "1.3.3";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -128,6 +128,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SE_Stats awareness = null!;
 	public static GameObject heardIcon = null!;
 	public static GameObject attackedIcon = null!;
+	public static SE_Stats lumberjacking = null!;
 	public static SE_Stats headhunter = null!;
 	private static SE_Stats rigidFinger = null!;
 	public static GameObject magicRepair = null!;
@@ -388,6 +389,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
 		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
 		headhunter.m_modifyAttackSkill = Skills.SkillType.All;
+		lumberjacking = assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Yellow");
 		rigidFinger = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Purple");
 		rigidFinger.m_modifyAttackSkill = Skills.SkillType.All;
 		magicRepair = PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
@@ -478,6 +480,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_CamShake");
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_Hit");
 		PrefabManager.RegisterPrefab(assets, "VFX_Crystal_Explosion_Blue");
+		PrefabManager.RegisterPrefab(assets, "SFX_Arrow_Explosion");
 
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);
