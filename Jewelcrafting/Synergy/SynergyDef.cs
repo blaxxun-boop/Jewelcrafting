@@ -47,7 +47,7 @@ public class SynergyDef
 	{
 		{ "sum", gems => gems.Sum(kv => kv.Value) },
 		{ "min", gems => gems.Min(kv => kv.Value) },
-		{ "max", gems => gems.Max(kv => kv.Value) },
+		{ "max", gems => gems.Max(kv => kv.Value) }
 	};
 
 	private class Value : Expr

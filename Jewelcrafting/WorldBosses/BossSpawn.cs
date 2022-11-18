@@ -128,6 +128,24 @@ public static class BossSpawn
 		}
 	}
 
+	[HarmonyPatch(typeof(ZNet), nameof(ZNet.OnNewConnection))]
+	private static class AddRPCs
+	{
+		private static void Postfix(ZNet __instance, ZNetPeer peer)
+		{
+			if (__instance.IsServer())
+			{
+				peer.m_rpc.Register<int, int>("Jewelcrafting BossDied", (_, sectorX, sectorY) => HandleBossDeath(new Vector2i(sectorX, sectorY)));
+			}
+		}
+	}
+
+	private static void HandleBossDeath(Vector2i sector)
+	{
+		ZoneSystem.instance.m_locationInstances.Remove(sector);
+        BroadcastMinimapUpdate();
+	}
+
 	[HarmonyPatch(typeof(Character), nameof(Character.OnDeath))]
 	private static class RemoveOnDeath
 	{
@@ -136,8 +154,14 @@ public static class BossSpawn
 			if (__instance.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 			{
 				Vector2i sector = ZoneSystem.instance.GetZone(__instance.m_baseAI.m_spawnPoint);
-				ZoneSystem.instance.m_locationInstances.Remove(sector);
-				BroadcastMinimapUpdate();
+				if (ZNet.instance.IsServer())
+				{
+					HandleBossDeath(sector);
+				}
+				else
+				{
+					ZNet.instance.GetServerPeer().m_rpc.Invoke("Jewelcrafting BossDied", sector.x, sector.y);
+				}
 			}
 		}
 	}
@@ -195,7 +219,7 @@ public static class BossSpawn
 		{
 			RectTransform rect = (RectTransform)Minimap.instance.m_largeRoot.transform.Find("PingPanel").transform;
 			Vector2 anchoredPosition = rect.anchoredPosition;
-			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y + Jewelcrafting.worldBossCountdownDisplayOffset.Value);
+			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y - Jewelcrafting.worldBossCountdownDisplayOffset.Value);
 			bossTimer.GetComponent<RectTransform>().sizeDelta = rect.sizeDelta;
 		}
 	}
@@ -212,7 +236,7 @@ public static class BossSpawn
 			{
 				m_iconAlways = true,
 				m_prefabName = locations[boss].name,
-				m_location = locations[boss],
+				m_location = locations[boss]
 			}, pos with { y = despawnTime }, true);
 
 			ZDO zdo = ZDOMan.instance.CreateNewZDO(pos);
@@ -240,8 +264,13 @@ public static class BossSpawn
 	{
 		for (int i = 0; i < 10000; ++i)
 		{
-			Vector2 randomPoint = Random.insideUnitCircle * WorldGenerator.worldSize;
+			Vector2 randomPoint = Random.insideUnitCircle * Jewelcrafting.bossSpawnMaxDistance.Value;
 			Vector3 point = new(randomPoint.x, 0, randomPoint.y);
+
+			if (global::Utils.DistanceXZ(Vector3.zero, point) < Jewelcrafting.bossSpawnMinDistance.Value)
+			{
+				continue;
+			}
 
 			Heightmap.Biome biome = WorldGenerator.instance.GetBiome(point.x, point.z);
 			float biomeHeight = WorldGenerator.instance.GetBiomeHeight(biome, point.x, point.z);

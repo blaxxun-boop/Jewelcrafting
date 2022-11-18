@@ -8,13 +8,14 @@ namespace Jewelcrafting;
 
 public static class MiscSetup
 {
-	private static string gemBagName = null!;
+	public static string gemBagName = null!;
+	public static string gemBoxName = null!;
 	public static string chaosFrameName = null!;
 	public static string chanceFrameName = null!;
 	public static string blessedMirrorName = null!;
 	public static string celestialMirrorName = null!;
 	public static readonly List<GameObject> framePrefabs = new();
-	
+
 	public static void initializeMisc(AssetBundle assets)
 	{
 		Item item = new(assets, "JC_Gem_Bag");
@@ -24,6 +25,14 @@ public static class MiscSetup
 		item.RequiredItems.Add("Resin", 5);
 		item.RequiredItems.Add("GreydwarfEye", 1);
 		gemBagName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+
+		item = new Item(assets, "JC_Gem_Box");
+		item.Crafting.Add("op_transmution_table", 3);
+		item.RequiredItems.Add("FineWood", 15);
+		item.RequiredItems.Add("LeatherScraps", 10);
+		item.RequiredItems.Add("Resin", 5);
+		item.RequiredItems.Add("GreydwarfEye", 5);
+		gemBoxName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		
 		item = new Item(assets, "Blue_Crystal_Frame");
 		framePrefabs.Add(item.Prefab);
@@ -46,6 +55,11 @@ public static class MiscSetup
 					sockets.socketedGems.Add(new SocketItem(""));
 				}
 				sockets.Save();
+			}
+			
+			if (item.m_shared.m_name == gemBoxName && item.m_quality == 1 && item.GetComponent<InventoryBag>() is null)
+			{
+				item.AddComponent<InventoryBag>().Save();
 			}
 
 			if ((item.m_shared.m_name == chaosFrameName || item.m_shared.m_name == chanceFrameName || item.m_shared.m_name == blessedMirrorName || item.m_shared.m_name == celestialMirrorName) && item.GetComponent<Frame>() is null)
@@ -112,7 +126,7 @@ public static class MiscSetup
 							return false;
 						}
 					}
-					
+
 					socketBag.Save();
 				}
 			}

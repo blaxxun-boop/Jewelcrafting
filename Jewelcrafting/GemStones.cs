@@ -182,9 +182,9 @@ public static class GemStones
 			{
 				socketIcon.SetActive(false);
 			}
-			if (__instance.m_selectedRecipe.Value?.Extended()?.GetComponent<Socketable>() is { } sockets)
+			if (__instance.m_selectedRecipe.Value?.Extended()?.GetComponent<ItemContainer>() is { } container)
 			{
-				if (sockets is not SocketBag)
+				if (container is Socketable sockets and not ItemBag)
 				{
 					for (int i = 0; i < sockets.socketedGems.Count; ++i)
 					{
@@ -262,7 +262,7 @@ public static class GemStones
 
 	private static bool CanAddMoreSockets(ItemDrop.ItemData item)
 	{
-		return item.Extended()?.GetComponent<Box>() is null && item.Extended()?.GetComponent<SocketBag>() is null && item.Extended()?.GetComponent<Frame>() is null && (item.Extended()?.GetComponent<Sockets>()?.socketedGems.Count ?? 0) < Jewelcrafting.maximumNumberSockets.Value;
+		return item.Extended()?.GetComponent<ItemContainer>() is not { } container || ((container as Socketable)?.socketedGems.Count ?? 0) < Jewelcrafting.maximumNumberSockets.Value;
 	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipeList))]
@@ -279,7 +279,7 @@ public static class GemStones
 				}
 
 				__instance.m_recipeList.Clear();
-				foreach (ItemDrop.ItemData itemData in Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i.m_shared) || i.Extended()?.GetComponent<Socketable>() is { boxSealed: false }))
+				foreach (ItemDrop.ItemData itemData in Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i.m_shared) || i.Extended()?.GetComponent<ItemContainer>() is { boxSealed: false }))
 				{
 					ItemDrop component = Utils.Clone(itemData.m_dropPrefab.GetComponent<ItemDrop>());
 					component.m_itemData = itemData;
@@ -338,7 +338,7 @@ public static class GemStones
 			{
 				if (__instance.m_craftUpgradeItem.Extended()?.GetComponent<Sockets>() is { } sockets)
 				{
-					Inventory itemInventory = ReadSocketsInventory(sockets);
+					Inventory itemInventory = sockets.ReadInventory();
 
 					Player.m_localPlayer.m_inventory.MoveAll(itemInventory);
 
@@ -408,11 +408,11 @@ public static class GemStones
 	public class DisplaySocketTooltip
 	{
 		private static GameObject originalTooltip = null!;
-		public static readonly ConditionalWeakTable<UITooltip, ExtendedItemData> tooltipItem = new();
+		public static readonly ConditionalWeakTable<UITooltip, Tuple<InventoryGrid?, ExtendedItemData>> tooltipItem = new();
 
-		private static void Postfix(ItemDrop.ItemData item, UITooltip tooltip)
+		private static void Postfix(InventoryGrid __instance, ItemDrop.ItemData item, UITooltip tooltip)
 		{
-			if (item.Extended()?.GetComponent<Socketable>() is not null && Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On)
+			if (item.Extended()?.GetComponent<ItemContainer>() is not null && Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On)
 			{
 				if (tooltip.m_tooltipPrefab != GemStoneSetup.SocketTooltip)
 				{
@@ -420,7 +420,7 @@ public static class GemStones
 					tooltip.m_tooltipPrefab = GemStoneSetup.SocketTooltip;
 				}
 				tooltipItem.Remove(tooltip);
-				tooltipItem.Add(tooltip, item.Extended());
+				tooltipItem.Add(tooltip, new Tuple<InventoryGrid?, ExtendedItemData>(__instance, item.Extended()));
 			}
 			else if (tooltip.m_tooltipPrefab == GemStoneSetup.SocketTooltip)
 			{
@@ -435,37 +435,41 @@ public static class GemStones
 	{
 		public static void Postfix(UITooltip __instance)
 		{
-			if (UITooltip.m_tooltip is not null && global::Utils.GetPrefabName(UITooltip.m_tooltip) == GemStoneSetup.SocketTooltip.name && DisplaySocketTooltip.tooltipItem.TryGetValue(__instance, out ExtendedItemData item) && item.GetComponent<Socketable>() is { } sockets)
+			if (UITooltip.m_tooltip is not null && global::Utils.GetPrefabName(UITooltip.m_tooltip) == GemStoneSetup.SocketTooltip.name && DisplaySocketTooltip.tooltipItem.TryGetValue(__instance, out Tuple<InventoryGrid?, ExtendedItemData> itemInfo) && itemInfo.Item2.GetComponent<ItemContainer>() is { } container)
 			{
 				if (UITooltip.m_tooltip.transform.Find("Bkg (1)/Transmute_Press_Interact") is { } interact)
 				{
-					string text;
-					if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && sockets is Frame)
+					string text = "";
+					if (itemInfo.Item1 == InventoryGui.instance?.m_playerGrid)
 					{
-						text = Localization.instance.Localize("$jc_press_frame_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+						if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && container is Frame)
+						{
+							text = Localization.instance.Localize("$jc_press_frame_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+						}
+						else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && container is ItemBag)
+						{
+							text = Localization.instance.Localize("$jc_press_gem_bag_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+						}
+						else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table")))
+						{
+							text = Localization.instance.Localize(container is Box { progress: >= 100 } ? "$jc_gembox_interact_finished" : "$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+						}
+						else
+						{
+							text = Localization.instance.Localize("$jc_table_required");
+						}
+						text += "\n";
 					}
-					else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && sockets is SocketBag)
+					if (Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.Off && container is Sockets)
 					{
-						text = Localization.instance.Localize("$jc_press_gem_bag_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
-					}
-					else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table")))
-					{
-						text = Localization.instance.Localize(sockets is Box { progress: >= 100 } ? "$jc_gembox_interact_finished" : "$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
-					}
-					else
-					{
-						text = Localization.instance.Localize("$jc_table_required");
-					}
-					if (Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.Off && sockets is Sockets)
-					{
-						text += Localization.instance.Localize("\n$jc_hold_advanced", $"<color=yellow><b>{Jewelcrafting.advancedTooltipKey.Value.MainKey}</b></color>");
+						text += Localization.instance.Localize("$jc_hold_advanced", $"<color=yellow><b>{Jewelcrafting.advancedTooltipKey.Value.MainKey}</b></color>");
 					}
 					interact.GetComponent<Text>().text = text;
-					interact.gameObject.SetActive(!sockets.boxSealed);
+					interact.gameObject.SetActive(!container.boxSealed);
 				}
 
 				int numSockets = 0;
-				if (sockets is not Box { progress: >= 100 } and not SocketBag and not Frame)
+				if (container is Socketable sockets and not Box { progress: >= 100 } and not SocketBag and not Frame)
 				{
 					numSockets = sockets.socketedGems.Count;
 				}
@@ -476,14 +480,14 @@ public static class GemStones
 						transmute.gameObject.SetActive(i <= numSockets);
 						if (i <= numSockets)
 						{
-							string socket = sockets.socketedGems[i - 1].Name;
+							string socket = ((Socketable)container).socketedGems[i - 1].Name;
 							string text = "$jc_empty_socket_text";
 							Sprite? sprite = null;
 							if (ObjectDB.instance.GetItemPrefab(socket) is { } gameObject)
 							{
-								if (sockets is not Box)
+								if (container is not Box)
 								{
-									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(item.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
+									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(itemInfo.Item2.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
 									{
 										ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
 										bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
@@ -663,7 +667,7 @@ public static class GemStones
 		{
 			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.OnTakeAll)),
 			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.OnSelectedItem)),
-			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.IsContainerOpen)),
+			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.IsContainerOpen))
 		};
 
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsList, ILGenerator ilg)
@@ -706,25 +710,16 @@ public static class GemStones
 
 		public static void SaveGems()
 		{
-			if (openEquipment?.GetComponent<Socketable>() is not { } sockets)
+			if (openEquipment?.GetComponent<ItemContainer>() is not { } sockets)
 			{
 				// Socket component may have been removed upon item upgrade
 				return;
 			}
 
-			List<SocketItem> gems = sockets.socketedGems;
-
-			for (int i = 0; i < gems.Count; ++i)
-			{
-				gems[i] = new SocketItem("");
-			}
-			foreach (ItemDrop.ItemData item in openInventory!.m_inventory)
-			{
-				gems[item.m_gridPos.x + item.m_gridPos.y * openInventory.m_width] = new SocketItem(item.m_dropPrefab.name, item.m_stack);
-			}
+			sockets.SaveSocketsInventory(openInventory!);
 			openEquipment.Save();
 
-			if (sockets is Box { progress: >= 100 } && gems.All(g => g.Name == ""))
+			if (sockets is Box { progress: >= 100 } box && box.socketedGems.All(g => g.Name == ""))
 			{
 				openEquipment.RemoveComponent<Box>();
 				ItemDrop.ItemData deleteBox = openEquipment;
@@ -774,27 +769,6 @@ public static class GemStones
 		}
 	}
 
-	private static Inventory ReadSocketsInventory(Socketable sockets)
-	{
-		int size = sockets.socketedGems.Count;
-		int width = size % Jewelcrafting.gemBagSlotsColumns.Value == 0 && size / Jewelcrafting.gemBagSlotsColumns.Value <= 4 ? Jewelcrafting.gemBagSlotsColumns.Value : Enumerable.Range(1, 8).Reverse().First(n => size % n == 0);
-		Inventory inv = new("Sockets", Player.m_localPlayer.GetInventory().m_bkg, width, sockets.socketedGems.Count / width);
-		int slot = 0;
-		foreach (SocketItem gem in sockets.socketedGems)
-		{
-			if (gem.Name != "" && ObjectDB.instance.GetItemPrefab(gem.Name) is { } prefab)
-			{
-				ItemDrop.ItemData itemData = prefab.GetComponent<ItemDrop>().m_itemData.Clone();
-				itemData.m_dropPrefab = prefab;
-				itemData.m_stack = gem.Count;
-				itemData.m_gridPos = new Vector2i(slot % inv.m_width, slot / inv.m_width);
-				inv.m_inventory.Add(itemData);
-			}
-			++slot;
-		}
-		return inv;
-	}
-
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateContainer))]
 	public class OpenFakeSocketsContainer
 	{
@@ -802,7 +776,7 @@ public static class GemStones
 		{
 			ExtendedItemData? extended = item?.Extended();
 
-			if (extended?.GetComponent<Socketable>() is { boxSealed: false } sockets)
+			if (extended?.GetComponent<ItemContainer>() is { boxSealed: false } sockets)
 			{
 				if (invGui.IsContainerOpen())
 				{
@@ -818,12 +792,12 @@ public static class GemStones
 				{
 					FusionBoxSetup.AddSealButton.SealButton.SetActive(true);
 				}
-				else if ((Jewelcrafting.allowUnsocketing.Value != Jewelcrafting.Unsocketing.All || Jewelcrafting.breakChanceUnsocketSimple.Value > 0 || Jewelcrafting.breakChanceUnsocketAdvanced.Value > 0 || Jewelcrafting.breakChanceUnsocketPerfect.Value > 0 || Jewelcrafting.breakChanceUnsocketMerged.Value > 0) && sockets is not SocketBag)
+				else if ((Jewelcrafting.allowUnsocketing.Value != Jewelcrafting.Unsocketing.All || Jewelcrafting.breakChanceUnsocketSimple.Value > 0 || Jewelcrafting.breakChanceUnsocketAdvanced.Value > 0 || Jewelcrafting.breakChanceUnsocketPerfect.Value > 0 || Jewelcrafting.breakChanceUnsocketMerged.Value > 0) && sockets is not ItemBag)
 				{
 					takeAllButton.gameObject.SetActive(false);
 				}
 
-				Inventory inv = ReadSocketsInventory(sockets);
+				Inventory inv = sockets.ReadInventory();
 				inv.m_onChanged += AddFakeSocketsContainer.SaveGems;
 
 				GemCursor.SetCursor(GemCursor.CursorState.Socketing);
@@ -843,7 +817,7 @@ public static class GemStones
 
 				invGui.m_container.gameObject.SetActive(true);
 				invGui.m_containerGrid.UpdateInventory(inventory, null, invGui.m_dragItem);
-				invGui.m_containerName.text = weapon.GetComponent<SocketBag>() is null ? Localization.instance.Localize(weapon.GetComponent<Frame>() is not null ? "$jc_frame_container_title" : "$jc_socket_container_title", Localization.instance.Localize(weapon.m_shared.m_name)) : Localization.instance.Localize(weapon.m_shared.m_name);
+				invGui.m_containerName.text = weapon.GetComponent<SocketBag>() is null && weapon.GetComponent<InventoryBag>() is null ? Localization.instance.Localize(weapon.GetComponent<Frame>() is not null ? "$jc_frame_container_title" : "$jc_socket_container_title", Localization.instance.Localize(weapon.m_shared.m_name)) : Localization.instance.Localize(weapon.m_shared.m_name);
 				if (invGui.m_firstContainerUpdate)
 				{
 					invGui.m_containerGrid.ResetView();
@@ -864,7 +838,7 @@ public static class GemStones
 				item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended();
 			}
 
-			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (item?.Extended() ?? AddFakeSocketsContainer.openEquipment)?.GetComponent<SocketBag>() is not null || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
+			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (item?.Extended() ?? AddFakeSocketsContainer.openEquipment)?.GetComponent<ItemContainer>() is ItemBag || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
 			{
 				return Open(__instance, item);
 			}
@@ -890,7 +864,7 @@ public static class GemStones
 				}
 
 				Vector2 pos = Input.mousePosition;
-				return invGui.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended()?.GetComponent<Socketable>() is not null;
+				return invGui.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)))?.Extended()?.GetComponent<ItemContainer>() is not null;
 			}
 			return false;
 		}
@@ -1030,9 +1004,9 @@ public static class GemStones
 				{
 					ItemDrop.ItemData existingItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
 
-					if (AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is not null)
+					if (AddFakeSocketsContainer.openEquipment?.GetComponent<ItemContainer>() is ItemBag)
 					{
-						if (existingItem is null || Utils.ItemAllowedInGemBag(existingItem))
+						if (existingItem is null || Utils.ItemAllowedInGemBag(existingItem) || Utils.ItemAllowedInGemBox(existingItem))
 						{
 							return true;
 						}
@@ -1102,9 +1076,14 @@ public static class GemStones
 				return false;
 			}
 
-			if (AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is not null)
+			if (AddFakeSocketsContainer.openEquipment?.GetComponent<ItemContainer>() is ItemBag)
 			{
-				if (Utils.ItemAllowedInGemBag(item))
+				if (AddFakeSocketsContainer.openEquipment.m_shared.m_name == MiscSetup.gemBagName && Utils.ItemAllowedInGemBag(item))
+				{
+					return true;
+				}
+
+				if (AddFakeSocketsContainer.openEquipment.m_shared.m_name == MiscSetup.gemBoxName && Utils.ItemAllowedInGemBox(item))
 				{
 					return true;
 				}
@@ -1300,7 +1279,7 @@ public static class GemStones
 			if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory == grid.m_inventory)
 			{
 				// Moving outside of container, into inventory
-				if (AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is not null)
+				if (AddFakeSocketsContainer.openEquipment?.GetComponent<ItemContainer>() is ItemBag)
 				{
 					return true;
 				}
@@ -1322,7 +1301,7 @@ public static class GemStones
 					HandleSocketingFrameAndMirrors(AddFakeSocketsContainer.openEquipment, item);
 					return false;
 				}
-				if (AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is not null)
+				if (AddFakeSocketsContainer.openEquipment?.GetComponent<ItemContainer>() is ItemBag)
 				{
 					return Utils.ItemAllowedInGemBag(item);
 				}
@@ -1350,7 +1329,7 @@ public static class GemStones
 	{
 		private static bool Prefix(ref bool __result, Inventory inventory)
 		{
-			if (inventory == AddFakeSocketsContainer.openInventory && AddFakeSocketsContainer.openEquipment?.GetComponent<SocketBag>() is null)
+			if (inventory == AddFakeSocketsContainer.openInventory && AddFakeSocketsContainer.openEquipment?.GetComponent<ItemContainer>() is not ItemBag)
 			{
 				__result = false;
 				return false;

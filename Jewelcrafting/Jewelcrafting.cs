@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.3";
+	private const string ModVersion = "1.3.4";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -70,10 +70,15 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> gemBagSlotsRows = null!;
 	public static ConfigEntry<int> gemBagSlotsColumns = null!;
 	public static ConfigEntry<Toggle> gemBagAutofill = null!;
+	public static ConfigEntry<int> gemBoxSlotsRows = null!;
+	public static ConfigEntry<int> gemBoxSlotsColumns = null!;
 	public static ConfigEntry<KeyboardShortcut> advancedTooltipKey = null!;
 	public static ConfigEntry<AdvancedTooltipMode> advancedTooltipMode = null!;
 	public static ConfigEntry<Toggle> advancedTooltipAlwaysOn = null!;
+	public static ConfigEntry<Toggle> gachaLocationIcon = null!;
 	public static ConfigEntry<int> bossSpawnTimer = null!;
+	public static ConfigEntry<int> bossSpawnMinDistance = null!;
+	public static ConfigEntry<int> bossSpawnMaxDistance = null!;
 	public static ConfigEntry<int> bossTimeLimit = null!;
 	public static ConfigEntry<int> bossCoinDrop = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
@@ -295,8 +300,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		crystalFusionBoxMergeActivityProgress[0] = config("3 - Fusion Box", "Activity reward for Fusion Box", 1.5f, new ConfigDescription("Progress for the Common Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 0.7f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 0.3f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gachaLocationIcon = config("4 - World Boss", "Location Icon", Toggle.On, new ConfigDescription("Display the map icon of the mystical gemstone.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gachaLocationIcon.SettingChanged += (_, _) => ZoneSystem.instance.GetLocation("JC_Gacha_Location").m_iconPlaced = gachaLocationIcon.Value == Toggle.On;
 		bossSpawnTimer = config("4 - World Boss", "Time between Boss Spawns", 120, new ConfigDescription("Time in minutes between boss spawns. Set this to 0, to disable boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnTimer.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerVisibility();
+		bossSpawnMinDistance = config("4 - World Boss", "Minimum Distance Boss Spawns", 1000, new ConfigDescription("Minimum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
+		bossSpawnMaxDistance = config("4 - World Boss", "Maximum Distance Boss Spawns", 10000, new ConfigDescription("Maximum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossTimeLimit = config("4 - World Boss", "Time Limit", 30, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossCoinDrop = config("4 - World Boss", "Coins per Boss Kill", 1, new ConfigDescription("Number of Celestial Coins dropped by bosses per player.", new AcceptableValueRange<int>(0, 20), new ConfigurationManagerAttributes { Order = --order }));
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -309,6 +318,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		gemBagSlotsRows = config("5 - Other", "Jewelers Bag Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
 		gemBagSlotsColumns = config("5 - Other", "Jewelers Bag Columns", 8, new ConfigDescription("Columns in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
 		gemBagAutofill = config("5 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		gemBoxSlotsRows = config("5 - Other", "Jewelers Box Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
+		gemBoxSlotsColumns = config("5 - Other", "Jewelers Box Columns", 2, new ConfigDescription("Columns in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
 		frameOfChanceChance = config("5 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(1, 100), new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipKey = config("5 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipMode = config("5 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
@@ -453,6 +464,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "VFX_Hearts_Start");
 		PrefabManager.RegisterPrefab(assets, "sfx_reaper_offering");
 		PrefabManager.RegisterPrefab(assets, "VFX_Crystal_Explosion_Red");
+		PrefabManager.RegisterPrefab(assets, "VFX_Crystal_Explosion_Blue");
+		PrefabManager.RegisterPrefab(assets, "VFX_Crystal_Explosion_Green");
 		PrefabManager.RegisterPrefab(assets, "sfx_reaper_idle");
 		PrefabManager.RegisterPrefab(assets, "vfx_reaper_hit");
 		PrefabManager.RegisterPrefab(assets, "sfx_reaper_attack");
@@ -479,7 +492,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Bow_Fire");
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_CamShake");
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_Hit");
-		PrefabManager.RegisterPrefab(assets, "VFX_Crystal_Explosion_Blue");
 		PrefabManager.RegisterPrefab(assets, "SFX_Arrow_Explosion");
 
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);

@@ -30,7 +30,7 @@ public enum GemLocation
 	Tool = 1 << 13,
 	Shield = 1 << 14,
 	Utility = 1 << 15,
-	All = 1 << 16,
+	All = 1 << 16
 }
 
 public enum Effect
@@ -695,7 +695,7 @@ public class EffectDef
 							{
 								Effect = kv.Key,
 								Config = def.Power[i],
-								Unique = def.Unique,
+								Unique = def.Unique
 							};
 							foreach (GemLocation location in (GemLocation[])Enum.GetValues(typeof(GemLocation)))
 							{

@@ -44,7 +44,7 @@ public static class GachaSetup
 		_ = new LocationManager.Location(location)
 		{
 			MapIconSprite = gachaCoins.GetComponent<ItemDrop>().m_itemData.GetIcon(),
-			ShowMapIcon = ShowIcon.Explored,
+			ShowMapIcon = Jewelcrafting.gachaLocationIcon.Value == Jewelcrafting.Toggle.On ? ShowIcon.Explored : ShowIcon.Never,
 			Biome = Heightmap.Biome.Meadows,
 			SpawnDistance = new Range(1000, 10000),
 			SpawnAltitude = new Range(10, 200),

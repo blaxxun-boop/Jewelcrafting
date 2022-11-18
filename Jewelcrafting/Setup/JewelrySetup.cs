@@ -9,7 +9,7 @@ namespace Jewelcrafting;
 
 public static class JewelrySetup
 {
-	private static readonly HashSet<string> upgradeableJewelry = new();
+	public static readonly HashSet<string> upgradeableJewelry = new();
 
 	public static int greenRingHash;
 	public static string redRingName = null!;

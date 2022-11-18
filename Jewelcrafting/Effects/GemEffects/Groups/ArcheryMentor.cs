@@ -14,13 +14,13 @@ public static class ArcheryMentor
 	{
 		EffectDef.ConfigTypes.Add(Effect.Paintolerance, typeof(Config));
 	}
-	
+
 	[PublicAPI]
 	private struct Config
 	{
 		[InverseMultiplicativePercentagePower] public float Power;
 	}
-	
+
 	[HarmonyPatch(typeof(Skills), nameof(Skills.GetSkillLevel))]
 	private static class IncreaseSkillLevel
 	{
@@ -42,7 +42,7 @@ public static class ArcheryMentor
 			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.OnSkillLevelup)),
 			AccessTools.DeclaredMethod(typeof(Skills), nameof(Skills.ResetSkill)),
 			AccessTools.DeclaredMethod(typeof(Skills), nameof(Skills.CheatRaiseSkill)),
-			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.Load)),
+			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.Load))
 		};
 
 		private static void Postfix()

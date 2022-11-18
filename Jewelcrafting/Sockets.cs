@@ -1,14 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using ExtendedItemDataFramework;
-using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
 
 public struct SocketItem
 {
-	public string Name;
+	public readonly string Name;
 	public int Count;
 
 	public SocketItem(string name, int count = 1)
@@ -18,10 +19,22 @@ public struct SocketItem
 	}
 }
 
-public abstract class Socketable : BaseExtendedItemComponent
+public abstract class ItemContainer : BaseExtendedItemComponent
+{
+	public bool boxSealed = false;
+
+	protected ItemContainer(string id, ExtendedItemData parent) : base(id, parent)
+	{
+	}
+
+	public abstract Inventory ReadInventory();
+
+	public abstract void SaveSocketsInventory(Inventory inv);
+}
+
+public abstract class Socketable : ItemContainer
 {
 	public List<SocketItem> socketedGems = new() { new SocketItem("") };
-	public bool boxSealed = false;
 
 	protected Socketable(string id, ExtendedItemData parent) : base(id, parent)
 	{
@@ -32,6 +45,39 @@ public abstract class Socketable : BaseExtendedItemComponent
 		Socketable copy = (Socketable)MemberwiseClone();
 		copy.socketedGems = new List<SocketItem>(copy.socketedGems);
 		return copy;
+	}
+	
+	public override Inventory ReadInventory()
+	{
+		int size = socketedGems.Count;
+		int width = size % Jewelcrafting.gemBagSlotsColumns.Value == 0 && size / Jewelcrafting.gemBagSlotsColumns.Value <= 4 ? Jewelcrafting.gemBagSlotsColumns.Value : Enumerable.Range(1, 8).Reverse().First(n => size % n == 0);
+		Inventory inv = new("Sockets", Player.m_localPlayer.GetInventory().m_bkg, width, socketedGems.Count / width);
+		int slot = 0;
+		foreach (SocketItem gem in socketedGems)
+		{
+			if (gem.Name != "" && ObjectDB.instance.GetItemPrefab(gem.Name) is { } prefab)
+			{
+				ItemDrop.ItemData itemData = prefab.GetComponent<ItemDrop>().m_itemData.Clone();
+				itemData.m_dropPrefab = prefab;
+				itemData.m_stack = gem.Count;
+				itemData.m_gridPos = new Vector2i(slot % inv.m_width, slot / inv.m_width);
+				inv.m_inventory.Add(itemData);
+			}
+			++slot;
+		}
+		return inv;
+	}
+
+	public override void SaveSocketsInventory(Inventory inv)
+	{
+		for (int i = 0; i < socketedGems.Count; ++i)
+		{
+			socketedGems[i] = new SocketItem("");
+		}
+		foreach (ItemDrop.ItemData item in inv.m_inventory)
+		{
+			socketedGems[item.m_gridPos.x + item.m_gridPos.y * inv.m_width] = new SocketItem(item.m_dropPrefab.name, item.m_stack);
+		}
 	}
 }
 
@@ -82,7 +128,11 @@ public class Sockets : Socketable
 	}
 }
 
-public class SocketBag : Socketable
+public interface ItemBag
+{
+}
+
+public class SocketBag : Socketable, ItemBag
 {
 	public SocketBag(ExtendedItemData parent) : base(typeof(SocketBag).AssemblyQualifiedName, parent)
 	{
@@ -97,6 +147,42 @@ public class SocketBag : Socketable
 	{
 		socketedGems = data.Split(',').Select(s => { string[] split = s.Split(':'); return new SocketItem(split[0], split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0); }).ToList();
 	}
+}
+
+public class InventoryBag : ItemContainer, ItemBag
+{
+	private Inventory inventory = new("Items", Player.m_localPlayer?.GetInventory().m_bkg, Jewelcrafting.gemBoxSlotsColumns.Value, Jewelcrafting.gemBoxSlotsRows.Value);
+	
+	// ReSharper disable once MemberCanBePrivate.Global
+	public InventoryBag(ExtendedItemData parent) : base(typeof(InventoryBag).AssemblyQualifiedName, parent)
+	{
+	}
+
+	public override string Serialize()
+	{
+		ZPackage pkg = new();
+		inventory.Save(pkg);
+		return $"{inventory.m_width};{inventory.m_height};{Convert.ToBase64String(pkg.GetArray())}";
+	}
+
+	public override void Deserialize(string data)
+	{
+		string[] info = data.Split(';');
+		if (info.Length > 2 && int.TryParse(info[0], out int width) && int.TryParse(info[1], out int height))
+		{
+			inventory = new Inventory("Items", Player.m_localPlayer?.GetInventory().m_bkg, width, height);
+			inventory.Load(new ZPackage(Convert.FromBase64String(info[2])));
+		}
+	}
+
+	public override BaseExtendedItemComponent Clone()
+	{
+		return new InventoryBag(ItemData) { inventory = new Inventory(inventory.m_name, inventory.m_bkg, inventory.m_width, inventory.m_height) { m_inventory = inventory.m_inventory.Select(i => i.Clone()).ToList() } };
+	}
+
+	public override Inventory ReadInventory() => inventory;
+
+	public override void SaveSocketsInventory(Inventory inv) => inventory = inv;
 }
 
 public class Frame : Socketable

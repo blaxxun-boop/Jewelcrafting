@@ -39,5 +39,5 @@ public enum VisualEffectCondition : uint
 	BowHuntsman = (2 << 20) | Bows,
 	BowDraugrFang = (3 << 20) | Bows,
 	PickaxeIron = (1 << 20) | Pickaxes,
-	Club = (1 << 20) | Clubs,
+	Club = (1 << 20) | Clubs
 }

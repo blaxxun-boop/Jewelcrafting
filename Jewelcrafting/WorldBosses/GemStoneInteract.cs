@@ -44,20 +44,20 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 	{
 		Destroy(window);
 		window = null;
-	} 
+	}
 
 	public bool Interact(Humanoid user, bool hold, bool alt)
 	{
-		if (!hold && GachaDef.ActivePrizes() is {} prizes)
+		if (!hold && GachaDef.ActivePrizes() is { } prizes)
 		{
 			string gachaCoinName = GachaSetup.gachaCoins.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-			
+
 			List<Prize> sortedPrizes = prizes.prizes.OrderBy(p => p.Chance).Where(p => GachaDef.getItem(p.Item) is not null).Take(2).ToList();
 			if (sortedPrizes.Count == 0)
 			{
 				return false;
 			}
-			
+
 			window = Instantiate(GachaSetup.skeletonWindow, Hud.instance.m_rootObject.transform);
 			InputField input = window.transform.Find("Bkg/Middle_TextInput").GetComponent<InputField>();
 			window.transform.Find("Bkg/Middle_Season_Banner/Season_Text").GetComponent<Text>().text = prizes.Name == "default" ? "Standard" : prizes.Name;
@@ -87,13 +87,13 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 						Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gacha_too_many_coins"));
 						return;
 					}
-					
+
 					Inventory inv = Player.m_localPlayer.GetInventory();
 					coins = Math.Min(inv.CountItems(gachaCoinName), coins);
 					inv.RemoveItem(gachaCoinName, coins);
-					
+
 					AddCoins(coins);
-					
+
 					Hide();
 				}
 			});
@@ -105,8 +105,8 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 				Text chanceText = itemNameText.transform.Find($"{column}_Text_Middle").GetComponent<Text>();
 				Image itemImage = box.transform.Find($"Box_{column}_Replace").GetComponent<Image>();
 				UITooltip itemTooltip = box.transform.Find($"Box_{column}_Replace").GetComponent<UITooltip>();
-				
-				if (prize is null || GachaDef.getItem(prize.Item) is not {} prizeItem)
+
+				if (prize is null || GachaDef.getItem(prize.Item) is not { } prizeItem)
 				{
 					box.gameObject.SetActive(false);
 					return;
@@ -123,13 +123,13 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 						itemExtended.GetComponent<Sockets>().socketedGems.Add(new SocketItem(socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)?.name ?? ""));
 					}
 					itemTooltip.m_tooltipPrefab = GemStoneSetup.SocketTooltip;
-					GemStones.DisplaySocketTooltip.tooltipItem.Add(itemTooltip, itemExtended);
+					GemStones.DisplaySocketTooltip.tooltipItem.Add(itemTooltip, new Tuple<InventoryGrid?, ExtendedItemData>(null, itemExtended));
 				}
 				else
 				{
 					itemTooltip.m_tooltipPrefab = InventoryGui.instance.m_playerGrid.m_elementPrefab.GetComponent<UITooltip>().m_tooltipPrefab;
 				}
-				
+
 				itemTooltip.m_topic = item.m_shared.m_name;
 				itemTooltip.m_text = item.GetTooltip();
 
@@ -142,7 +142,7 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 			FillItem("Left", sortedPrizes.ElementAtOrDefault(0));
 			FillItem("Right", sortedPrizes.ElementAtOrDefault(1));
 			Random.state = state;
-			
+
 			IEnumerator selectInput()
 			{
 				yield return new WaitForEndOfFrame();

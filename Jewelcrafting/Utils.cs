@@ -233,7 +233,8 @@ public static class Utils
 	}
 
 	public static bool ItemAllowedInGemBag(ItemDrop.ItemData item) => GemStones.socketableGemStones.Contains(item.m_shared.m_name) || GemStoneSetup.uncutGems.ContainsValue(item.m_dropPrefab) || GemStoneSetup.shardColors.ContainsValue(item.m_dropPrefab);
-	
+	public static bool ItemAllowedInGemBox(ItemDrop.ItemData item) => JewelrySetup.upgradeableJewelry.Contains(item.m_shared.m_name);
+
 	public static string GetHumanFriendlyTime(int seconds)
 	{
 		TimeSpan timeSpan = TimeSpan.FromSeconds(seconds);

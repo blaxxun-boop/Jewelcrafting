@@ -53,7 +53,7 @@ public static class GemStoneSetup
 		{ GemType.Red, Color.red },
 		{ GemType.Yellow, Color.yellow },
 		{ GemType.Green, Color.green },
-		{ GemType.Purple, Color.magenta },
+		{ GemType.Purple, Color.magenta }
 		//{ GemType.Orange, new Color(1, 0.6f, 0) }
 	};
 
@@ -96,13 +96,13 @@ public static class GemStoneSetup
 		colorGems.Add(new GemDefinition
 		{
 			Prefab = prefab,
-			Name = gemName,
+			Name = gemName
 		});
 
 		GemInfos[gemName] = new GemInfo
 		{
 			Type = color,
-			Tier = colorGems.Count,
+			Tier = colorGems.Count
 		};
 	}
 
