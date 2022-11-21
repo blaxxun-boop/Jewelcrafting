@@ -19,7 +19,7 @@ public static class BossDied
 			{
 				if (__instance.m_character.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 				{
-					__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, ZNet.instance.GetNrOfPlayers() * Jewelcrafting.bossCoinDrop.Value));
+					__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, Player.GetPlayersInRangeXZ(__instance.m_character.transform.position, 100) * Jewelcrafting.bossCoinDrop.Value));
 				}
 				
 				if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(__instance.gameObject), out GameObject bossDrop))
@@ -35,7 +35,7 @@ public static class BossDied
 					}
 					else if (Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f)
 					{
-						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? ZNet.instance.GetNrOfPlayers() : 1));
+						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? Player.GetPlayersInRangeXZ(__instance.m_character.transform.position, 100) : 1));
 					}
 				}
 			}

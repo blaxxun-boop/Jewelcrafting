@@ -224,9 +224,11 @@ public static class BossSpawn
 		}
 	}
 	
-	private static void SpawnBoss()
+	private static DateTime lastBossSpawn = DateTime.MinValue; 
+	
+	public static void SpawnBoss()
 	{
-		if (GetRandomSpawnPoint() is { } pos)
+		if (lastBossSpawn != ZNet.instance.GetTime() && GetRandomSpawnPoint() is { } pos)
 		{
 			long despawnTime = ZNet.instance.GetTime().AddMinutes(Jewelcrafting.bossTimeLimit.Value).Ticks / 10000000L;
 
@@ -243,6 +245,8 @@ public static class BossSpawn
 			zdo.m_persistent = true;
 			zdo.SetPrefab(boss.GetStableHashCode());
 			zdo.Set("Jewelcrafting World Boss", despawnTime);
+
+			lastBossSpawn = ZNet.instance.GetTime();
 
 			BroadcastMinimapUpdate();
 		}

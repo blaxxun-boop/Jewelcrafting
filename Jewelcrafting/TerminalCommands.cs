@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using HarmonyLib;
+using Jewelcrafting.WorldBosses;
 
 namespace Jewelcrafting;
 
@@ -32,9 +33,24 @@ public static class TerminalCommands
 					return;
 				}
 				
+				if (args.Length >= 2 && args[1] == "worldboss")
+				{
+					if (ZNet.instance.GetServerPeer() is { } peer)
+					{
+						peer.m_rpc.Invoke("Jewelcrafting SpawnBoss");
+					}
+					else
+					{
+						BossSpawn.SpawnBoss();
+					}
+
+					return;
+				}
+				
 				args.Context.AddString("Jewelcrafting console commands - use 'Jewelcrafting' followed by one of the following options.");
 				args.Context.AddString("generate - generates raw crystals in this world.");
-			}), optionsFetcher: () => new List<string> { "generate" });
+				args.Context.AddString("worldboss - immediately spawns a random world boss.");
+			}), optionsFetcher: () => new List<string> { "generate", "worldboss" });
 		}
 	}
 }

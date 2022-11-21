@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.4";
+	private const string ModVersion = "1.3.5";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -493,6 +493,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_CamShake");
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_Hit");
 		PrefabManager.RegisterPrefab(assets, "SFX_Arrow_Explosion");
+		PrefabManager.RegisterPrefab(assets, "vfx_reaper_water_surface");
 
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);
@@ -545,6 +546,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			if (ZNet.instance.IsServer())
 			{
 				peer.m_rpc.Register("Jewelcrafting GenerateVegetation", GenerateVegetationSpawners.RPC_GenerateVegetation);
+				peer.m_rpc.Register("Jewelcrafting SpawnBoss", _ => BossSpawn.SpawnBoss());
 			}
 		}
 	}
