@@ -2,8 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -29,7 +29,7 @@ public static class Synergy
 		List<GemType> gemTypes = new();
 		Utils.ApplyToAllPlayerItems(Player.m_localPlayer, item =>
 		{
-			if (item?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
+			if (item?.Data().Get<Sockets>() is { } itemSockets)
 			{
 				foreach (SocketItem socket in itemSockets.socketedGems)
 				{
@@ -70,8 +70,8 @@ public static class Synergy
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Show))]
 	private static class FindTrash
 	{
-		private static GameObject? cached; 
-		
+		private static GameObject? cached;
+
 		[HarmonyPriority(Priority.VeryLow)]
 		private static void Postfix(InventoryGui __instance)
 		{
@@ -209,7 +209,7 @@ public static class Synergy
 				}
 				legend.text += $"- {entry.Value} <color=#{ColorUtility.ToHtmlStringRGB(color)}>{Localization.instance.Localize($"$jc_merged_gemstone_{EffectDef.GemTypeNames[entry.Key].ToLower()}")}</color>\n";
 			}
-			
+
 			Text possibleSynergy = synergyView.transform.Find("Bkg/Left_Text/Left_Text_1").GetComponent<Text>();
 			possibleSynergy.text = "";
 			string formatNumber(float num) => num.ToString(num < 100 ? "G2" : "0");

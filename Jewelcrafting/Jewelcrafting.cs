@@ -22,12 +22,11 @@ namespace Jewelcrafting;
 [BepInPlugin(ModGUID, ModName, ModVersion)]
 [BepInIncompatibility("randyknapp.mods.epicloot")]
 [BepInIncompatibility("DasSauerkraut.Terraheim")]
-[BepInDependency("randyknapp.mods.extendeditemdataframework")]
 [BepInDependency("org.bepinex.plugins.groups", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.5";
+	private const string ModVersion = "1.3.6";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -79,6 +78,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> bossSpawnTimer = null!;
 	public static ConfigEntry<int> bossSpawnMinDistance = null!;
 	public static ConfigEntry<int> bossSpawnMaxDistance = null!;
+	public static ConfigEntry<int> bossSpawnBaseDistance = null!;
 	public static ConfigEntry<int> bossTimeLimit = null!;
 	public static ConfigEntry<int> bossCoinDrop = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
@@ -86,7 +86,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> frameOfChanceChance = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
-	public static readonly Dictionary<GameObject, ConfigEntry<int>> gemDropChances = new();
+	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
 	public static readonly CustomSyncedValue<List<string>> socketEffectDefinitions = new(configSync, "socket effects", new List<string>());
 
 	private readonly Dictionary<string, int[]> defaultBoxMergeChances = new()
@@ -130,10 +130,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SE_Stats icyProtection = null!;
 	public static SE_Stats fieryDoom = null!;
 	public static GameObject fieryDoomExplosion = null!;
+	public static SE_Stats apotheosis = null!;
 	public static SE_Stats awareness = null!;
 	public static GameObject heardIcon = null!;
 	public static GameObject attackedIcon = null!;
-	public static SE_Stats lumberjacking = null!;
 	public static SE_Stats headhunter = null!;
 	private static SE_Stats rigidFinger = null!;
 	public static GameObject magicRepair = null!;
@@ -143,6 +143,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SE_Stats poisonStart = null!;
 	public static SE_Stats iceStart = null!;
 	public static SE_Stats fireStart = null!;
+	public static SE_Stats apotheosisStart = null!;
 	public static SE_Stats friendshipStart = null!;
 	public static SE_Stats friendship = null!;
 	public static SE_Stats loneliness = null!;
@@ -151,6 +152,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static SE_Stats fireBossDebuff = null!;
 	public static SE_Stats frostBossDebuff = null!;
 	public static SE_Stats poisonBossDebuff = null!;
+	public static SE_Stats thunderclapMark = null!;
+	public static GameObject thunderclapExplosion = null!;
+	public static SE_Stats fading = null!;
+	public static Material fadingMaterial = null!;
 
 	private static Jewelcrafting self = null!;
 
@@ -306,6 +311,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		bossSpawnTimer.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerVisibility();
 		bossSpawnMinDistance = config("4 - World Boss", "Minimum Distance Boss Spawns", 1000, new ConfigDescription("Minimum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnMaxDistance = config("4 - World Boss", "Maximum Distance Boss Spawns", 10000, new ConfigDescription("Maximum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
+		bossSpawnBaseDistance = config("4 - World Boss", "Base Distance Boss Spawns", 50, new ConfigDescription("Minimum distance to player build structures for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossTimeLimit = config("4 - World Boss", "Time Limit", 30, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossCoinDrop = config("4 - World Boss", "Coins per Boss Kill", 1, new ConfigDescription("Number of Celestial Coins dropped by bosses per player.", new AcceptableValueRange<int>(0, 20), new ConfigurationManagerAttributes { Order = --order }));
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -354,6 +360,43 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		BossSetup.initializeBosses(assets);
 		SocketsBackground.CalculateColors();
 
+		foreach (GachaSetup.BalanceConfig balanceConfig in GachaSetup.celestialItemsConfigs.Values)
+		{
+			ConfigEntry<GachaSetup.BalanceToggle> toggle = config(english.Localize(balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name), "Balance", GachaSetup.BalanceToggle.Mistlands, "");
+			void Apply()
+			{
+				if (toggle.Value == GachaSetup.BalanceToggle.Custom)
+				{
+					balanceConfig.item.ToggleConfigurationVisibility(Configurability.Full);
+				}
+				else
+				{
+					balanceConfig.item.ToggleConfigurationVisibility(Configurability.Recipe | Configurability.Drop);
+					ItemDrop.ItemData.SharedData sharedData = toggle.Value switch
+					{
+						GachaSetup.BalanceToggle.Mistlands => balanceConfig.mistlands,
+						GachaSetup.BalanceToggle.Plains => balanceConfig.plains,
+						_ => throw new ArgumentOutOfRangeException()
+					};
+					balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared = Utils.Clone(sharedData);
+
+					if (ObjectDB.instance)
+					{
+						Inventory[] inventories = Player.m_players.Select(p => p.GetInventory()).Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null).ToArray();
+						foreach (ItemDrop.ItemData itemdata in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>()).Concat(ItemDrop.m_instances).Select(i => i.m_itemData).Concat(inventories.SelectMany(i => i.GetAllItems())))
+						{
+							if (itemdata.m_shared.m_name == sharedData.m_name)
+							{
+								itemdata.m_shared = Utils.Clone(sharedData);
+							}
+						}
+					}
+				}
+			}
+			Apply();
+			toggle.SettingChanged += (_, _) => Apply();
+		}
+		
 		int socketAddingOrder = 0;
 		for (int i = 0; i < 5; ++i)
 		{
@@ -377,11 +420,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Harmony harmony = new(ModGUID);
 		harmony.PatchAll(assembly);
 
-		if (!ExtendedItemDataFramework.ExtendedItemDataFramework.Enabled)
-		{
-			throw new Exception("ExtendedItemDataFramework config is disabled. Fix it, then restart the game.");
-		}
-
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
 		gliding = assets.LoadAsset<SE_Stats>("JCGliding");
 		glidingDark = assets.LoadAsset<SE_Stats>("SE_DarkWings");
@@ -389,6 +427,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		glowingSpiritPrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Magelight");
 		glowingSpiritPrefab.AddComponent<GlowingSpirit.OrbDestroy>();
 		lightningSpeed = Utils.ConvertStatusEffect<LightningSpeed.LightningSpeedEffect>(assets.LoadAsset<SE_Stats>("JC_Electric_Wings_SE"));
+		apotheosis = Utils.ConvertStatusEffect<Apotheosis.ApotheosisEffect>(assets.LoadAsset<SE_Stats>("SE_Apotheosis"));
 		poisonousDrain = assets.LoadAsset<SE_Stats>("SE_Boss_2");
 		poisonousDrainCloud = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_2");
 		rootedRevenge = assets.LoadAsset<SE_Stats>("SE_Boss_3");
@@ -400,7 +439,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
 		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
 		headhunter.m_modifyAttackSkill = Skills.SkillType.All;
-		lumberjacking = assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Yellow");
+		assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Yellow");
 		rigidFinger = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Purple");
 		rigidFinger.m_modifyAttackSkill = Skills.SkillType.All;
 		magicRepair = PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
@@ -411,6 +450,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		poisonStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Green");
 		iceStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Blue");
 		fireStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Red");
+		apotheosisStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Black");
 		friendshipStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
 		friendship = Utils.ConvertStatusEffect<TogetherForever.TogetherForeverEffect>(assets.LoadAsset<SE_Stats>("SE_Friendship_Group"));
 		loneliness = Utils.ConvertStatusEffect<TogetherForever.LonelinessEffect>(assets.LoadAsset<SE_Stats>("SE_Loneliness_Group"));
@@ -420,6 +460,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		fireBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Fire");
 		frostBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Frost");
 		poisonBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Poison");
+		thunderclapMark = assets.LoadAsset<SE_Stats>("SE_ThunderClap_Marked");
+		thunderclapExplosion = assets.LoadAsset<GameObject>("JC_Marked_Explode");
+		fading = Utils.ConvertStatusEffect<Fade.FadeSE>(assets.LoadAsset<SE_Stats>("SE_VFX_Fade"));
+		fadingMaterial = assets.LoadAsset<Material>("JC_Player_Distortion");
 
 		SocketsBackground.background = assets.LoadAsset<GameObject>("JC_ItemBackground");
 
@@ -494,6 +538,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "VFX_Reaper_Weapon_Hit");
 		PrefabManager.RegisterPrefab(assets, "SFX_Arrow_Explosion");
 		PrefabManager.RegisterPrefab(assets, "vfx_reaper_water_surface");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Apotheosis");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_Black");
+		PrefabManager.RegisterPrefab(assets, "JC_Marked_Effect");
+		PrefabManager.RegisterPrefab(assets, "JC_Marked_Explode");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Fade");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Fade_End");
 
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);

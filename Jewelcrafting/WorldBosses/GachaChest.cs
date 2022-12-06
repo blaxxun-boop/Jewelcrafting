@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ExtendedItemDataFramework;
+using ItemDataManager;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -29,7 +29,7 @@ public class GachaChest : Container, Hoverable
 			RPC_RequestOpen(uid, playerID);
 			return;
 		}
-		
+
 		int coins = m_nview.GetZDO().GetInt("Jewelcrafting Gacha Chest");
 		if (coins == 0)
 		{
@@ -39,7 +39,7 @@ public class GachaChest : Container, Hoverable
 
 		for (int i = 0; i < coins; ++i)
 		{
-			if (GachaDef.ActivePrizes() is {} selectedPrizes)
+			if (GachaDef.ActivePrizes() is { } selectedPrizes)
 			{
 				float random = Random.value;
 				Random.State state = SetRandomState(selectedPrizes);
@@ -50,13 +50,13 @@ public class GachaChest : Container, Hoverable
 						ItemDrop.ItemData itemData = m_inventory.AddItem(item.name, 1, 1, 0, 0, "");
 						if (prize.Sockets.Count > 0)
 						{
-							itemData.Extended().AddComponent<Sockets>();
-							itemData.Extended().GetComponent<Sockets>().socketedGems.Clear();
+							List<SocketItem> sockets = itemData.Data().GetOrCreate<Sockets>().socketedGems;
+							sockets.Clear();
 							foreach (string socket in prize.Sockets)
 							{
-								itemData.Extended().GetComponent<Sockets>().socketedGems.Add(new SocketItem(socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)!.name));
+								sockets.Add(new SocketItem(socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)!.name));
 							}
-							itemData.Extended().Save();
+							itemData.Data().Save();
 						}
 						Save();
 						break;
@@ -88,12 +88,12 @@ public class GachaChest : Container, Hoverable
 				m_inventory.AddItem(Utils.getRandomGem(-1)!.gameObject, 1);
 			}
 		}
-		
+
 		foreach (GachaChest chest in NearbyGachaChests(transform))
 		{
 			chest.m_nview.GetZDO().Set("Jewelcrafting Gacha Chest", 0);
 		}
-		
+
 		RPC_RequestOpen(uid, playerID);
 	}
 

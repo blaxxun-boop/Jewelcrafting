@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using ItemManager;
 using UnityEngine;
 
@@ -24,6 +24,12 @@ public static class MiscSetup
 		item.RequiredItems.Add("LeatherScraps", 10);
 		item.RequiredItems.Add("Resin", 5);
 		item.RequiredItems.Add("GreydwarfEye", 1);
+		SocketBag socketBag = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<SocketBag>()!;
+		for (int i = 0; i < Jewelcrafting.gemBagSlotsRows.Value * Jewelcrafting.gemBagSlotsColumns.Value - 1; ++i)
+		{
+			socketBag.socketedGems.Add(new SocketItem(""));
+		}
+		socketBag.Save();
 		gemBagName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 
 		item = new Item(assets, "JC_Gem_Box");
@@ -32,41 +38,23 @@ public static class MiscSetup
 		item.RequiredItems.Add("LeatherScraps", 10);
 		item.RequiredItems.Add("Resin", 5);
 		item.RequiredItems.Add("GreydwarfEye", 5);
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<InventoryBag>();
 		gemBoxName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		
+
 		item = new Item(assets, "Blue_Crystal_Frame");
 		framePrefabs.Add(item.Prefab);
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chaosFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		item = new Item(assets, "Black_Crystal_Frame");
 		framePrefabs.Add(item.Prefab);
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chanceFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		item = new Item(assets, "JC_Blessed_Crystal_Mirror");
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		blessedMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		item = new Item(assets, "JC_Celestial_Crystal_Mirror");
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		celestialMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-
-		ExtendedItemData.NewExtendedItemData += item =>
-		{
-			if (item.m_shared.m_name == gemBagName && item.m_quality == 1 && item.GetComponent<SocketBag>() is null)
-			{
-				SocketBag sockets = item.AddComponent<SocketBag>();
-				for (int i = 0; i < Jewelcrafting.gemBagSlotsRows.Value * Jewelcrafting.gemBagSlotsColumns.Value - 1; ++i)
-				{
-					sockets.socketedGems.Add(new SocketItem(""));
-				}
-				sockets.Save();
-			}
-			
-			if (item.m_shared.m_name == gemBoxName && item.m_quality == 1 && item.GetComponent<InventoryBag>() is null)
-			{
-				item.AddComponent<InventoryBag>().Save();
-			}
-
-			if ((item.m_shared.m_name == chaosFrameName || item.m_shared.m_name == chanceFrameName || item.m_shared.m_name == blessedMirrorName || item.m_shared.m_name == celestialMirrorName) && item.GetComponent<Frame>() is null)
-			{
-				item.AddComponent<Frame>().Save();
-			}
-		};
 	}
 
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.Pickup))]
@@ -83,7 +71,7 @@ public static class MiscSetup
 			int originalAmount = itemDrop.m_itemData.m_stack;
 			foreach (ItemDrop.ItemData item in player.m_inventory.m_inventory)
 			{
-				if (item.m_shared.m_name == gemBagName && item.Extended().GetComponent<SocketBag>() is { } socketBag)
+				if (item.m_shared.m_name == gemBagName && item.Data().Get<SocketBag>() is { } socketBag)
 				{
 					void FinishPickup()
 					{

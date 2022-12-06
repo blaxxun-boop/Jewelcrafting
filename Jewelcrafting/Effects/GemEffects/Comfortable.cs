@@ -5,7 +5,7 @@ namespace Jewelcrafting.GemEffects;
 
 public static class Comfortable
 {
-	[HarmonyPatch(typeof(SE_Rested), nameof(SE_Rested.CalculateComfortLevel))]
+	[HarmonyPatch(typeof(SE_Rested), nameof(SE_Rested.CalculateComfortLevel), typeof(Player))]
 	public static class IncreaseComfortLevel
 	{
 		[UsedImplicitly]

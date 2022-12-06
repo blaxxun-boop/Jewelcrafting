@@ -61,8 +61,10 @@ gems:
   plains:
     cyan: 0.14
   ash lands:
-    cyan: 0.16
-
+    cyan: 0.1
+  mistlands:
+    cyan: 0.1
+    
 # Synergies
 
 cyan is the most common color:

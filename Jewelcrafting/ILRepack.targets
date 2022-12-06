@@ -6,6 +6,7 @@
             <InputAssemblies Include="$(OutputPath)Libs\ServerSync.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\SkillManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\ItemManager.dll"/>
+            <InputAssemblies Include="$(OutputPath)Libs\ItemDataManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\PieceManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\LocalizationManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\LocationManager.dll"/>

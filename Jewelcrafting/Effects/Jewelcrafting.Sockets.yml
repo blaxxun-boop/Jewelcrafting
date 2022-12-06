@@ -1,17 +1,17 @@
 # Weapon
 
 fire starter:
-  slot: weapon
+  slot: [weapon, elementalmagic]
   gem: red
   power: [5, 10, 15]
 
 ice heart:
-  slot: weapon
+  slot: [weapon, elementalmagic]
   gem: blue
   power: [5, 10, 15]
 
 snake bite:
-  slot: weapon
+  slot: [weapon, elementalmagic]
   gem: green
   power: [5, 10, 15]
 
@@ -21,12 +21,12 @@ shadow hit:
   power: [2, 3, 4]
 
 vampire:
-  slot: weapon
+  slot: [weapon, elementalmagic]
   gem: yellow
   power: [6, 8, 10]
 
 berserk:
-  slot: weapon
+  slot: [weapon, magic]
   gem: purple
   power: [1, 2, 3]
 
@@ -41,6 +41,28 @@ opportunity:
   slot: axe
   gem: red
   power: [5, 7, 9]
+  
+perforation:
+  slot: knife
+  gem: orange
+  power: [2, 4, 6]
+  
+thunderclap:
+  slot: polearm
+  gem: orange
+  power: [3, 5, 7]
+  
+# Magic Weapons
+
+magical bargain:
+  slot: magic
+  gem: orange
+  power: [3, 5, 7]
+
+precious blood:
+  slot: bloodmagic
+  gem: blue
+  power: [3, 5, 7]
 
 # Chest
 
@@ -64,6 +86,11 @@ mirror:
   gem: black
   power: [2, 4, 6]
 
+fade:
+  slot: chest
+  gem: orange
+  power: [1, 2, 3]
+  
 # Legs
 
 sprinter:
@@ -90,6 +117,11 @@ mountain goat:
   slot: legs
   gem: purple
   power: [10, 15, 20]
+  
+lifeguard:
+  slot: legs
+  gem: orange
+  power: [20, 25, 30]
 
 # Utility
 
@@ -139,6 +171,11 @@ merciful death:
   slot: head
   gem: blue
   power: [10, 15, 20]
+  
+eitr surge:
+  slot: head
+  gem: orange
+  power: [3, 5, 7]
 
 # Bow
 
@@ -288,48 +325,74 @@ fiery doom:
     fire damage: 200
   unique: all
 
+apotheosis:
+  slot: all
+  gem: queen
+  power:
+    eitr reduction: 100
+    min cooldown: 180
+    max cooldown: 240
+    duration: 8
+    magic damage increase: 15
+    attack speed: 20
+  unique: all
+  
 # Gem Spawn
 
 gems:
   meadows:
-    green: 0.8
-    black: 0.04
-    purple: 0.04
-    blue: 0.04
-    yellow: 0.04
-    red: 0.04
+    green: 0.82
+    black: 0.03
+    purple: 0.03
+    blue: 0.03
+    yellow: 0.03
+    red: 0.03
+    orange: 0.03
   black forest:
-    green: 0.04
-    black: 0.8
-    purple: 0.04
-    blue: 0.04
-    yellow: 0.04
-    red: 0.04
+    green: 0.03
+    black: 0.82
+    purple: 0.03
+    blue: 0.03
+    yellow: 0.03
+    red: 0.03
+    orange: 0.03
   swamp:
-    green: 0.04
-    black: 0.04
-    purple: 0.8
-    blue: 0.04
-    yellow: 0.04
-    red: 0.04
+    green: 0.03
+    black: 0.03
+    purple: 0.82
+    blue: 0.03
+    yellow: 0.03
+    red: 0.03
+    orange: 0.03
   mountain:
-    green: 0.04
-    black: 0.04
-    purple: 0.04
-    blue: 0.8
-    yellow: 0.04
-    red: 0.04
+    green: 0.03
+    black: 0.03
+    purple: 0.03
+    blue: 0.82
+    yellow: 0.03
+    red: 0.03
+    orange: 0.03
   plains:
-    green: 0.04
-    black: 0.04
-    purple: 0.04
-    blue: 0.04
-    yellow: 0.8
-    red: 0.04
+    green: 0.03
+    black: 0.03
+    purple: 0.03
+    blue: 0.03
+    yellow: 0.82
+    red: 0.03
+    orange: 0.03
   ash lands:
-    green: 0.04
-    black: 0.04
-    purple: 0.04
-    blue: 0.04
-    yellow: 0.04
-    red: 0.8
+    green: 0.03
+    black: 0.03
+    purple: 0.03
+    blue: 0.03
+    yellow: 0.03
+    red: 0.82
+    orange: 0.03
+  mistlands:
+    green: 0.03
+    black: 0.03
+    purple: 0.03
+    blue: 0.03
+    yellow: 0.03
+    red: 0.03
+    orange: 0.82

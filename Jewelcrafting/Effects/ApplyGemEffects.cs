@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
@@ -60,7 +60,7 @@ public class TrackEquipmentChanges
 		
 		Utils.ApplyToAllPlayerItems(player, item =>
 		{
-			if (item?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
+			if (item?.Data().Get<Sockets>() is { } itemSockets)
 			{
 				GemLocation location = Utils.GetGemLocation(item.m_shared, player);
 
@@ -129,7 +129,7 @@ public class TrackEquipmentChanges
 		Dictionary<string, GameObject[]>? effectPrefabs = item is null ? null : VisualEffects.prefabDict(item.m_shared);
 
 		int i = 0;
-		if (effectPrefabs is not null && item.Extended()?.GetComponent<Sockets>() is {} itemSockets)
+		if (effectPrefabs is not null && item!.Data().Get<Sockets>() is {} itemSockets)
 		{
 			HashSet<string> effectNames = new();
 			foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))

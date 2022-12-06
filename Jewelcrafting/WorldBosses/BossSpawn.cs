@@ -277,7 +277,7 @@ public static class BossSpawn
 			}
 
 			Heightmap.Biome biome = WorldGenerator.instance.GetBiome(point.x, point.z);
-			float biomeHeight = WorldGenerator.instance.GetBiomeHeight(biome, point.x, point.z);
+			float biomeHeight = WorldGenerator.instance.GetBiomeHeight(biome, point.x, point.z, out _);
 			float forestFactor = Minimap.instance.GetMaskColor(point.x, point.z, biomeHeight, biome).r;
 
 			if (biomeHeight < ZoneSystem.instance.m_waterLevel + 5 || forestFactor > 0.75)
@@ -302,7 +302,7 @@ public static class BossSpawn
 					ZDOMan.instance.FindObjects(sector + new Vector2i(x, y), zdos);
 					foreach (ZDO zdo in zdos)
 					{
-						if (playerBasePieces.Contains(zdo.m_prefab) && global::Utils.DistanceXZ(zdo.m_position, point) < 20)
+						if (playerBasePieces.Contains(zdo.m_prefab) && global::Utils.DistanceXZ(zdo.m_position, point) < Jewelcrafting.bossSpawnBaseDistance.Value)
 						{
 							++baseValue;
 						}

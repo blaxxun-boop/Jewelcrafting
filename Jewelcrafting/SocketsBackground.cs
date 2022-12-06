@@ -2,8 +2,8 @@
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -125,7 +125,7 @@ public static class SocketsBackground
 	private static void UpdateElement(ItemDrop.ItemData item, GameObject root)
 	{
 		GameObject bg = root.transform.Find(background.name).gameObject;
-		if (item.Extended()?.GetComponent<Sockets>() is { } sockets && Jewelcrafting.displaySocketBackground.Value == Jewelcrafting.Toggle.On)
+		if (item.Data().Get<Sockets>() is { } sockets && Jewelcrafting.displaySocketBackground.Value == Jewelcrafting.Toggle.On)
 		{
 			root.transform.Find("equiped").GetComponent<Image>().enabled = false;
 			bg.SetActive(true);
@@ -190,7 +190,7 @@ public static class SocketsBackground
 	{
 		private static string ColorItemName(string name, ItemDrop.ItemData item)
 		{
-			if (item.Extended()?.GetComponent<Sockets>() is not { } sockets || Jewelcrafting.colorItemName.Value == Jewelcrafting.Toggle.Off)
+			if (item.Data().Get<Sockets>() is not { } sockets || Jewelcrafting.colorItemName.Value == Jewelcrafting.Toggle.Off)
 			{
 				return name;
 			}

@@ -24,7 +24,7 @@ public static class PoisonousDrain
 		[AdditivePower] public readonly float PoisonDamage;
 		[MultiplicativePercentagePower] public readonly float LifeSteal;
 	}
-	
+
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]
 	private class StartCoroutineForEffect
 	{
@@ -48,12 +48,12 @@ public static class PoisonousDrain
 
 		public override bool IsDone() => damage <= 0;
 	}
-	
+
 	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
 	private static class AddPoisonCloudStatusEffect
 	{
 		public static StatusEffect StatusEffect = null!;
-		
+
 		private static void Postfix(ObjectDB __instance)
 		{
 			StatusEffect = ScriptableObject.CreateInstance<PoisonCloudEffect>();
@@ -61,7 +61,7 @@ public static class PoisonousDrain
 			__instance.m_StatusEffects.Add(StatusEffect);
 		}
 	}
-	
+
 	private static IEnumerator HealingReceived(Player player)
 	{
 		while (true)
@@ -73,7 +73,7 @@ public static class PoisonousDrain
 				player.m_seman.AddStatusEffect(Jewelcrafting.poisonStart);
 
 				yield return new WaitForSeconds(4);
-				
+
 				StatusEffect se = player.m_seman.AddStatusEffect(Jewelcrafting.poisonousDrain);
 				se.m_ttl = config.Duration;
 				GameObject aoe = Object.Instantiate(Jewelcrafting.poisonousDrainCloud, player.transform);
@@ -81,13 +81,13 @@ public static class PoisonousDrain
 				{
 					m_damage = new HitData.DamageTypes { m_poison = config.PoisonDamage },
 					m_statusEffect = AddPoisonCloudStatusEffect.StatusEffect.name
-				}, null);
-				se.m_startEffectInstances = se.m_startEffectInstances.Concat(new []{ aoe }).ToArray();
+				}, null, null);
+				se.m_startEffectInstances = se.m_startEffectInstances.Concat(new[] { aoe }).ToArray();
 			}
 		}
 		// ReSharper disable once IteratorNeverReturns
 	}
-	
+
 	[HarmonyPatch(typeof(Character), nameof(Character.Heal))]
 	public static class IncreaseHealingReceived
 	{
@@ -95,7 +95,7 @@ public static class PoisonousDrain
 		private static void Prefix(Character __instance, ref float hp)
 		{
 			if (__instance is Player player && player.m_seman.HaveStatusEffect(Jewelcrafting.poisonousDrain.name))
-			{ 
+			{
 				hp *= 1 + player.GetEffect<Config>(Effect.Poisonousdrain).HealingIncrease / 100f;
 			}
 		}

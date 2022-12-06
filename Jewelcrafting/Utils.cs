@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Reflection.Emit;
 using System.Runtime.InteropServices;
-using ExtendedItemDataFramework;
 using Groups;
 using HarmonyLib;
 using Jewelcrafting.GemEffects;
@@ -32,7 +30,8 @@ public static class Utils
 			       ItemDrop.ItemData.ItemType.Shoulder or
 			       ItemDrop.ItemData.ItemType.Utility or
 			       ItemDrop.ItemData.ItemType.Tool or
-			       ItemDrop.ItemData.ItemType.TwoHandedWeapon ||
+			       ItemDrop.ItemData.ItemType.TwoHandedWeapon or 
+			       ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft ||
 		       (item.m_itemType is ItemDrop.ItemData.ItemType.OneHandedWeapon && !item.m_attack.m_consumeItem);
 	}
 
@@ -109,6 +108,8 @@ public static class Utils
 			Skills.SkillType.Bows => GemLocation.Bow,
 			Skills.SkillType.Pickaxes => GemLocation.Tool,
 			Skills.SkillType.Unarmed when item.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon => GemLocation.Knife,
+			Skills.SkillType.BloodMagic => GemLocation.BloodMagic,
+			Skills.SkillType.ElementalMagic => GemLocation.ElementalMagic,
 			_ => GemLocation.Sword
 		}
 	};
@@ -128,71 +129,7 @@ public static class Utils
 	}
 	
 	public static Sprite loadSprite(string name, int width, int height) => Sprite.Create(loadTexture(name), new Rect(0, 0, width, height), Vector2.zero);
-
-	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
-	private static class TransferEIDFComponentsOnUpgrade
-	{
-		private static ItemDrop.ItemData BackupOldComponents(ItemDrop.ItemData item, List<BaseExtendedItemComponent> components)
-		{
-			if (item.Extended() is { } extended)
-			{
-				components.AddRange(extended.Components);
-				extended.Components.Clear();
-			}
-			return item;
-		}
-
-		private static ItemDrop.ItemData? AddPreviousComponents(ItemDrop.ItemData? item, List<BaseExtendedItemComponent> components)
-		{
-			if (item?.Extended() is { } extended)
-			{
-				extended.Components.AddRange(components);
-				extended.Save();
-				foreach (BaseExtendedItemComponent component in components)
-				{
-					component.ItemData = extended;
-				}
-			}
-			return item;
-		}
-
-		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, ILGenerator ilg)
-		{
-			LocalBuilder localVar = ilg.DeclareLocal(typeof(List<BaseExtendedItemComponent>));
-			yield return new CodeInstruction(OpCodes.Newobj, localVar.LocalType!.GetConstructor(Array.Empty<Type>()));
-			yield return new CodeInstruction(OpCodes.Stloc, localVar.LocalIndex);
-
-			MethodInfo itemDeleter = AccessTools.DeclaredMethod(typeof(Inventory), nameof(Inventory.RemoveItem), new[] { typeof(ItemDrop.ItemData) });
-			foreach (CodeInstruction instruction in instructions)
-			{
-				if (instruction.opcode == OpCodes.Callvirt && instruction.OperandIs(itemDeleter))
-				{
-					yield return new CodeInstruction(OpCodes.Ldloc, localVar.LocalIndex);
-					yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(TransferEIDFComponentsOnUpgrade), nameof(BackupOldComponents)));
-				}
-				yield return instruction;
-				// handle mods replacing the method, recognize it by retval
-				if ((instruction.opcode == OpCodes.Call || instruction.opcode == OpCodes.Callvirt) && instruction.operand is MethodInfo method && method.ReturnType == typeof(ItemDrop.ItemData))
-				{
-					yield return new CodeInstruction(OpCodes.Ldloc, localVar.LocalIndex);
-					yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(TransferEIDFComponentsOnUpgrade), nameof(AddPreviousComponents)));
-				}
-			}
-		}
-	}
-
-	[HarmonyPatch(typeof(ExtendedItemData), nameof(ExtendedItemData.ExtendedClone))]
-	private static class ReplaceItemDataInComponentsOnClone
-	{
-		private static void Postfix(ExtendedItemData __result)
-		{
-			foreach (BaseExtendedItemComponent component in __result.Components)
-			{
-				component.ItemData = __result;
-			}
-		}
-	}
-
+	
 	public static bool isAdmin(ZRpc? rpc)
 	{
 		return rpc is null || ZNet.instance.m_adminList.Contains(rpc.GetSocket().GetHostName());

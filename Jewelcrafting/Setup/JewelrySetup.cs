@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using ItemManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
@@ -62,13 +62,19 @@ public static class JewelrySetup
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 		yellowNecklaceHash = item.Prefab.name.GetStableHashCode();
-		
+
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Purple_Socket", 1);
 		item.RequiredItems.Add("Chain", 1);
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
+		Sockets purpleSockets = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Sockets>()!;
+		for (int i = 0; i < Jewelcrafting.maximumNumberSockets.Value - 1; ++i)
+		{
+			purpleSockets.socketedGems.Add(new SocketItem(""));
+		}
+		purpleSockets.Save();
 		string purpleRingName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		upgradeableJewelry.Add(purpleRingName);
 
@@ -89,7 +95,7 @@ public static class JewelrySetup
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		redRingName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		upgradeableJewelry.Add(redRingName);
-		
+
 		item = new Item(assets, "JC_Ring_Blue");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Blue_Socket", 1);
@@ -99,19 +105,6 @@ public static class JewelrySetup
 		ItemDrop.ItemData.SharedData blueRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
 		upgradeableJewelry.Add(blueRingShared.m_name);
 		blueRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<ModersBlessing>(blueRingShared.m_equipStatusEffect);
-		
-		ExtendedItemData.NewExtendedItemData += item =>
-		{
-			if (item.m_shared.m_name == purpleRingName && item.m_quality == 1 && item.GetComponent<Sockets>() is null)
-			{
-				Sockets sockets = item.AddComponent<Sockets>();
-				for (int i = 0; i < Jewelcrafting.maximumNumberSockets.Value - 1; ++i)
-				{
-					sockets.socketedGems.Add(new SocketItem(""));
-				}
-				sockets.Save();
-			}
-		};
 	}
 
 	[HarmonyPatch(typeof(Player), nameof(Player.GetBodyArmor))]

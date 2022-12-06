@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
 using Jewelcrafting.GemEffects;
-using UnityEngine;
 
 namespace Jewelcrafting;
 

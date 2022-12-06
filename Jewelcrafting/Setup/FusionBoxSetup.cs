@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using ItemManager;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,18 +29,8 @@ public static class FusionBoxSetup
 		for (int tier = 0; tier < Boxes.Length; ++tier)
 		{
 			boxTier[Boxes[tier]] = tier;
+			Boxes[tier].GetComponent<ItemDrop>().m_itemData.Data().GetOrCreate<Box>().Save();
 		}
-
-		ExtendedItemData.NewExtendedItemData += item =>
-		{
-			if (Jewelcrafting.boxMergeChances.ContainsKey(item.m_shared.m_name))
-			{
-				if (item.GetComponent<Box>() is null)
-				{
-					item.AddComponent<Box>();
-				}
-			}
-		};
 	}
 
 	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
@@ -69,11 +59,11 @@ public static class FusionBoxSetup
 	{
 		if (Player.m_localPlayer)
 		{
-			ItemDrop.ItemData[] boxes = Player.m_localPlayer.GetInventory().GetAllItems().Where(i => i.Extended()?.GetComponent<Box>() is { boxSealed: true }).ToArray();
+			ItemDrop.ItemData[] boxes = Player.m_localPlayer.GetInventory().GetAllItems().Where(i => i.Data().Get<Box>() is { boxSealed: true }).ToArray();
 			if (boxes.Length > 0)
 			{
-				Box box = boxes[Random.Range(0, boxes.Length)].Extended().GetComponent<Box>();
-				box.AddProgress(progress.ToArray()[boxTier[box.ItemData.m_dropPrefab]]);
+				Box box = boxes[Random.Range(0, boxes.Length)].Data().Get<Box>()!;
+				box.AddProgress(progress.ToArray()[boxTier[box.Item.m_dropPrefab]]);
 			}
 		}
 	}
@@ -110,7 +100,7 @@ public static class FusionBoxSetup
 
 		private static void Seal()
 		{
-			if (GemStones.AddFakeSocketsContainer.openEquipment?.GetComponent<Box>() is not { boxSealed: false } box || box.socketedGems.Count < 2)
+			if (GemStones.AddFakeSocketsContainer.openEquipment?.Get<Box>() is not { boxSealed: false } box || box.socketedGems.Count < 2)
 			{
 				return;
 			}
@@ -131,7 +121,7 @@ public static class FusionBoxSetup
 
 			if (Groups.API.IsLoaded() && (gem1.name == "Boss_Crystal_7" || gem2.name == "Boss_Crystal_7") && GemStones.bossToGem.Values.Contains(gem1) && GemStones.bossToGem.Values.Contains(gem2) && Jewelcrafting.boxBossGemMergeChance.Value > 0)
 			{
-				if (box.ItemData.m_shared.m_name != "$jc_legendary_gembox")
+				if (box.Item.m_shared.m_name != "$jc_legendary_gembox")
 				{
 					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_requires_legendary"));
 					return;

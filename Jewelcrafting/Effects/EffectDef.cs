@@ -27,10 +27,13 @@ public enum GemLocation
 	Axe = 1 << 10,
 	Bow = 1 << 11,
 	Weapon = 1 << 12,
-	Tool = 1 << 13,
-	Shield = 1 << 14,
-	Utility = 1 << 15,
-	All = 1 << 16
+	ElementalMagic = 1 << 13,
+	BloodMagic = 1 << 14,
+	Magic = 1 << 15,
+	Tool = 1 << 16,
+	Shield = 1 << 17,
+	Utility = 1 << 18,
+	All = 1 << 19
 }
 
 public enum Effect
@@ -93,12 +96,20 @@ public enum Effect
 	Poisonousdrain,
 	Icyprotection,
 	Fierydoom,
+	Apotheosis,
 	Togetherforever,
 	Neveralone,
 	Equilibrium,
 	Eternalstudent,
 	Timewarp,
-	Carefulcutting
+	Carefulcutting,
+	Magicalbargain,
+	Eitrsurge,
+	Lifeguard,
+	Preciousblood,
+	Perforation,
+	Thunderclap,
+	Fade
 }
 
 public enum Uniqueness
@@ -147,7 +158,8 @@ public class EffectDef
 
 	public const GemLocation AllGemlocations = GemLocation.All - 1;
 	public const GemLocation WeaponGemlocations = GemLocation.Sword | GemLocation.Knife | GemLocation.Club | GemLocation.Polearm | GemLocation.Spear | GemLocation.Axe;
-	
+	public const GemLocation MagicGemlocations = GemLocation.BloodMagic | GemLocation.ElementalMagic;
+
 	private static readonly Dictionary<string, Uniqueness> ValidUniquenesses = new(((Uniqueness[])Enum.GetValues(typeof(Uniqueness))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).Where(t => t != GemType.Cyan || global::Groups.API.IsLoaded()).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
@@ -409,7 +421,7 @@ public class EffectDef
 							{
 								if (configFields.Count != powersList.Count)
 								{
-									errorList.Add($"There are missing configurable values for this effect. Specify values for all of {string.Join(", ", configFields.Keys)}. {errorLocation}");
+									errorList.Add($"There are missing configurable values for this effect. Specify values for all of {string.Join(", ", configFields.Keys)}. Found values for {string.Join(", ", castDictToStringDict(powersList).Keys)}. {errorLocation}");
 									return false;
 								}
 
@@ -593,6 +605,10 @@ public class EffectDef
 					if ((def.Slots & GemLocation.Weapon) != 0)
 					{
 						def.Slots |= WeaponGemlocations & ~usedLocations;
+					}
+					if ((def.Slots & GemLocation.Magic) != 0)
+					{
+						def.Slots |= MagicGemlocations & ~usedLocations;
 					}
 					if ((def.Slots & GemLocation.All) != 0)
 					{

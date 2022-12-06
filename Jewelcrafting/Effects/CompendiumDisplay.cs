@@ -4,8 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Text;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -44,7 +44,7 @@ public static class CompendiumDisplay
 
 			Utils.ApplyToAllPlayerItems(player, item =>
 			{
-				if (item?.Extended()?.GetComponent<Sockets>() is { } itemSockets)
+				if (item?.Data().Get<Sockets>() is { } itemSockets)
 				{
 					GemLocation location = Utils.GetGemLocation(item.m_shared, player);
 					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != ""))
@@ -155,7 +155,10 @@ public static class CompendiumDisplay
 								GemLocation.Tool => "Hammer",
 								GemLocation.Shield => "ShieldBlackmetal",
 								GemLocation.Utility => "JC_Necklace_Red",
-								GemLocation.All => "YagluthDrop",
+								GemLocation.ElementalMagic => "StaffFireball",
+								GemLocation.BloodMagic => "StaffSkeleton",
+								GemLocation.Magic => "YagluthDrop",
+								GemLocation.All => "QueenDrop",
 								_ => throw new ArgumentOutOfRangeException()
 							};
 

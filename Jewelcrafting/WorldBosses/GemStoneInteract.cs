@@ -2,8 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
@@ -113,17 +113,17 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 				}
 
 				ItemDrop.ItemData item = prizeItem.m_itemData;
-				ExtendedItemData itemExtended = new(item);
+				ItemInfo itemInfo = item.Data();
 				if (prize.Sockets.Count > 0)
 				{
-					itemExtended.AddComponent<Sockets>();
-					itemExtended.GetComponent<Sockets>().socketedGems.Clear();
+					List<SocketItem> sockets = itemInfo.GetOrCreate<Sockets>().socketedGems;
+					sockets.Clear();
 					foreach (string socket in prize.Sockets)
 					{
-						itemExtended.GetComponent<Sockets>().socketedGems.Add(new SocketItem(socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)?.name ?? ""));
+						sockets.Add(new SocketItem(socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)?.name ?? ""));
 					}
 					itemTooltip.m_tooltipPrefab = GemStoneSetup.SocketTooltip;
-					GemStones.DisplaySocketTooltip.tooltipItem.Add(itemTooltip, new Tuple<InventoryGrid?, ExtendedItemData>(null, itemExtended));
+					GemStones.DisplaySocketTooltip.tooltipItem.Add(itemTooltip, new Tuple<InventoryGrid?, ItemInfo>(null, itemInfo));
 				}
 				else
 				{

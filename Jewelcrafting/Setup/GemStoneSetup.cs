@@ -23,6 +23,7 @@ public enum GemType
 	Bonemass,
 	Moder,
 	Yagluth,
+	Queen,
 	Group
 }
 
@@ -53,8 +54,8 @@ public static class GemStoneSetup
 		{ GemType.Red, Color.red },
 		{ GemType.Yellow, Color.yellow },
 		{ GemType.Green, Color.green },
-		{ GemType.Purple, Color.magenta }
-		//{ GemType.Orange, new Color(1, 0.6f, 0) }
+		{ GemType.Purple, Color.magenta },
+		{ GemType.Orange, new Color(1, 0.6f, 0) }
 	};
 
 	public static readonly GameObject[] customGemTierPrefabs = new GameObject[3];
@@ -91,6 +92,7 @@ public static class GemStoneSetup
 		{
 			colorGems = Gems[color] = new List<GemDefinition>();
 		}
+		prefab.GetComponent<ItemDrop>().m_itemData.m_dropPrefab = prefab;
 		string gemName = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		GemStones.socketableGemStones.Add(gemName);
 		colorGems.Add(new GemDefinition
@@ -111,7 +113,7 @@ public static class GemStoneSetup
 		shardColors[color] = new Item(prefab) { Configurable = Configurability.Disabled }.Prefab;
 	}
 
-	public static void RegisterUncutGem(GameObject prefab, GemType color, ConfigEntry<int>? dropChance = null)
+	public static void RegisterUncutGem(GameObject prefab, GemType color, ConfigEntry<float>? dropChance = null)
 	{
 		Item gemStone = new(prefab) { Configurable = Configurability.Disabled };
 		uncutGems[color] = prefab;
@@ -126,7 +128,7 @@ public static class GemStoneSetup
 		string gemName = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		Jewelcrafting.gemUpgradeChances.Add(gemName, Jewelcrafting.config("Socket Upgrade Chances", Jewelcrafting.english.Localize(gemName), tier switch { 0 => 30f, 1 => 20f, _ => 10f }, new ConfigDescription($"Success chance while trying to create {Localization.instance.Localize(gemName)}.", new AcceptableValueRange<float>(0f, 100f), new Jewelcrafting.ConfigurationManagerAttributes { DispName = Localization.instance.Localize(gemName) })));
 
-		Item gemStone = new(prefab) { Configurable = Configurability.Disabled };
+		Item gemStone = new(prefab) { Configurable = Configurability.Full };
 		switch (tier)
 		{
 			case 0:
@@ -189,7 +191,7 @@ public static class GemStoneSetup
 			RegisterShard(assets.Contains(shardAssetName) ? assets.LoadAsset<GameObject>(shardAssetName) : CreateShardFromTemplate(customGemShardPrefab, gemType.Key.ToString(), gemType.Value), gemType.Key);
 			string uncutGemShardName = customUncutGemPrefab.name.Replace("Custom", gemType.Key.ToString());
 			string name = Jewelcrafting.english.Localize($"$jc_merged_gemstone_{gemType.Key.ToString().ToLower()}");
-			RegisterUncutGem(assets.Contains(uncutGemShardName) ? assets.LoadAsset<GameObject>(uncutGemShardName) : CreateUncutFromTemplate(customUncutGemPrefab, gemType.Key.ToString(), gemType.Value), gemType.Key, Jewelcrafting.config("Gem Drops", $"Drop chance for {name} Gemstones", 2, new ConfigDescription($"Chance to drop {name} gemstones when killing creatures.", new AcceptableValueRange<int>(0, 100))));
+			RegisterUncutGem(assets.Contains(uncutGemShardName) ? assets.LoadAsset<GameObject>(uncutGemShardName) : CreateUncutFromTemplate(customUncutGemPrefab, gemType.Key.ToString(), gemType.Value), gemType.Key, Jewelcrafting.config("Gem Drops", $"Drop chance for {name} Gemstones", 1.5f, new ConfigDescription($"Chance to drop {name} gemstones when killing creatures.", new AcceptableValueRange<float>(0, 100))));
 
 			for (int tier = 0; tier < customGemTierPrefabs.Length; ++tier)
 			{
@@ -207,7 +209,9 @@ public static class GemStoneSetup
 			return gemStone;
 		}
 
-		Item gemStone = AddGem("Boss_Crystal_1", GemType.Elder);
+		Item gemStone = AddGem("Boss_Crystal_7", GemType.Eikthyr);
+		GemStones.bossToGem.Add("Eikthyr", gemStone.Prefab);
+		gemStone = AddGem("Boss_Crystal_1", GemType.Elder);
 		GemStones.bossToGem.Add("gd_king", gemStone.Prefab);
 		gemStone = AddGem("Boss_Crystal_2", GemType.Bonemass);
 		GemStones.bossToGem.Add("Bonemass", gemStone.Prefab);
@@ -215,8 +219,8 @@ public static class GemStoneSetup
 		GemStones.bossToGem.Add("Dragon", gemStone.Prefab);
 		gemStone = AddGem("Boss_Crystal_5", GemType.Yagluth);
 		GemStones.bossToGem.Add("GoblinKing", gemStone.Prefab);
-		gemStone = AddGem("Boss_Crystal_7", GemType.Eikthyr);
-		GemStones.bossToGem.Add("Eikthyr", gemStone.Prefab);
+		gemStone = AddGem("Boss_Crystal_3", GemType.Queen);
+		GemStones.bossToGem.Add("SeekerQueen", gemStone.Prefab);
 
 		AddGem("Friendship_Group_Gem", GemType.Group);
 	}

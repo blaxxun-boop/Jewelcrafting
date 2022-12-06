@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using JetBrains.Annotations;
-using Jewelcrafting.WorldBosses;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
 #if ! API
 using System.Diagnostics;
 using System.Linq;
-using ExtendedItemDataFramework;
+using ItemDataManager;
 using Jewelcrafting.GemEffects;
+using Jewelcrafting.WorldBosses;
 using LocalizationManager;
 using YamlDotNet.Serialization;
+using Debug = UnityEngine.Debug;
 #endif
 
 namespace Jewelcrafting;
@@ -70,7 +70,7 @@ public static class API
 		}
 		AddShardFromTemplate(type, colorName, color);
 		GameObject uncutGem = AddUncutFromTemplate(type, colorName, color);
-		AddUncutGem(uncutGem, colorName, Jewelcrafting.config("2 - Socket System", $"Drop chance for {type} Gemstones", 2, new ConfigDescription($"Chance to drop an {type.ToLower()} gemstone when killing creatures.", new AcceptableValueRange<int>(0, 100))));
+		AddUncutGem(uncutGem, colorName, Jewelcrafting.config("2 - Socket System", $"Drop chance for {type} Gemstones", 1.5f, new ConfigDescription($"Chance to drop an {type.ToLower()} gemstone when killing creatures.", new AcceptableValueRange<float>(0, 100))));
 		AddDestructibleFromTemplate(type, colorName, color);
 		AddTieredGemFromTemplate(type, colorName, color);
 #endif
@@ -193,7 +193,7 @@ public static class API
 #endif
 	}
 
-	public static void AddUncutGem(GameObject prefab, string colorName, ConfigEntry<int>? dropChance = null)
+	public static void AddUncutGem(GameObject prefab, string colorName, ConfigEntry<float>? dropChance = null)
 	{
 #if ! API
 		GemStoneSetup.RegisterUncutGem(prefab, (GemType)colorName.GetStableHashCode(), dropChance);
@@ -260,7 +260,7 @@ public static class API
 	{
 		List<GemInfo?> gems = new();
 #if ! API
-		if (item.Extended()?.GetComponent<Socketable>() is { } sockets and not Box { progress: >= 100 } and not SocketBag)
+		if (item.Data().Get<Socketable>() is { } sockets and not Box { progress: >= 100 } and not SocketBag)
 		{
 			GemLocation location = Utils.GetGemLocation(item.m_shared);
 			IEnumerable<EffectPower> effects(string socket) => Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers) ? effectPowers : Enumerable.Empty<EffectPower>();

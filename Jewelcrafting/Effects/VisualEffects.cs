@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using ExtendedItemDataFramework;
 using HarmonyLib;
+using ItemDataManager;
 using UnityEngine;
 using static Jewelcrafting.VisualEffectCondition;
 
@@ -17,16 +17,17 @@ public static class VisualEffects
 		{ "Perfect_Green_Socket", VisualEffectSetup.greenGemEffects },
 		{ "Perfect_Black_Socket", VisualEffectSetup.blackGemEffects },
 		{ "Perfect_Yellow_Socket", VisualEffectSetup.yellowGemEffects },
-		{ "Perfect_Purple_Socket", VisualEffectSetup.purpleGemEffects }
+		{ "Perfect_Purple_Socket", VisualEffectSetup.purpleGemEffects },
+		{ "Perfect_Orange_Socket", VisualEffectSetup.orangeGemEffects }
 	};
-	
+
 	private static readonly Dictionary<VisualEffectCondition, Dictionary<string, GameObject[]>> effectPrefabsByType = new();
 
 	[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
 	private static class FillEffectHashMapOnStart
 	{
 		private static bool initialized = false;
-		
+
 		[HarmonyPriority(Priority.First)]
 		public static void Prefix()
 		{
@@ -34,7 +35,7 @@ public static class VisualEffects
 			{
 				return;
 			}
-			
+
 			FillEffectHashMap();
 			initialized = true;
 		}
@@ -50,12 +51,12 @@ public static class VisualEffects
 				{
 					inverseDict = effectPrefabsByType[effectKv.Key] = new Dictionary<string, GameObject[]>();
 				}
-				inverseDict.Add(kv.Key, new []{ effectKv.Value });
+				inverseDict.Add(kv.Key, new[] { effectKv.Value });
 
 				effectHashMap.Add(effectKv.Value.name.GetStableHashCode(), effectKv.Value);
 			}
 		}
-			
+
 		foreach (KeyValuePair<VisualEffectCondition, Dictionary<string, GameObject[]>> inverseKv in effectPrefabsByType)
 		{
 			foreach (KeyValuePair<GemType, Dictionary<GemType, GameObject[]>> mergedKv in MergedGemStoneSetup.mergedGems)
@@ -85,7 +86,7 @@ public static class VisualEffects
 				}
 			}
 		}
-		
+
 		foreach (GameObject effect in VisualEffectSetup.spearProjectiles.Values)
 		{
 			effectHashMap.Add(effect.name.GetStableHashCode(), effect);
@@ -93,7 +94,7 @@ public static class VisualEffects
 	}
 
 	private static readonly Dictionary<int, GameObject> effectHashMap = new();
-	
+
 	[HarmonyPatch(typeof(VisEquipment), nameof(VisEquipment.UpdateEquipmentVisuals))]
 	private static class ApplyGemEffects
 	{
@@ -150,7 +151,7 @@ public static class VisualEffects
 		}
 
 		bool changed = false;
-		for (int i = 0; ; ++i)
+		for (int i = 0;; ++i)
 		{
 			int effect = zdo.GetInt($"{keyPrefix} Effect {i}");
 			if (effect == 0)
@@ -218,7 +219,7 @@ public static class VisualEffects
 	{
 		public static void Postfix(ItemDrop __instance)
 		{
-			if (Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.On && prefabDict(__instance.m_itemData.m_shared) is { } effectPrefabs && __instance.m_itemData.Extended()?.GetComponent<Sockets>() is { } itemSockets)
+			if (Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.On && prefabDict(__instance.m_itemData.m_shared) is { } effectPrefabs && __instance.m_itemData.Data().Get<Sockets>() is { } itemSockets)
 			{
 				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 				{
@@ -235,7 +236,7 @@ public static class VisualEffects
 
 		public static void RemoveEffects(ItemDrop item)
 		{
-			if (prefabDict(item.m_itemData.m_shared) is { } effectPrefabs && item.m_itemData.Extended()?.GetComponent<Sockets>() is { } itemSockets)
+			if (prefabDict(item.m_itemData.m_shared) is { } effectPrefabs && item.m_itemData.Data().Get<Sockets>() is { } itemSockets)
 			{
 				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 				{
@@ -263,7 +264,7 @@ public static class VisualEffects
 	{
 		private static void Prefix(Projectile __instance, ItemDrop.ItemData? item)
 		{
-			if (item?.m_shared.m_skillType == Skills.SkillType.Spears && item.Extended()?.GetComponent<Sockets>()?.socketedGems is { } gems)
+			if (item?.m_shared.m_skillType == Skills.SkillType.Spears && item.Data().Get<Sockets>()?.socketedGems is { } gems)
 			{
 				int i = 0;
 				foreach (string socket in gems.Select(i => i.Name))

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using ExtendedItemDataFramework;
+using ItemDataManager;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
@@ -19,13 +19,9 @@ public struct SocketItem
 	}
 }
 
-public abstract class ItemContainer : BaseExtendedItemComponent
+public abstract class ItemContainer : ItemData
 {
 	public bool boxSealed = false;
-
-	protected ItemContainer(string id, ExtendedItemData parent) : base(id, parent)
-	{
-	}
 
 	public abstract Inventory ReadInventory();
 
@@ -35,17 +31,6 @@ public abstract class ItemContainer : BaseExtendedItemComponent
 public abstract class Socketable : ItemContainer
 {
 	public List<SocketItem> socketedGems = new() { new SocketItem("") };
-
-	protected Socketable(string id, ExtendedItemData parent) : base(id, parent)
-	{
-	}
-
-	public override BaseExtendedItemComponent Clone()
-	{
-		Socketable copy = (Socketable)MemberwiseClone();
-		copy.socketedGems = new List<SocketItem>(copy.socketedGems);
-		return copy;
-	}
 	
 	public override Inventory ReadInventory()
 	{
@@ -85,19 +70,15 @@ public class Sockets : Socketable
 {
 	public int Worth = 0;
 	
-	public Sockets(ExtendedItemData parent) : base(typeof(Sockets).AssemblyQualifiedName, parent)
-	{
-	}
-
-	public override string Serialize()
+	public override void Save()
 	{
 		Worth = CalculateItemWorth();
-		return string.Join(",", socketedGems.Select(i => i.Name).ToArray());
+		Value = string.Join(",", socketedGems.Select(i => i.Name).ToArray());
 	}
 
-	public override void Deserialize(string data)
+	public override void Load()
 	{
-		socketedGems = data.Split(',').Select(s => new SocketItem(s)).ToList();
+		socketedGems = Value.Split(',').Select(s => new SocketItem(s)).ToList();
 		Worth = CalculateItemWorth();
 	}
 	
@@ -107,7 +88,7 @@ public class Sockets : Socketable
 
 		foreach (string socket in socketedGems.Select(i => i.Name))
 		{
-			if (ObjectDB.instance.GetItemPrefab(socket) is { } gem)
+			if (ObjectDB.instance?.GetItemPrefab(socket) is { } gem)
 			{
 				if (GemStones.bossToGem.Values.Contains(gem))
 				{
@@ -134,18 +115,14 @@ public interface ItemBag
 
 public class SocketBag : Socketable, ItemBag
 {
-	public SocketBag(ExtendedItemData parent) : base(typeof(SocketBag).AssemblyQualifiedName, parent)
+	public override void Save()
 	{
+		Value = string.Join(",", socketedGems.Select(i => $"{i.Name}:{i.Count}").ToArray());
 	}
 
-	public override string Serialize()
+	public override void Load()
 	{
-		return string.Join(",", socketedGems.Select(i => $"{i.Name}:{i.Count}").ToArray());
-	}
-
-	public override void Deserialize(string data)
-	{
-		socketedGems = data.Split(',').Select(s => { string[] split = s.Split(':'); return new SocketItem(split[0], split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0); }).ToList();
+		socketedGems = Value.Split(',').Select(s => { string[] split = s.Split(':'); return new SocketItem(split[0], split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0); }).ToList();
 	}
 }
 
@@ -153,33 +130,23 @@ public class InventoryBag : ItemContainer, ItemBag
 {
 	private Inventory inventory = new("Items", Player.m_localPlayer?.GetInventory().m_bkg, Jewelcrafting.gemBoxSlotsColumns.Value, Jewelcrafting.gemBoxSlotsRows.Value);
 	
-	// ReSharper disable once MemberCanBePrivate.Global
-	public InventoryBag(ExtendedItemData parent) : base(typeof(InventoryBag).AssemblyQualifiedName, parent)
-	{
-	}
-
-	public override string Serialize()
+	public override void Save()
 	{
 		ZPackage pkg = new();
 		inventory.Save(pkg);
-		return $"{inventory.m_width};{inventory.m_height};{Convert.ToBase64String(pkg.GetArray())}";
+		Value = $"{inventory.m_width};{inventory.m_height};{Convert.ToBase64String(pkg.GetArray())}";
 	}
 
-	public override void Deserialize(string data)
+	public override void Load()
 	{
-		string[] info = data.Split(';');
+		string[] info = Value.Split(';');
 		if (info.Length > 2 && int.TryParse(info[0], out int width) && int.TryParse(info[1], out int height))
 		{
 			inventory = new Inventory("Items", Player.m_localPlayer?.GetInventory().m_bkg, width, height);
 			inventory.Load(new ZPackage(Convert.FromBase64String(info[2])));
 		}
 	}
-
-	public override BaseExtendedItemComponent Clone()
-	{
-		return new InventoryBag(ItemData) { inventory = new Inventory(inventory.m_name, inventory.m_bkg, inventory.m_width, inventory.m_height) { m_inventory = inventory.m_inventory.Select(i => i.Clone()).ToList() } };
-	}
-
+	
 	public override Inventory ReadInventory() => inventory;
 
 	public override void SaveSocketsInventory(Inventory inv) => inventory = inv;
@@ -187,18 +154,7 @@ public class InventoryBag : ItemContainer, ItemBag
 
 public class Frame : Socketable
 {
-	public Frame(ExtendedItemData parent) : base(typeof(Frame).AssemblyQualifiedName, parent)
-	{
-	}
 
-	public override string Serialize()
-	{
-		return "";
-	}
-
-	public override void Deserialize(string data)
-	{
-	}
 }
 
 public class Box : Socketable
@@ -207,19 +163,19 @@ public class Box : Socketable
 
 	public int Tier => ObjectDB.instance.GetItemPrefab(socketedGems[0].Name) is { } gem && GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info) ? info.Tier - 1 : 0;
 
-	public Box(ExtendedItemData parent) : base(typeof(Box).AssemblyQualifiedName, parent)
+	public Box()
 	{
 		socketedGems.Add(new SocketItem(""));
 	}
 
-	public override string Serialize()
+	public override void Save()
 	{
-		return string.Join(",", socketedGems.Select(i => i.Name).ToArray()) + (boxSealed || progress > 0 ? $"|{progress.ToString(CultureInfo.InvariantCulture)}" : "");
+		Value = string.Join(",", socketedGems.Select(i => i.Name).ToArray()) + (boxSealed || progress > 0 ? $"|{progress.ToString(CultureInfo.InvariantCulture)}" : "");
 	}
 
-	public override void Deserialize(string data)
+	public override void Load()
 	{
-		string[] boxData = data.Split('|');
+		string[] boxData = Value.Split('|');
 		if (boxData.Length > 1)
 		{
 			float.TryParse(boxData[1], NumberStyles.Float, CultureInfo.InvariantCulture, out progress);
@@ -246,7 +202,7 @@ public class Box : Socketable
 					socketedGems[1] = new SocketItem("Shattered_Cyan_Crystal");
 				}
 			}
-			else if (Random.value < Jewelcrafting.boxMergeChances[ItemData.m_shared.m_name][Tier].Value / 100f)
+			else if (Random.value < Jewelcrafting.boxMergeChances[Item.m_shared.m_name][Tier].Value / 100f)
 			{
 				if (GemStoneSetup.GemInfos.TryGetValue(ObjectDB.instance.GetItemPrefab(socketedGems[0].Name).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info1))
 				{

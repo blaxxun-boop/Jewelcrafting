@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using ItemManager;
-using Jewelcrafting.GemEffects;
 using UnityEngine;
 using static Jewelcrafting.VisualEffectCondition;
 
@@ -14,6 +13,7 @@ public static class VisualEffectSetup
 	public static readonly Dictionary<VisualEffectCondition, GameObject> blackGemEffects = new();
 	public static readonly Dictionary<VisualEffectCondition, GameObject> yellowGemEffects = new();
 	public static readonly Dictionary<VisualEffectCondition, GameObject> purpleGemEffects = new();
+	public static readonly Dictionary<VisualEffectCondition, GameObject> orangeGemEffects = new();
 
 	public static readonly Dictionary<GemType, GameObject> spearProjectiles = new();
 
@@ -137,5 +137,8 @@ public static class VisualEffectSetup
 		purpleGemEffects.Add(PickaxeIron, PrefabManager.RegisterPrefab(assets, "JC_PickIron_Unbreakable"));
 		purpleGemEffects.Add(Hammer, PrefabManager.RegisterPrefab(assets, "JC_Hammer_Unbreakable"));
 		purpleGemEffects.Add(Hoe, PrefabManager.RegisterPrefab(assets, "JC_Hoe_Unbreakable"));
+		
+		orangeGemEffects.Add(Knives, PrefabManager.RegisterPrefab(assets, "JC_Perforation_Knife"));
+		orangeGemEffects.Add(Polearms, PrefabManager.RegisterPrefab(assets, "JC_ThunderClap_Atgeir"));
 	}
 }

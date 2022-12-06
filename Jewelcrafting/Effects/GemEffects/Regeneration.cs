@@ -15,14 +15,17 @@ public static class Regeneration
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
 			List<CodeInstruction> instructionList = instructions.ToList();
-			for (int i = 0; i < instructionList.Count; ++i)
+			yield return instructionList[0];
+			for (int i = 1; i < instructionList.Count; ++i)
 			{
-				if (i + 1 < instructionList.Count && instructionList[i + 1].opcode == OpCodes.Call && instructionList[i + 1].OperandIs(AccessTools.DeclaredMethod(typeof(Character), nameof(Character.Heal))))
-				{					
+				yield return instructionList[i];
+				if (instructionList[i - 1].opcode == OpCodes.Ldc_R4 && instructionList[i - 1].OperandIs(0f) && instructionList[i].IsStloc())
+				{
+					yield return new CodeInstruction(OpCodes.Ldloc_S, instructionList[i].operand);
 					yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(IncreaseHealthRegeneration), nameof(GetRegIncrease)));
 					yield return new CodeInstruction(OpCodes.Add);
+					yield return instructionList[i];
 				}
-				yield return instructionList[i];
 			}
 		}
 	}

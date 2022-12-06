@@ -11,7 +11,22 @@ public static class GachaSetup
 	public static GameObject gachaCoins = null!;
 	public static GameObject skeletonWindow = null!;
 	public static readonly HashSet<string> worldBossBonusItems = new();
+	public static readonly Dictionary<string, BalanceConfig> celestialItemsConfigs = new();
 
+	public struct BalanceConfig
+	{
+		public Item item;
+		public ItemDrop.ItemData.SharedData plains;
+		public ItemDrop.ItemData.SharedData mistlands;
+	}
+
+	public enum BalanceToggle
+	{
+		Plains,
+		Mistlands,
+		Custom
+	}
+	
 	public static void initializeGacha(AssetBundle assets)
 	{
 		gachaCoins = PrefabManager.RegisterPrefab(assets, "JC_Gacha_Coins", true);
@@ -20,14 +35,36 @@ public static class GachaSetup
 		{
 			Item weapon = new(assets, name);
 			weapon.Crafting.Add(CraftingTable.Forge, 1);
-			weapon.RequiredItems.Add("SwordCheat", 1);
 			weapon.RequiredUpgradeItems.Add("JC_Gacha_Coins", 5);
 			worldBossBonusItems.Add(name);
+			celestialItemsConfigs.Add(name, new BalanceConfig { item = weapon, plains = Utils.Clone(weapon.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared), mistlands = Utils.Clone(weapon.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared) } );
 		}
 		RegisterWorldBossBonusItem("JC_Reaper_Axe");
+		celestialItemsConfigs["JC_Reaper_Axe"].mistlands.m_damages.m_slash = 120;
+		celestialItemsConfigs["JC_Reaper_Axe"].mistlands.m_damages.m_chop = 70;
+		celestialItemsConfigs["JC_Reaper_Axe"].mistlands.m_damagesPerLevel.m_slash = 5;
+		celestialItemsConfigs["JC_Reaper_Axe"].mistlands.m_damagesPerLevel.m_chop = 3;
+		celestialItemsConfigs["JC_Reaper_Axe"].mistlands.m_maxDurability = 200;
 		RegisterWorldBossBonusItem("JC_Reaper_Bow");
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_pierce = 72;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_poison = 0;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_spirit = 5;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_attackForce = 25;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_attack.m_drawStaminaDrain = 14;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damagesPerLevel.m_pierce = 4;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damagesPerLevel.m_spirit = 5;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damagesPerLevel.m_frost = 0;
 		RegisterWorldBossBonusItem("JC_Reaper_Pickaxe");
+		celestialItemsConfigs["JC_Reaper_Pickaxe"].mistlands.m_toolTier = 3;
+		celestialItemsConfigs["JC_Reaper_Pickaxe"].mistlands.m_damages.m_pierce = 49;
+		celestialItemsConfigs["JC_Reaper_Pickaxe"].mistlands.m_maxDurability = 400;
 		RegisterWorldBossBonusItem("JC_Reaper_Sword");
+		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_damages.m_slash = 75;
+		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_damages.m_frost = 40;
+		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_damagesPerLevel.m_frost = 6;
+		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_damagesPerLevel.m_spirit = 5;
+		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_attack.m_attackStamina = 14;
+		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_blockPower = 48;
 
 		skeletonWindow = assets.LoadAsset<GameObject>("JC_Gacha_Window");
 
