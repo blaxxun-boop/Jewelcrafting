@@ -50,6 +50,7 @@ public static class GachaSetup
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_poison = 0;
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_spirit = 5;
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_attackForce = 25;
+		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_attack = Utils.Clone(celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_attack);
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_attack.m_drawStaminaDrain = 14;
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damagesPerLevel.m_pierce = 4;
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damagesPerLevel.m_spirit = 5;
@@ -63,6 +64,7 @@ public static class GachaSetup
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_damages.m_frost = 40;
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_damagesPerLevel.m_frost = 6;
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_damagesPerLevel.m_spirit = 5;
+		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_attack = Utils.Clone(celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_attack);
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_attack.m_attackStamina = 14;
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_blockPower = 48;
 

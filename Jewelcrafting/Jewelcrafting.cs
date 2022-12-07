@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.6";
+	private const string ModVersion = "1.3.7";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -81,6 +82,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> bossSpawnBaseDistance = null!;
 	public static ConfigEntry<int> bossTimeLimit = null!;
 	public static ConfigEntry<int> bossCoinDrop = null!;
+	public static ConfigEntry<GachaSetup.BalanceToggle> worldBossBalance = null!;
+	public static ConfigEntry<float> worldBossHealth = null!;
+	public static ConfigEntry<float> worldBossPunchDamage = null!;
+	public static ConfigEntry<float> worldBossSmashDamage = null!;
+	public static ConfigEntry<float> worldBossFireDamage = null!;
+	public static ConfigEntry<float> worldBossFrostDamage = null!;
+	public static ConfigEntry<float> worldBossPoisonDamage = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
 	public static ConfigEntry<int> worldBossCountdownDisplayOffset = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
@@ -208,10 +216,29 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public class ConfigurationManagerAttributes
 	{
 		public int? Order;
+		public bool? Browsable;
 		public bool? HideSettingName;
 		public bool? HideDefaultButton;
 		public string? DispName;
 		public Action<ConfigEntryBase>? CustomDrawer;
+	}
+
+	private static object? configManager;
+
+	private delegate void setDmgFunc(ref HitData.DamageTypes dmg, float value);
+
+	internal static void reloadConfigDisplay() => configManager?.GetType().GetMethod("BuildSettingList")!.Invoke(configManager, Array.Empty<object>());
+
+	[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
+	private static class FetchConfigManager
+	{
+		private static void Prefix(FejdStartup __instance)
+		{
+			Assembly? bepinexConfigManager = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "ConfigurationManager");
+
+			Type? configManagerType = bepinexConfigManager?.GetType("ConfigurationManager.ConfigurationManager");
+			configManager = configManagerType == null ? null : BepInEx.Bootstrap.Chainloader.ManagerObject.GetComponent(configManagerType);
+		}
 	}
 
 	internal static Localization english = null!;
@@ -314,6 +341,58 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		bossSpawnBaseDistance = config("4 - World Boss", "Base Distance Boss Spawns", 50, new ConfigDescription("Minimum distance to player build structures for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossTimeLimit = config("4 - World Boss", "Time Limit", 30, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossCoinDrop = config("4 - World Boss", "Coins per Boss Kill", 1, new ConfigDescription("Number of Celestial Coins dropped by bosses per player.", new AcceptableValueRange<int>(0, 20), new ConfigurationManagerAttributes { Order = --order }));
+		void WorldBossCustomChanged(object? o, EventArgs? e)
+		{
+			switch (worldBossBalance.Value)
+			{
+				case GachaSetup.BalanceToggle.Plains:
+					BossSetup.ApplyBalanceConfig(BossSetup.plainsConfigs);
+					break;
+				case GachaSetup.BalanceToggle.Mistlands:
+					BossSetup.ApplyBalanceConfig(BossSetup.mistlandsConfigs);
+					break;
+				case GachaSetup.BalanceToggle.Custom:
+					BossSetup.ApplyBalanceConfig(new BossSetup.BalanceConfig
+					{
+						health = worldBossHealth.Value,
+						punchBlunt = worldBossPunchDamage.Value,
+						smashBlunt = worldBossSmashDamage.Value,
+						aoeFire = worldBossFireDamage.Value,
+						aoeFrost = worldBossFrostDamage.Value,
+						aoePoison = worldBossPoisonDamage.Value
+					});
+					break;
+			}
+		}
+		worldBossBalance = config("4 - World Boss", "Balance", GachaSetup.BalanceToggle.Mistlands, new ConfigDescription("Balancing to use for the world bosses.", null, new ConfigurationManagerAttributes { Order = --order }));
+		List<ConfigurationManagerAttributes> worldBossCustomAttributes = new();
+		worldBossBalance.SettingChanged += (o, e) =>
+		{
+			foreach (ConfigurationManagerAttributes attributes in worldBossCustomAttributes)
+			{
+				attributes.Browsable = worldBossBalance.Value == GachaSetup.BalanceToggle.Custom;
+			}
+			reloadConfigDisplay();
+			WorldBossCustomChanged(o, e);
+		};
+		ConfigurationManagerAttributes WorldBossAttribute()
+		{
+			ConfigurationManagerAttributes attributes = new() { Order = --order, Browsable = worldBossBalance.Value == GachaSetup.BalanceToggle.Custom };
+			worldBossCustomAttributes.Add(attributes);
+			return attributes;
+		}
+		worldBossHealth = config("4 - World Boss", "Boss Health", BossSetup.mistlandsConfigs.health, new ConfigDescription("Balancing to use for the world bosses.", null, WorldBossAttribute()));
+		worldBossHealth.SettingChanged += WorldBossCustomChanged;
+		worldBossPunchDamage = config("4 - World Boss", "Punch Damage", BossSetup.mistlandsConfigs.punchBlunt, new ConfigDescription("Basic attack damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossPunchDamage.SettingChanged += WorldBossCustomChanged;
+		worldBossSmashDamage = config("4 - World Boss", "Smash Damage", BossSetup.mistlandsConfigs.smashBlunt, new ConfigDescription("Smash attack damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossSmashDamage.SettingChanged += WorldBossCustomChanged;
+		worldBossFireDamage = config("4 - World Boss", "Fire Damage", BossSetup.mistlandsConfigs.aoeFire, new ConfigDescription("Fire damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossFireDamage.SettingChanged += WorldBossCustomChanged;
+		worldBossFrostDamage = config("4 - World Boss", "Frost Damage", BossSetup.mistlandsConfigs.aoeFrost, new ConfigDescription("Frost damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossFrostDamage.SettingChanged += WorldBossCustomChanged;
+		worldBossPoisonDamage = config("4 - World Boss", "Poison Damage", BossSetup.mistlandsConfigs.aoePoison, new ConfigDescription("Poison damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossPoisonDamage.SettingChanged += WorldBossCustomChanged;
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
 		worldBossCountdownDisplayOffset = config("4 - World Boss", "Countdown Display Offset", 0, new ConfigDescription("Offset for the world boss countdown display on the world map. Increase this, to move the display down, to prevent overlapping with other mods.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		worldBossCountdownDisplayOffset.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerPosition();
@@ -359,6 +438,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		GachaSetup.initializeGacha(assets);
 		BossSetup.initializeBosses(assets);
 		SocketsBackground.CalculateColors();
+		
+		WorldBossCustomChanged(null, null);
 
 		foreach (GachaSetup.BalanceConfig balanceConfig in GachaSetup.celestialItemsConfigs.Values)
 		{
@@ -379,6 +460,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 						_ => throw new ArgumentOutOfRangeException()
 					};
 					balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared = Utils.Clone(sharedData);
+					balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_attack = Utils.Clone(sharedData.m_attack);
 
 					if (ObjectDB.instance)
 					{
@@ -388,6 +470,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 							if (itemdata.m_shared.m_name == sharedData.m_name)
 							{
 								itemdata.m_shared = Utils.Clone(sharedData);
+								itemdata.m_shared.m_attack = Utils.Clone(sharedData.m_attack);
 							}
 						}
 					}
@@ -518,14 +601,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "sfx_reaper_attack_hit");
 		PrefabManager.RegisterPrefab(assets, "vfx_reaper_destroyed");
 		PrefabManager.RegisterPrefab(assets, "sfx_reaper_hurt");
-		PrefabManager.RegisterPrefab(assets, "JC_Boss_AOE_Hit_2");
 		PrefabManager.RegisterPrefab(assets, "sfx_reaper_rock_destroyed");
 		PrefabManager.RegisterPrefab(assets, "JC_Boss_Projectile_Fire");
 		PrefabManager.RegisterPrefab(assets, "JC_Boss_Projectile_Frost");
 		PrefabManager.RegisterPrefab(assets, "JC_Boss_Projectile_Poison");
-		PrefabManager.RegisterPrefab(assets, "JC_Boss_Explosion_Flames");
-		PrefabManager.RegisterPrefab(assets, "JC_Boss_Explosion_Frost");
-		PrefabManager.RegisterPrefab(assets, "JC_Boss_Explosion_Poison");
 		PrefabManager.RegisterPrefab(assets, "sfx_reaper_alert");
 		PrefabManager.RegisterPrefab(assets, "sfx_open_box");
 		PrefabManager.RegisterPrefab(assets, "SFX_Reaper_Bow_Draw");

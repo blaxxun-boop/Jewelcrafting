@@ -96,7 +96,7 @@ public static class GemStones
 			tab.GetComponent<Button>().onClick = buttonClick;
 		}
 
-		public static bool TabOpen() => !tab.GetComponent<Button>().interactable;
+		public static bool TabOpen() => tab.gameObject.activeSelf && !tab.GetComponent<Button>().interactable;
 	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateCraftingPanel))]
@@ -262,7 +262,7 @@ public static class GemStones
 
 	private static bool CanAddMoreSockets(ItemDrop.ItemData item)
 	{
-		return item.Data().Get<ItemContainer>() is not { } container || ((container as Socketable)?.socketedGems.Count ?? 0) < Jewelcrafting.maximumNumberSockets.Value;
+		return item.Data().Get<ItemContainer>() is not { } container || ((container as Sockets)?.socketedGems.Count ?? int.MaxValue) < Jewelcrafting.maximumNumberSockets.Value;
 	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipeList))]
