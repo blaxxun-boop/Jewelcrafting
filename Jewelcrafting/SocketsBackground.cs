@@ -122,17 +122,22 @@ public static class SocketsBackground
 		private static void Prefix(Hud __instance) => ApplyToElementPrefab(ref __instance.m_rootObject.transform.Find("HotKeyBar").GetComponent<HotkeyBar>().m_elementPrefab, ref hotkeyElementPrefab, true);
 	}
 
-	private static void UpdateElement(ItemDrop.ItemData item, GameObject root)
+	private static void UpdateElement(ItemDrop.ItemData item, GameObject? root)
 	{
-		GameObject bg = root.transform.Find(background.name).gameObject;
+		if (root?.transform.Find(background.name)?.gameObject is not { } bg)
+		{
+			return;
+		}
+
 		if (item.Data().Get<Sockets>() is { } sockets && Jewelcrafting.displaySocketBackground.Value == Jewelcrafting.Toggle.On)
 		{
-			root.transform.Find("equiped").GetComponent<Image>().enabled = false;
+			if (root.transform.Find("equiped") is { } equipedTransform)
+			{
+				equipedTransform.GetComponent<Image>().enabled = false;
+			}
 			bg.SetActive(true);
 			bg.GetComponent<Image>().color = ItemColor(sockets);
-			GameObject selected = bg.transform.Find("JC_SelectedItem").gameObject;
-			selected.SetActive(item.m_equiped);
-			//selected.GetComponent<Image>().color = color;
+			bg.transform.Find("JC_SelectedItem")?.gameObject.SetActive(item.m_equiped);
 		}
 		else
 		{
@@ -152,7 +157,10 @@ public static class SocketsBackground
 
 			foreach (InventoryGrid.Element element in __instance.m_elements.Where(element => !element.m_used))
 			{
-				element.m_go.transform.Find(background.name).gameObject.SetActive(false);
+				if (element.m_go?.transform.Find(background.name) is { } backgroundTransform)
+				{
+					backgroundTransform.gameObject.SetActive(false);
+				}
 			}
 		}
 	}

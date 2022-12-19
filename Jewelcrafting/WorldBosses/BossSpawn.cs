@@ -257,7 +257,7 @@ public static class BossSpawn
 	{
 		private static void Postfix()
 		{
-			if (Minimap.instance)
+			if (Minimap.instance && Player.m_localPlayer?.IsDead() == false)
 			{
 				Minimap.instance.UpdateLocationPins(10);
 			}

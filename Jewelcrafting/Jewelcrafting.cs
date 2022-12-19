@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -23,11 +22,12 @@ namespace Jewelcrafting;
 [BepInPlugin(ModGUID, ModName, ModVersion)]
 [BepInIncompatibility("randyknapp.mods.epicloot")]
 [BepInIncompatibility("DasSauerkraut.Terraheim")]
+[BepInIncompatibility("org.bepinex.plugins.valheim_plus")]
 [BepInDependency("org.bepinex.plugins.groups", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.8";
+	private const string ModVersion = "1.3.9";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
