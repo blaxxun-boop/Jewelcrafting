@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.9";
+	private const string ModVersion = "1.3.10";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -82,13 +82,13 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> bossSpawnBaseDistance = null!;
 	public static ConfigEntry<int> bossTimeLimit = null!;
 	public static ConfigEntry<int> bossCoinDrop = null!;
-	public static ConfigEntry<GachaSetup.BalanceToggle> worldBossBalance = null!;
-	public static ConfigEntry<float> worldBossHealth = null!;
-	public static ConfigEntry<float> worldBossPunchDamage = null!;
-	public static ConfigEntry<float> worldBossSmashDamage = null!;
-	public static ConfigEntry<float> worldBossFireDamage = null!;
-	public static ConfigEntry<float> worldBossFrostDamage = null!;
-	public static ConfigEntry<float> worldBossPoisonDamage = null!;
+	private static ConfigEntry<GachaSetup.BalanceToggle> worldBossBalance = null!;
+	private static ConfigEntry<float> worldBossHealth = null!;
+	private static ConfigEntry<float> worldBossPunchDamage = null!;
+	private static ConfigEntry<float> worldBossSmashDamage = null!;
+	private static ConfigEntry<float> worldBossFireDamage = null!;
+	private static ConfigEntry<float> worldBossFrostDamage = null!;
+	private static ConfigEntry<float> worldBossPoisonDamage = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
 	public static ConfigEntry<int> worldBossCountdownDisplayOffset = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
@@ -225,14 +225,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private static object? configManager;
 
-	private delegate void setDmgFunc(ref HitData.DamageTypes dmg, float value);
-
-	internal static void reloadConfigDisplay() => configManager?.GetType().GetMethod("BuildSettingList")!.Invoke(configManager, Array.Empty<object>());
+	private static void reloadConfigDisplay() => configManager?.GetType().GetMethod("BuildSettingList")!.Invoke(configManager, Array.Empty<object>());
 
 	[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
 	private static class FetchConfigManager
 	{
-		private static void Prefix(FejdStartup __instance)
+		private static void Prefix()
 		{
 			Assembly? bepinexConfigManager = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == "ConfigurationManager");
 
@@ -438,7 +436,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		GachaSetup.initializeGacha(assets);
 		BossSetup.initializeBosses(assets);
 		SocketsBackground.CalculateColors();
-		
+
 		WorldBossCustomChanged(null, null);
 
 		foreach (GachaSetup.BalanceConfig balanceConfig in GachaSetup.celestialItemsConfigs.Values)
@@ -479,7 +477,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			Apply();
 			toggle.SettingChanged += (_, _) => Apply();
 		}
-		
+
 		int socketAddingOrder = 0;
 		for (int i = 0; i < 5; ++i)
 		{

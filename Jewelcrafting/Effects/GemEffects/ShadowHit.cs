@@ -29,7 +29,7 @@ public static class ShadowHit
 		{
 			if (hit.GetAttacker() is Player player && Random.value < player.GetEffect(Effect.Shadowhit) / 100f)
 			{
-				List<Character> characters = Object.FindObjectsOfType<Character>().Where(c => c != __instance && !c.IsPlayer() && Vector3.Distance(player.transform.position, c.transform.position) < 5f).ToList();
+				List<Character> characters = Object.FindObjectsOfType<Character>().Where(c => c != __instance && !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < 5f).ToList();
 				if (characters.Count > 0)
 				{
 					Character character = characters[Random.Range(0, characters.Count)];

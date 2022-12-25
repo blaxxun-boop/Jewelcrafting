@@ -378,7 +378,7 @@ jc_effect_leadingwolf_desc: "Movement speed of your group is increased, if you l
 jc_effect_leadingwolf_desc_detail: "The movement speed of your group is increased by $1%, if you lead it by running in the front. There can only be one leading wolf in a group."
 jc_effect_dedicatedtank: "Dedicated Tank"
 jc_effect_dedicatedtank_desc: "Increases your tanking abilities, while reducing your damage done."
-jc_effect_dedicatedtank_desc_detail: "Your blocking skill is increased by 100 and your shield does not reduce your movement speed anymore, but you deal only $1% damage."
+jc_effect_dedicatedtank_desc_detail: "Your blocking skill is increased by 100 and your shield does not reduce your movement speed anymore, but you deal only $1% damage. Only active while another group member is nearby."
 jc_effect_sharedhealing: "Shared Healing"
 jc_effect_sharedhealing_desc: "Heals your group, if you use a healing potion."
 jc_effect_sharedhealing_desc_detail: "Heals your nearby group members by $1% of the healing value, if you use a healing potion."

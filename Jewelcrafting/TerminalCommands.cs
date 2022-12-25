@@ -13,40 +13,42 @@ public static class TerminalCommands
 		{
 			_ = new Terminal.ConsoleCommand("Jewelcrafting", "Manages the Jewelcrafting commands.", (Terminal.ConsoleEvent)(args =>
 			{
-				if (!Jewelcrafting.configSync.IsAdmin && !Jewelcrafting.configSync.IsSourceOfTruth)
+				if (Jewelcrafting.configSync is { IsAdmin: false, IsSourceOfTruth: false })
 				{
 					args.Context.AddString("You are not an admin on this server.");
 					return;
 				}
 
-				if (args.Length >= 2 && args[1] == "generate")
+				switch (args.Length)
 				{
-					if (ZNet.instance.GetServerPeer() is { } peer)
+					case >= 2 when args[1] == "generate":
 					{
-						peer.m_rpc.Invoke("Jewelcrafting GenerateVegetation");
-					}
-					else
-					{
-						GenerateVegetationSpawners.RPC_GenerateVegetation(null);
-					}
+						if (ZNet.instance.GetServerPeer() is { } peer)
+						{
+							peer.m_rpc.Invoke("Jewelcrafting GenerateVegetation");
+						}
+						else
+						{
+							GenerateVegetationSpawners.RPC_GenerateVegetation(null);
+						}
 
-					return;
-				}
-				
-				if (args.Length >= 2 && args[1] == "worldboss")
-				{
-					if (ZNet.instance.GetServerPeer() is { } peer)
-					{
-						peer.m_rpc.Invoke("Jewelcrafting SpawnBoss");
+						return;
 					}
-					else
+					case >= 2 when args[1] == "worldboss":
 					{
-						BossSpawn.SpawnBoss();
-					}
+						if (ZNet.instance.GetServerPeer() is { } peer)
+						{
+							peer.m_rpc.Invoke("Jewelcrafting SpawnBoss");
+						}
+						else
+						{
+							BossSpawn.SpawnBoss();
+						}
 
-					return;
+						return;
+					}
 				}
-				
+
 				args.Context.AddString("Jewelcrafting console commands - use 'Jewelcrafting' followed by one of the following options.");
 				args.Context.AddString("generate - generates raw crystals in this world.");
 				args.Context.AddString("worldboss - immediately spawns a random world boss.");

@@ -62,45 +62,71 @@ public static class MiscSetup
 	{
 		private static bool Prefix(Humanoid __instance, GameObject go, bool autoPickupDelay)
 		{
-			if (__instance is not Player player || Jewelcrafting.gemBagAutofill.Value == Jewelcrafting.Toggle.Off || go.GetComponent<ItemDrop>() is not { } itemDrop || !itemDrop.CanPickup(autoPickupDelay) || !Utils.ItemAllowedInGemBag(itemDrop.m_itemData) || itemDrop.m_nview.GetZDO() is null)
+			if (__instance is not Player player || go.GetComponent<ItemDrop>() is not { } itemDrop || !itemDrop.CanPickup(autoPickupDelay) || itemDrop.m_nview.GetZDO() is null)
 			{
 				return true;
 			}
-
-			string prefabName = global::Utils.GetPrefabName(go);
+			
 			int originalAmount = itemDrop.m_itemData.m_stack;
-			foreach (ItemDrop.ItemData item in player.m_inventory.m_inventory)
+			itemDrop.m_itemData.m_dropPrefab ??= ObjectDB.instance.GetItemPrefab(global::Utils.GetPrefabName(itemDrop.gameObject)); 
+			if (Do(player.m_inventory, itemDrop.m_itemData))
 			{
-				if (item.m_shared.m_name == gemBagName && item.Data().Get<SocketBag>() is { } socketBag)
+				ZNetScene.instance.Destroy(go);
+				player.m_pickupEffects.Create(player.transform.position, Quaternion.identity);
+				player.ShowPickupMessage(itemDrop.m_itemData, originalAmount);
+				return false;
+			}
+			return true;
+		}
+
+		public static bool Do(Inventory inventory, ItemDrop.ItemData item, bool dryRun = false)
+		{
+			if (Jewelcrafting.gemBagAutofill.Value == Jewelcrafting.Toggle.Off || !Utils.ItemAllowedInGemBag(item))
+			{
+				return false;
+			}
+
+			int remainingStack = item.m_stack;
+			foreach (ItemDrop.ItemData invItem in inventory.m_inventory)
+			{
+				if (invItem.m_shared.m_name == gemBagName && invItem.Data().Get<SocketBag>() is { } socketBag)
 				{
+					int startingAmount = remainingStack;
 					void FinishPickup()
 					{
-						ZNetScene.instance.Destroy(go);
-						socketBag.Save();
-						player.m_pickupEffects.Create(player.transform.position, Quaternion.identity);
-						player.ShowPickupMessage(itemDrop.m_itemData, originalAmount);
+						if (!dryRun)
+						{
+							socketBag.Save();
+							if (GemStones.AddFakeSocketsContainer.openEquipment == socketBag.Info)
+							{
+								GemStones.AddFakeSocketsContainer.openInventory!.AddItem(item.m_dropPrefab, startingAmount);
+							}
+						}
 					}
 
 					for (int i = 0; i < socketBag.socketedGems.Count; ++i)
 					{
 						SocketItem slot = socketBag.socketedGems[i];
-						if (slot.Name == prefabName)
+						if (slot.Name == item.m_dropPrefab.name)
 						{
-							bool canFillLastItem = itemDrop.m_itemData.m_shared.m_maxStackSize - slot.Count >= itemDrop.m_itemData.m_stack;
+							bool canFillLastItem = item.m_shared.m_maxStackSize - slot.Count >= remainingStack;
 							if (canFillLastItem)
 							{
-								slot.Count += itemDrop.m_itemData.m_stack;
+								slot.Count += remainingStack;
 							}
 							else
 							{
-								itemDrop.m_itemData.m_stack -= itemDrop.m_itemData.m_shared.m_maxStackSize - slot.Count;
-								slot.Count = itemDrop.m_itemData.m_shared.m_maxStackSize;
+								remainingStack -= item.m_shared.m_maxStackSize - slot.Count;
+								slot.Count = item.m_shared.m_maxStackSize;
 							}
-							socketBag.socketedGems[i] = slot;
+							if (!dryRun)
+							{
+								socketBag.socketedGems[i] = slot;
+							}
 							if (canFillLastItem)
 							{
 								FinishPickup();
-								return false;
+								return true;
 							}
 						}
 					}
@@ -109,17 +135,52 @@ public static class MiscSetup
 					{
 						if (socketBag.socketedGems[i].Count == 0)
 						{
-							socketBag.socketedGems[i] = new SocketItem(prefabName, itemDrop.m_itemData.m_stack);
+							if (!dryRun)
+							{
+								socketBag.socketedGems[i] = new SocketItem(item.m_dropPrefab.name, remainingStack);
+							}
 							FinishPickup();
-							return false;
+							return true;
 						}
 					}
 
-					socketBag.Save();
+					if (!dryRun)
+					{
+						socketBag.Save();
+						if (GemStones.AddFakeSocketsContainer.openEquipment == socketBag.Info)
+						{
+							GemStones.AddFakeSocketsContainer.openInventory!.AddItem(item.m_dropPrefab, startingAmount - remainingStack);
+						}
+					}
 				}
 			}
 
-			return true;
+			if (!dryRun)
+			{
+				item.m_stack = remainingStack;
+			}
+
+			return false;
+		}
+	}
+
+	[HarmonyPatch(typeof(Player), nameof(Player.AutoPickup))]
+	private static class CheckAutoPickupActive
+	{
+		public static bool PickingUp = false;
+		private static void Prefix() => PickingUp = true;
+		private static void Finalizer() => PickingUp = false;
+	}
+
+	[HarmonyPatch(typeof(Inventory), nameof(Inventory.CanAddItem), typeof(ItemDrop.ItemData), typeof(int))]
+	private static class AutoPickupGemsWithFullInventory
+	{
+		private static void Postfix(Inventory __instance, ItemDrop.ItemData item, ref bool __result)
+		{
+			if (!__result && CheckAutoPickupActive.PickingUp)
+			{
+				__result = AddItemToBag.Do(__instance, item, true);
+			}
 		}
 	}
 }

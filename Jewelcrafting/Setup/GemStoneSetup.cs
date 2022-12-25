@@ -126,7 +126,7 @@ public static class GemStoneSetup
 	public static void RegisterTieredGemItem(GameObject prefab, string colorName, int tier)
 	{
 		string gemName = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		Jewelcrafting.gemUpgradeChances.Add(gemName, Jewelcrafting.config("Socket Upgrade Chances", Jewelcrafting.english.Localize(gemName), tier switch { 0 => 30f, 1 => 20f, _ => 10f }, new ConfigDescription($"Success chance while trying to create {Localization.instance.Localize(gemName)}.", new AcceptableValueRange<float>(0f, 100f), new Jewelcrafting.ConfigurationManagerAttributes { DispName = Localization.instance.Localize(gemName) })));
+		Jewelcrafting.gemUpgradeChances.Add(gemName, Jewelcrafting.config("Socket Upgrade Chances", Jewelcrafting.english.Localize(gemName), tier switch { 0 => 33f, 1 => 23f, _ => 13f }, new ConfigDescription($"Success chance while trying to create {Localization.instance.Localize(gemName)}.", new AcceptableValueRange<float>(0f, 100f), new Jewelcrafting.ConfigurationManagerAttributes { DispName = Localization.instance.Localize(gemName) })));
 
 		Item gemStone = new(prefab) { Configurable = Configurability.Full };
 		switch (tier)
