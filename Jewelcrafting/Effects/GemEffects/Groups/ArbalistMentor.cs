@@ -8,11 +8,11 @@ using UnityEngine;
 
 namespace Jewelcrafting.Effects.GemEffects.Groups;
 
-public static class ArcheryMentor
+public static class ArbalistMentor
 {
-	static ArcheryMentor()
+	static ArbalistMentor()
 	{
-		EffectDef.ConfigTypes.Add(Effect.Archerymentor, typeof(Config));
+		EffectDef.ConfigTypes.Add(Effect.Arbalistmentor, typeof(Config));
 	}
 
 	[PublicAPI]
@@ -26,10 +26,10 @@ public static class ArcheryMentor
 	{
 		private static void Postfix(Skills __instance, Skills.SkillType skillType, ref float __result)
 		{
-			if (skillType == Skills.SkillType.Bows)
+			if (skillType == Skills.SkillType.Crossbows)
 			{
 				float level = __result;
-				__result = Mathf.Max(level, Utils.GetNearbyGroupMembers(__instance.m_player, 40).Select(p => Mathf.Max(level + (p.m_nview.GetZDO().GetInt("Jewelcrafting Bows Skill") - level) * p.GetEffect(Effect.Archerymentor) / 100f)).DefaultIfEmpty(0).Max());
+				__result = Mathf.Max(level, Utils.GetNearbyGroupMembers(__instance.m_player, 40).Select(p => Mathf.Max(level + (p.m_nview.GetZDO().GetInt("Jewelcrafting Crossbow Skill") - level) * p.GetEffect(Effect.Arbalistmentor) / 100f)).DefaultIfEmpty(0).Max());
 			}
 		}
 	}
@@ -47,7 +47,7 @@ public static class ArcheryMentor
 
 		private static void Postfix()
 		{
-			Player.m_localPlayer?.m_nview?.GetZDO()?.Set("Jewelcrafting Bows Skill", (int)Player.m_localPlayer.GetSkills().GetSkill(Skills.SkillType.Bows).m_level);
+			Player.m_localPlayer?.m_nview?.GetZDO()?.Set("Jewelcrafting Crossbow Skill", (int)Player.m_localPlayer.GetSkills().GetSkill(Skills.SkillType.Crossbows).m_level);
 		}
 	}
 }

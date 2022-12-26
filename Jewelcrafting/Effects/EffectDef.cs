@@ -26,14 +26,15 @@ public enum GemLocation
 	Spear = 1 << 9,
 	Axe = 1 << 10,
 	Bow = 1 << 11,
-	Weapon = 1 << 12,
-	ElementalMagic = 1 << 13,
-	BloodMagic = 1 << 14,
-	Magic = 1 << 15,
-	Tool = 1 << 16,
-	Shield = 1 << 17,
-	Utility = 1 << 18,
-	All = 1 << 19
+	Crossbow = 1 << 12,
+	Weapon = 1 << 13,
+	ElementalMagic = 1 << 14,
+	BloodMagic = 1 << 15,
+	Magic = 1 << 16,
+	Tool = 1 << 17,
+	Shield = 1 << 18,
+	Utility = 1 << 19,
+	All = 1 << 20
 }
 
 public enum Effect
@@ -49,6 +50,7 @@ public enum Effect
 	Shadowhit,
 	Powerrecovery,
 	Endlessarrows,
+	Endlessbolts,
 	Explorer,
 	Student,
 	Glider,
@@ -62,6 +64,7 @@ public enum Effect
 	Vampire,
 	Bloodthirsty,
 	Masterarcher,
+	Masterarbalist,
 	Tank,
 	Paintolerance,
 	Berserk,
@@ -80,6 +83,7 @@ public enum Effect
 	Fleetinglife,
 	Cowardice,
 	Archerymentor,
+	Arbalistmentor,
 	Dedicatedtank,
 	Stealtharcher,
 	Mercifuldeath,

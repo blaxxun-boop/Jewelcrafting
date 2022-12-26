@@ -68,7 +68,7 @@ public static class TogetherForever
 					tether.GetComponent<ZNetView>().GetZDO().Set("Jewelcrafting Friendship PlayerStart", player.GetZDOID());
 					tether.GetComponent<ZNetView>().GetZDO().Set("Jewelcrafting Friendship PlayerEnd", target.GetZDOID());
 				}
-				else if (player.GetEffect(Effect.Neveralone) is { } neverAlone and < 100 && player.m_seman.AddStatusEffect(Jewelcrafting.loneliness) is SE_Stats statusEffectDebuff)
+				else if (HasPlayersInDebuffRange() && player.GetEffect(Effect.Neveralone) is { } neverAlone and < 100 && player.m_seman.AddStatusEffect(Jewelcrafting.loneliness) is SE_Stats statusEffectDebuff)
 				{
 					statusEffectDebuff.m_speedModifier = -config.MovementSpeedReduction / 100f * (1 - neverAlone / 100f);
 				}
@@ -106,7 +106,12 @@ public static class TogetherForever
 
 	private static Player? FindBuffTarget()
 	{
-		return Utils.GetNearbyGroupMembers(Player.m_localPlayer, 20).OrderBy(p => Vector3.Distance(p.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault();
+		return Utils.GetNearbyGroupMembers(Player.m_localPlayer, 30).OrderBy(p => Vector3.Distance(p.transform.position, Player.m_localPlayer.transform.position)).FirstOrDefault();
+	}
+
+	private static bool HasPlayersInDebuffRange()
+	{
+		return Utils.GetNearbyGroupMembers(Player.m_localPlayer, 100).Count > 0;
 	}
 
 	[HarmonyPatch(typeof(Player), nameof(Player.Awake))]
@@ -141,7 +146,7 @@ public class FriendshipTether : MonoBehaviour
 	private LineRenderer lineRenderer = null!;
 	private bool isOwner;
 
-	private static List<FriendshipTether> active = new();
+	private static readonly List<FriendshipTether> active = new();
 
 	private void Start()
 	{

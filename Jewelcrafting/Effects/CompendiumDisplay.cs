@@ -151,6 +151,7 @@ public static class CompendiumDisplay
 								GemLocation.Spear => "SpearBronze",
 								GemLocation.Axe => "AxeBlackMetal",
 								GemLocation.Bow => "BowFineWood",
+								GemLocation.Crossbow => "CrossbowArbalest",
 								GemLocation.Weapon => "SwordIron",
 								GemLocation.Tool => "Hammer",
 								GemLocation.Shield => "ShieldBlackmetal",

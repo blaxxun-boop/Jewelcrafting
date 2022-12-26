@@ -39,7 +39,7 @@ public static class LeadingWolf
 
 	private static float IncreaseMovementSpeed(Player self)
 	{
-		List<Player> nearbyPlayers = Utils.GetNearbyGroupMembers(self, 20, true);
+		List<Player> nearbyPlayers = Utils.GetNearbyGroupMembers(self, 40, true);
 		if (nearbyPlayers.Count <= 1)
 		{
 			return 0;

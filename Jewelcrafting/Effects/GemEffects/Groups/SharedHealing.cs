@@ -27,7 +27,7 @@ public static class SharedHealing
 		{
 			if (statusEffect.m_character == Player.m_localPlayer && Player.m_localPlayer.GetEffect(Effect.Sharedhealing) is { } healFactor and > 0)
 			{
-				foreach (Player player in Utils.GetNearbyGroupMembers(Player.m_localPlayer, 20))
+				foreach (Player player in Utils.GetNearbyGroupMembers(Player.m_localPlayer, 40))
 				{
 					player.Heal(heal * healFactor / 100f);
 				}
@@ -39,7 +39,7 @@ public static class SharedHealing
 		{
 			MethodInfo heal = AccessTools.DeclaredMethod(typeof(Character), nameof(Character.Heal));
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
-			for (int i = 0; i < instructions.Count; i++)
+			for (int i = 0; i < instructions.Count; ++i)
 			{
 				if (i < instructions.Count - 1 && instructions[i + 1].Calls(heal))
 				{

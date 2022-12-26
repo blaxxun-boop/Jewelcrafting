@@ -27,7 +27,7 @@ public static class Cowardice
 		{
 			if (__instance is Player player && hit.GetAttacker() is { } attacker && attacker != __instance && player.GetEffect(Effect.Cowardice) > 0)
 			{
-				List<Player> nearbyPlayers = Utils.GetNearbyGroupMembers(player, 20);
+				List<Player> nearbyPlayers = Utils.GetNearbyGroupMembers(player, 40);
 				if (nearbyPlayers.Count > 0)
 				{
 					player.m_seman.AddStatusEffect(Jewelcrafting.cowardice, true);

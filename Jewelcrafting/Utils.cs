@@ -106,6 +106,7 @@ public static class Utils
 			Skills.SkillType.Blocking => GemLocation.Shield,
 			Skills.SkillType.Axes => player?.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.yellowNecklaceHash ? GemLocation.Tool : GemLocation.Axe,
 			Skills.SkillType.Bows => GemLocation.Bow,
+			Skills.SkillType.Crossbows => GemLocation.Crossbow,
 			Skills.SkillType.Pickaxes => GemLocation.Tool,
 			Skills.SkillType.Unarmed when item.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon => GemLocation.Knife,
 			Skills.SkillType.BloodMagic => GemLocation.BloodMagic,

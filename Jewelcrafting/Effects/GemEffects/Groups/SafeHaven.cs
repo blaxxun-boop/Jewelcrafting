@@ -24,7 +24,7 @@ public static class SafeHaven
 		{
 			if (__instance is Player player && hit.GetAttacker() is { } attacker && attacker != __instance)
 			{
-				foreach (Player groupMember in Utils.GetNearbyGroupMembers(player, 20))
+				foreach (Player groupMember in Utils.GetNearbyGroupMembers(player, 40))
 				{
 					hit.ApplyModifier(1 - groupMember.GetEffect(Effect.Safehaven) / 100f);
 				}

@@ -184,11 +184,6 @@ endless arrows:
   gem: red
   power: [4, 6, 8]
 
-necromancer:
-  slot: bow
-  gem: green
-  power: [3, 5, 7]
-
 master archer:
   slot: bow
   gem: purple
@@ -198,11 +193,30 @@ stealth archer:
   slot: bow
   gem: black
   power: [20, 35, 50]
-  
+
+# Crossbow
+
+endless bolts:
+  slot: crossbow
+  gem: red
+  power: [4, 6, 8]
+
+master arbalist:
+  slot: crossbow
+  gem: purple
+  power: [4, 6, 8]
+
+# Bow and Crossbow
+
 echo:
-  slot: bow
+  slot: [bow, crossbow]
   gem: yellow
   power: [2, 3, 4]
+
+necromancer:
+  slot: [bow, crossbow]
+  gem: green
+  power: [3, 5, 7]
 
 # Cloak
 
@@ -277,7 +291,7 @@ lightning speed:
     duration: 8
     attack speed: 100
     stamina: 50
-    damage reduction: 50
+    damage reduction: 40
   unique: all
 
 rooted revenge:

@@ -22,7 +22,7 @@ public static class DedicatedTank
 	{
 		private static void Prefix(HitData hit)
 		{
-			if (hit.GetAttacker() is Player attacker && attacker.GetEffect(Effect.Dedicatedtank) > 0 && Utils.GetNearbyGroupMembers(attacker, 20f).Count > 0)
+			if (hit.GetAttacker() is Player attacker && attacker.GetEffect(Effect.Dedicatedtank) > 0 && Utils.GetNearbyGroupMembers(attacker, 40f).Count > 0)
 			{
 				hit.ApplyModifier(attacker.GetEffect(Effect.Dedicatedtank) / 100f);
 			}
@@ -33,7 +33,7 @@ public static class DedicatedTank
 		{
 			private static void Prefix(Player __instance, ref float __state)
 			{
-				if (__instance.m_leftItem?.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield && __instance.GetEffect(Effect.Dedicatedtank) > 0 && Utils.GetNearbyGroupMembers(__instance, 20f).Count > 0)
+				if (__instance.m_leftItem?.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield && __instance.GetEffect(Effect.Dedicatedtank) > 0 && Utils.GetNearbyGroupMembers(__instance, 40f).Count > 0)
 				{
 					__state = __instance.m_leftItem.m_shared.m_movementModifier;
 					__instance.m_leftItem.m_shared.m_movementModifier = 0;
@@ -54,7 +54,7 @@ public static class DedicatedTank
 		{
 			private static void Postfix(Skills __instance, Skills.SkillType skillType, ref float __result)
 			{
-				if (skillType == Skills.SkillType.Blocking && __instance.m_player.GetEffect(Effect.Dedicatedtank) > 0 && Utils.GetNearbyGroupMembers(__instance.m_player, 20f).Count > 0)
+				if (skillType == Skills.SkillType.Blocking && __instance.m_player.GetEffect(Effect.Dedicatedtank) > 0 && Utils.GetNearbyGroupMembers(__instance.m_player, 40f).Count > 0)
 				{
 					__result = 100;
 				}
