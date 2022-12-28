@@ -53,9 +53,9 @@ public static class BuildingPiecesSetup
 	[HarmonyPatch(typeof(Smelter), nameof(Smelter.GetItemConversion))]
 	private static class AddChanceToBreak
 	{
-		private static void Postfix(ref Smelter.ItemConversion __result)
+		private static void Postfix(ref Smelter.ItemConversion? __result)
 		{
-			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && Random.value > upgradeChance.Value / 100f)
+			if (__result is not null && Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && Random.value > upgradeChance.Value / 100f)
 			{
 				__result = new Smelter.ItemConversion
 				{

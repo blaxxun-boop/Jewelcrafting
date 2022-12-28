@@ -39,7 +39,7 @@ public static class Apotheosis
 		{
 			yield return player.WaitEffect<Config>(Effect.Apotheosis, c => c.MinCooldown, c => c.MaxCooldown);
 			Config config = player.GetEffect<Config>(Effect.Apotheosis);
-			if (config.Duration > 0)
+			if (config.Duration > 0 && !player.IsDead())
 			{
 				player.m_seman.AddStatusEffect(Jewelcrafting.apotheosisStart);
 				

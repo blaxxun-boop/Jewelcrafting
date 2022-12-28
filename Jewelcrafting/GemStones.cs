@@ -450,7 +450,7 @@ public static class GemStones
 						{
 							text = Localization.instance.Localize("$jc_press_gem_bag_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
 						}
-						else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table")))
+						else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table")))
 						{
 							text = Localization.instance.Localize(container is Box { progress: >= 100 } ? "$jc_gembox_interact_finished" : "$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
 						}
@@ -839,7 +839,7 @@ public static class GemStones
 				item = __instance.m_playerGrid.GetItem(new Vector2i(Mathf.RoundToInt(pos.x), Mathf.RoundToInt(pos.y)));
 			}
 
-			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (item?.Data() ?? AddFakeSocketsContainer.openEquipment)?.Get<ItemContainer>() is ItemBag || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
+			if (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (item?.Data() ?? AddFakeSocketsContainer.openEquipment)?.Get<ItemContainer>() is ItemBag || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table"))
 			{
 				return Open(__instance, item);
 			}

@@ -31,6 +31,11 @@ public static class DestructibleSetup
 				m_stackMax = 1
 			}
 		};
+
+		if (prefab.transform.Find("Orbs") is { } orbs)
+		{
+			orbs.gameObject.SetActive(Jewelcrafting.gemstoneFormationParticles.Value == Jewelcrafting.Toggle.On);
+		}
 	}
 
 	public static GameObject CreateDestructibleFromTemplate(GameObject template, string type, Color color)
@@ -70,7 +75,7 @@ public static class DestructibleSetup
 			ZNetView netView = gemSpawner.AddComponent<ZNetView>();
 			netView.m_persistent = true;
 			netView.m_type = ZDO.ObjectType.Terrain;
-			gemSpawner.AddComponent<SphereCollider>().radius = 0.4f; // prevent spawning other things on top
+			gemSpawner.AddComponent<SphereCollider>().radius = 1.2f; // prevent spawning other things on top
 
 			__instance.m_prefabs.Add(gemSpawner);
 		}
@@ -89,8 +94,8 @@ public static class DestructibleSetup
 
 	public class GemSpawner : MonoBehaviour
 	{
-		private ZNetView netView = null!;
-		private static readonly List<GemSpawner> activeSpawners = new();
+		public ZNetView netView = null!;
+		public static readonly List<GemSpawner> activeSpawners = new();
 		private Heightmap.Biome biome;
 
 		public void Awake()
@@ -100,13 +105,13 @@ public static class DestructibleSetup
 			{
 				return;
 			}
-			
+
 			biome = Heightmap.FindBiome(transform.position);
 
 			if (netView.GetZDO().GetFloat("spawn random", -1) == -1)
 			{
 				float random = Random.value;
-				if (activeSpawners.FirstOrDefault(s => Vector3.Distance(s.transform.position, transform.position) < 2) is { } neighbor)
+				if (activeSpawners.FirstOrDefault(s => Vector3.Distance(s.transform.position, transform.position) < 3) is { } neighbor)
 				{
 					random = neighbor.netView.GetZDO().GetFloat("spawn random");
 				}
@@ -181,17 +186,17 @@ public static class DestructibleSetup
 				}
 
 				long lastDestruction = netView.GetZDO().GetLong("destruction time");
-				if (lastDestruction != 0 && (Jewelcrafting.gemRespawnRate.Value == 0 ||  (ZNet.instance.GetTime() - new DateTime(lastDestruction)).TotalSeconds < Jewelcrafting.gemRespawnRate.Value * EnvMan.instance.m_dayLengthSec))
+				if (lastDestruction != 0 && (Jewelcrafting.gemRespawnRate.Value == 0 || (ZNet.instance.GetTime() - new DateTime(lastDestruction)).TotalSeconds < Jewelcrafting.gemRespawnRate.Value * EnvMan.instance.m_dayLengthSec))
 				{
 					return;
 				}
 			}
 
-			if (Physics.SphereCast(transform.position + Vector3.down * 10, 0.4f, Vector3.up, out _, 12f, ZoneSystem.instance.m_blockRayMask))
+			if (Physics.SphereCast(transform.position + Vector3.down * 10, 1.2f, Vector3.up, out _, 12f, ZoneSystem.instance.m_blockRayMask))
 			{
 				return;
 			}
-			
+
 			GameObject destructible = Instantiate(prefab, transform.position, Quaternion.Euler(0, Random.Range(0, 360), 0));
 			zdo.Set("spawn gem", destructible.GetComponent<ZNetView>().GetZDO().m_uid);
 		}
@@ -214,6 +219,7 @@ public static class DestructibleSetup
 				m_groupSizeMin = 2,
 				m_groupSizeMax = 6,
 				m_minAltitude = 0,
+				m_forcePlacement = true,
 				m_max = 2,
 				m_prefab = gemSpawner
 			});

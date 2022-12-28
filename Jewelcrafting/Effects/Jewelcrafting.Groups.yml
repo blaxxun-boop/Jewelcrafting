@@ -28,6 +28,11 @@ archery mentor:
   gem: cyan
   power: [20, 30, 40]
   
+arbalist mentor:
+  slot: crossbow
+  gem: cyan
+  power: [20, 30, 40]
+  
 dedicated tank:
   slot: shield
   gem: cyan

@@ -54,7 +54,7 @@ public static class GemCursor
 	{
 		private static void Postfix()
 		{
-			if (Player.m_localPlayer.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == BuildingPiecesSetup.gemcuttersTable.name)
+			if (Player.m_localPlayer.GetCurrentCraftingStation() is { } craftingStation && craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == BuildingPiecesSetup.gemcuttersTable.name)
 			{
 				SetCursor(CursorState.Crafting);
 			}
