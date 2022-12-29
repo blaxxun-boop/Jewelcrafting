@@ -29,28 +29,65 @@ public static class GemStones
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
 	private class TryUpgradingGems
 	{
-		private static bool Prefix(InventoryGui __instance, Player player)
+		private static bool Prefix(InventoryGui __instance, Player player, ref Tuple<int, Recipe>? __state)
 		{
-			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && __instance.m_craftRecipe.m_resources[0].m_amount == 1)
+			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && __instance.m_craftRecipe.m_resources[0].m_amount == __instance.m_craftRecipe.m_amount)
 			{
 				player.RaiseSkill("Jewelcrafting");
 
-				if (!Player.m_localPlayer.m_noPlacementCost && Random.value > upgradeChance.Value / 100f * (1 + player.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + player.GetEffect(Effect.Carefulcutting) / 100f)
+				int successCount = __instance.m_craftRecipe.m_amount;
+
+				if (!Player.m_localPlayer.m_noPlacementCost && player.HaveRequirements(__instance.m_craftRecipe, false, 1))
 				{
-					if (player.HaveRequirements(__instance.m_craftRecipe, false, 1))
+					for (int i = 0; i < __instance.m_craftRecipe.m_amount; ++i)
 					{
-						player.ConsumeResources(__instance.m_craftRecipe.m_resources, 1);
-						player.m_inventory.AddItem(gemToShard[__instance.m_craftRecipe.m_item.name], 1);
-						player.Message(MessageHud.MessageType.Center, "$jc_gemstone_cut_fail");
+						if (Random.value > upgradeChance.Value / 100f * (1 + player.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + player.GetEffect(Effect.Carefulcutting) / 100f)
+						{
+							player.ConsumeResources(new Piece.Requirement[] { new() { m_resItem = __instance.m_craftRecipe.m_resources[0].m_resItem } }, 1);
+							--successCount;
+						}
+					}
 
+					if (successCount == 0)
+					{
+						player.m_inventory.AddItem(gemToShard[__instance.m_craftRecipe.m_item.name], __instance.m_craftRecipe.m_amount);
 						__instance.UpdateCraftingPanel();
-
+						player.Message(MessageHud.MessageType.Center, "$jc_gemstone_cut_fail");
 						return false;
 					}
+				}
+
+				if (successCount < __instance.m_craftRecipe.m_amount)
+				{
+					__state = new Tuple<int, Recipe>(__instance.m_craftRecipe.m_amount - successCount, __instance.m_craftRecipe);
+					__instance.m_craftRecipe = ScriptableObject.CreateInstance<Recipe>();
+					__instance.m_craftRecipe.m_item = __state.Item2.m_item;
+					__instance.m_craftRecipe.m_craftingStation = __state.Item2.m_craftingStation;
+					__instance.m_craftRecipe.m_amount = successCount;
+					__instance.m_craftRecipe.m_resources = new Piece.Requirement[] { new() { m_resItem = __state.Item2.m_resources[0].m_resItem, m_amount = successCount } };
 				}
 			}
 
 			return true;
+		}
+
+		private static void Postfix(InventoryGui __instance, Player player, Tuple<int, Recipe>? __state)
+		{
+			if (__state is not null)
+			{
+				Object.Destroy(__instance.m_craftRecipe);
+				__instance.m_craftRecipe = __state.Item2;
+				GameObject shard = gemToShard[__instance.m_craftRecipe.m_item.name];
+				int shards = __state.Item1;
+				if (player.m_inventory.CanAddItem(shard, shards))
+				{
+					player.m_inventory.AddItem(shard, shards);
+				}
+				else
+				{
+					Utils.DropPlayerItems(shard.GetComponent<ItemDrop>().m_itemData, shards);
+				}
+			}
 		}
 	}
 
@@ -228,7 +265,7 @@ public static class GemStones
 
 				__instance.m_recipeRequirementList[0].transform.parent.gameObject.SetActive(true);
 
-				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources[0].m_amount == 1)
+				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources[0].m_amount == recipe.m_amount)
 				{
 					__instance.m_itemCraftType.horizontalOverflow = HorizontalWrapMode.Wrap;
 					__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_gem_cutting_warning", Math.Min(Mathf.RoundToInt(chance.Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + Player.m_localPlayer.GetEffect(Effect.Carefulcutting)), 100).ToString());

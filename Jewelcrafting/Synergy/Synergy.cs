@@ -220,7 +220,7 @@ public static class Synergy
 				{
 					string conditionLocalization = $"jc_synergy_condition_{synergyDef.Name.Replace(" ", "_")}";
 					string desc = Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} - {(Localization.instance.m_translations.ContainsKey(conditionLocalization) ? $"${conditionLocalization}" : synergyDef.Name)} - $jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()}_desc_detail\n", effectPower.Config.GetType().GetFields().Select(p => formatNumber((float)p.GetValue(effectPower.Config))).ToArray());
-					possibleSynergy.text += $"<color={(active ? "yellow" : "#444444")}>{desc}</color><size=5>\n</size>";
+					possibleSynergy.text += $"<color={(active ? "yellow" : "#222222")}>{desc}</color><size=5>\n</size>";
 				}
 			}
 		}

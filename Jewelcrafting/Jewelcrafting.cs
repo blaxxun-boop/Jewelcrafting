@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.12";
+	private const string ModVersion = "1.3.13";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -100,18 +100,18 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private readonly Dictionary<string, int[]> defaultBoxMergeChances = new()
 	{
-		{ "$jc_common_gembox", new[] { 75, 25, 0 } },
-		{ "$jc_epic_gembox", new[] { 100, 50, 25 } },
-		{ "$jc_legendary_gembox", new[] { 100, 75, 50 } }
+		{ "$jc_common_gembox", new[] { 90, 40, 10 } },
+		{ "$jc_epic_gembox", new[] { 100, 70, 35 } },
+		{ "$jc_legendary_gembox", new[] { 100, 90, 65 } }
 	};
 
 	private readonly Dictionary<string, float[]> defaultBoxBossProgress = new()
 	{
-		{ "$enemy_eikthyr", new[] { 3f, 0, 0 } },
-		{ "$enemy_gdking", new[] { 4f, 0.5f, 0 } },
-		{ "$enemy_bonemass", new[] { 5f, 1f, 0.3f } },
-		{ "$enemy_dragon", new[] { 7f, 3f, 0.7f } },
-		{ "$enemy_goblinking", new[] { 10f, 5f, 1.5f } }
+		{ "$enemy_eikthyr", new[] { 12f, 0.5f, 0 } },
+		{ "$enemy_gdking", new[] { 15f, 2f, 0.5f } },
+		{ "$enemy_bonemass", new[] { 20f, 4f, 1.5f } },
+		{ "$enemy_dragon", new[] { 28f, 12f, 3f } },
+		{ "$enemy_goblinking", new[] { 40f, 20f, 6f } }
 	};
 
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
@@ -165,6 +165,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static GameObject thunderclapExplosion = null!;
 	public static SE_Stats fading = null!;
 	public static Material fadingMaterial = null!;
+	public static GameObject fusingFailSound = null!;
+	public static GameObject fusingSuccessSound = null!;
 
 	private static Jewelcrafting self = null!;
 
@@ -319,7 +321,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		breakChanceUnsocketAdvanced = config("2 - Socket System", "Advanced Gem Break Chance", 0, new ConfigDescription("Chance to break an advanced gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketMerged = config("2 - Socket System", "Merged Gem Break Chance", 0, new ConfigDescription("Chance to break a merged gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 0, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 50, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRateDistance = config("2 - Socket System", "Maximum Distance for Item Recovery", 0, new ConfigDescription("Maximum distance between the position where the item has been crafted and the position where the item has been destroyed to recover non-teleportable resources. This can be used, to prevent people from crafting items from metal, taking them through a portal and destroying them on the other side, to teleport the metal. Setting this to 0 disables this.", null, new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 5), new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets.SettingChanged += (_, _) => SocketsBackground.CalculateColors();
@@ -328,9 +330,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		crystalFusionBoxDropRate[0] = config("3 - Fusion Box", "Drop rate for Fusion Box", 200, new ConfigDescription("Drop rate for the Common Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[1] = config("3 - Fusion Box", "Drop rate for Blessed Fusion Box", 500, new ConfigDescription("Drop rate for the Blessed Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[2] = config("3 - Fusion Box", "Drop rate for Celestial Fusion Box", 1000, new ConfigDescription("Drop rate for the Celestial Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxMergeActivityProgress[0] = config("3 - Fusion Box", "Activity reward for Fusion Box", 1.5f, new ConfigDescription("Progress for the Common Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 0.7f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
-		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 0.3f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxMergeActivityProgress[0] = config("3 - Fusion Box", "Activity reward for Fusion Box", 3f, new ConfigDescription("Progress for the Common Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 2f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
+		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 1f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		gachaLocationIcon = config("4 - World Boss", "Location Icon", Toggle.On, new ConfigDescription("Display the map icon of the mystical gemstone.", null, new ConfigurationManagerAttributes { Order = --order }));
 		gachaLocationIcon.SettingChanged += (_, _) => ZoneSystem.instance.GetLocation("JC_Gacha_Location").m_iconPlaced = gachaLocationIcon.Value == Toggle.On;
 		bossSpawnTimer = config("4 - World Boss", "Time between Boss Spawns", 120, new ConfigDescription("Time in minutes between boss spawns. Set this to 0, to disable boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -338,7 +340,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		bossSpawnMinDistance = config("4 - World Boss", "Minimum Distance Boss Spawns", 1000, new ConfigDescription("Minimum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnMaxDistance = config("4 - World Boss", "Maximum Distance Boss Spawns", 10000, new ConfigDescription("Maximum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnBaseDistance = config("4 - World Boss", "Base Distance Boss Spawns", 50, new ConfigDescription("Minimum distance to player build structures for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
-		bossTimeLimit = config("4 - World Boss", "Time Limit", 30, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
+		bossTimeLimit = config("4 - World Boss", "Time Limit", 60, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossCoinDrop = config("4 - World Boss", "Coins per Boss Kill", 5, new ConfigDescription("Number of Celestial Coins dropped by bosses per player.", new AcceptableValueRange<int>(0, 20), new ConfigurationManagerAttributes { Order = --order }));
 		void WorldBossCustomChanged(object? o, EventArgs? e)
 		{
@@ -504,7 +506,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		int socketAddingOrder = 0;
 		for (int i = 0; i < 5; ++i)
 		{
-			socketAddingChances.Add(i, config("Socket Adding Chances", $"{i + 1}. Socket", 50, new ConfigDescription($"Success chance while trying to add the {i + 1}. Socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --socketAddingOrder })));
+			socketAddingChances.Add(i, config("Socket Adding Chances", $"{i + 1}. Socket", 80 - i * 10, new ConfigDescription($"Success chance while trying to add the {i + 1}. Socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --socketAddingOrder })));
 		}
 
 		string[] boxMergeCategory = { "simple", "advanced", "perfect" };
@@ -568,6 +570,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		thunderclapExplosion = assets.LoadAsset<GameObject>("JC_Marked_Explode");
 		fading = Utils.ConvertStatusEffect<Fade.FadeSE>(assets.LoadAsset<SE_Stats>("SE_VFX_Fade"));
 		fadingMaterial = assets.LoadAsset<Material>("JC_Player_Distortion");
+		fusingFailSound = assets.LoadAsset<GameObject>("sfx_crystal_destroyed");
+		Destroy(fusingFailSound.GetComponent<ZNetView>());
+		fusingSuccessSound = assets.LoadAsset<GameObject>("sfx_crystal_fuse");
+		Destroy(fusingSuccessSound.GetComponent<ZNetView>());
 
 		SocketsBackground.background = assets.LoadAsset<GameObject>("JC_ItemBackground");
 

@@ -174,7 +174,7 @@ public class FriendshipTether : MonoBehaviour
 
 	private void Update()
 	{
-		if (playerStart && playerEnd && Vector3.Distance(playerStart.transform.position, playerEnd.transform.position) < 20)
+		if (playerStart && playerEnd && Vector3.Distance(playerStart.transform.position, playerEnd.transform.position) < 30)
 		{
 			Vector3 startPosition = playerStart.transform.position;
 			if (isOwner)

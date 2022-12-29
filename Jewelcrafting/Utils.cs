@@ -187,7 +187,7 @@ public static class Utils
 		{
 			timeString += $"{(int)timeSpan.TotalDays} day" + (timeSpan.TotalDays >= 2 ? "s" : "");
 		}
-		if (timeSpan.Hours >= 1 && timeSpan.TotalDays < 30)
+		if (timeSpan is { Hours: >= 1, TotalDays: < 30 })
 		{
 			if (timeSpan.TotalDays >= 1)
 			{
@@ -195,7 +195,7 @@ public static class Utils
 			}
 			timeString += $"{timeSpan.Hours} hour" + (timeSpan.Hours >= 2 ? "s" : "");
 		}
-		if (timeSpan.Minutes >= 1 && timeSpan.TotalHours < 24)
+		if (timeSpan is { Minutes: >= 1, TotalHours: < 24 })
 		{
 			if (timeSpan.TotalDays >= 1 || timeSpan.Hours >= 1)
 			{
@@ -228,5 +228,15 @@ public static class Utils
 		IEnumerable<List<GemDefinition>> defLists = GemStoneSetup.Gems.Where(kv => type is null || kv.Key == type).Select(kv => kv.Value).Where(g => g.Count > 1);
 		List<GemDefinition> defs = (tier == 0 ? defLists.SelectMany(g => g) : defLists.Where(g => g.Count > tier - 1).Select(g => g[tier - 1])).ToList();
 		return defs.Count > 0 ? defs[Random.Range(0, defs.Count)].Prefab.GetComponent<ItemDrop>() : null;
+	}
+
+	public static void DropPlayerItems(ItemDrop.ItemData item, int amount)
+	{
+		Transform transform = Player.m_localPlayer.transform;
+		Vector3 position = transform.position;
+		ItemDrop itemDrop = ItemDrop.DropItem(item, amount, position + transform.forward + transform.up, transform.rotation);
+		itemDrop.OnPlayerDrop();
+		itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
+		Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
 	}
 }

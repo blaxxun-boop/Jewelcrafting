@@ -51,6 +51,8 @@ public static class GachaSetup
 		bow.GetComponent<ItemDrop>().m_itemData.m_shared.m_attack.m_bowDraw = true;
 		bow.GetComponent<ItemDrop>().m_itemData.m_shared.m_attack.m_drawDurationMin = 2.5f;
 		bow.GetComponent<ItemDrop>().m_itemData.m_shared.m_attack.m_drawAnimationState = "bow_aim";
+		bow.GetComponent<ItemDrop>().m_itemData.m_shared.m_attack.m_projectileBursts = 2;
+		bow.GetComponent<ItemDrop>().m_itemData.m_shared.m_attack.m_burstInterval = 0.05f;
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_pierce = 36;
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_poison = 0;
 		celestialItemsConfigs["JC_Reaper_Bow"].mistlands.m_damages.m_frost = 0;

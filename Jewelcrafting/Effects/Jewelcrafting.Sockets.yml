@@ -106,7 +106,7 @@ ninja:
 nimble:
   slot: legs
   gem: blue
-  power: [7, 9, 11]
+  power: [2, 3, 5]
 
 marathon:
   slot: legs

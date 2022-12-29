@@ -127,6 +127,9 @@
         <Reference Include="UnityEngine.AssetBundleModule">
             <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.AssetBundleModule.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.AudioModule">
+            <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.AudioModule.dll</HintPath>
+        </Reference>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.CoreModule.dll</HintPath>
         </Reference>

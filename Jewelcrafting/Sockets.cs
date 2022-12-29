@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using ItemDataManager;
+using UnityEngine;
+using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
@@ -159,6 +161,7 @@ public class Frame : Socketable
 
 public class Box : Socketable
 {
+	private bool soundPlayed = false;
 	public float progress;
 
 	public int Tier => ObjectDB.instance.GetItemPrefab(socketedGems[0].Name) is { } gem && GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info) ? info.Tier - 1 : 0;
@@ -166,6 +169,18 @@ public class Box : Socketable
 	public Box()
 	{
 		socketedGems.Add(new SocketItem(""));
+	}
+
+	public override Inventory ReadInventory()
+	{
+		if (!soundPlayed && progress == 100)
+		{
+			Debug.Log("Playing Sound");
+			GameObject sound = Object.Instantiate(socketedGems.Count > 1 ? Jewelcrafting.fusingFailSound : Jewelcrafting.fusingSuccessSound, Player.m_localPlayer.transform.position, Quaternion.identity);
+			sound.GetComponent<AudioSource>().Play();
+			soundPlayed = true;
+		}
+		return base.ReadInventory();
 	}
 
 	public override void Save()

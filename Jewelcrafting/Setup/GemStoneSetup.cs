@@ -135,6 +135,10 @@ public static class GemStoneSetup
 				gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["GambleRecipe"].RequiredItems.Add($"Uncut_{colorName}_Stone", 1);
 				gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+				gemStone["MassRecipe"].Crafting.Add("op_transmution_table", 1);
+				gemStone["MassRecipe"].RequiredItems.Add($"Uncut_{colorName}_Stone", 5);
+				gemStone["MassRecipe"].CraftAmount = 5;
+				gemStone["MassRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Simple {colorName}", 12, new ConfigDescription($"{colorName} shards required to craft a Simple {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
@@ -150,6 +154,10 @@ public static class GemStoneSetup
 				gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["GambleRecipe"].RequiredItems.Add($"Simple_{colorName}_Socket", 1);
 				gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
+				gemStone["MassRecipe"].Crafting.Add("op_transmution_table", 1);
+				gemStone["MassRecipe"].RequiredItems.Add($"Simple_{colorName}_Socket", 5);
+				gemStone["MassRecipe"].CraftAmount = 5;
+				gemStone["MassRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Advanced {colorName}", 35, new ConfigDescription($"{colorName} shards required to craft an Advanced {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
@@ -222,7 +230,8 @@ public static class GemStoneSetup
 		gemStone = AddGem("Boss_Crystal_3", GemType.Queen);
 		GemStones.bossToGem.Add("SeekerQueen", gemStone.Prefab);
 
-		AddGem("Friendship_Group_Gem", GemType.Group);
+		gemStone = AddGem("Friendship_Group_Gem", GemType.Group);
+		GemStones.bossToGem.Add("Friendship", gemStone.Prefab);
 	}
 
 	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
