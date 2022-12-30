@@ -30,7 +30,7 @@ public static class Utils
 			       ItemDrop.ItemData.ItemType.Shoulder or
 			       ItemDrop.ItemData.ItemType.Utility or
 			       ItemDrop.ItemData.ItemType.Tool or
-			       ItemDrop.ItemData.ItemType.TwoHandedWeapon or 
+			       ItemDrop.ItemData.ItemType.TwoHandedWeapon or
 			       ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft ||
 		       (item.m_itemType is ItemDrop.ItemData.ItemType.OneHandedWeapon && !item.m_attack.m_consumeItem);
 	}
@@ -128,9 +128,9 @@ public static class Utils
 		texture.LoadImage(ReadEmbeddedFileBytes("icons." + name));
 		return texture;
 	}
-	
+
 	public static Sprite loadSprite(string name, int width, int height) => Sprite.Create(loadTexture(name), new Rect(0, 0, width, height), Vector2.zero);
-	
+
 	public static bool isAdmin(ZRpc? rpc)
 	{
 		return rpc is null || ZNet.instance.m_adminList.Contains(rpc.GetSocket().GetHostName());
@@ -181,7 +181,7 @@ public static class Utils
 		{
 			return "less than 1 minute";
 		}
-		
+
 		string timeString = "";
 		if (timeSpan.TotalDays >= 1)
 		{
@@ -205,8 +205,9 @@ public static class Utils
 		}
 		return timeString;
 	}
-	
+
 	public static string FormatShortNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
+
 	public static string LocalizeDescDetail(Player player, Effect effect, float[] numbers)
 	{
 		if (EffectDef.DescriptionOverrides.TryGetValue(effect, out EffectDef.OverrideDescription overrideDesc))

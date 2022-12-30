@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.13";
+	private const string ModVersion = "1.3.14";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -111,7 +111,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{ "$enemy_gdking", new[] { 15f, 2f, 0.5f } },
 		{ "$enemy_bonemass", new[] { 20f, 4f, 1.5f } },
 		{ "$enemy_dragon", new[] { 28f, 12f, 3f } },
-		{ "$enemy_goblinking", new[] { 40f, 20f, 6f } }
+		{ "$enemy_goblinking", new[] { 40f, 20f, 6f } },
+		{ "$enemy_seekerqueen", new[] { 55f, 30f, 9f } }
 	};
 
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
