@@ -1,5 +1,5 @@
 Celestial Blessing:
-  duration: 14
+  duration: default
   prizes:
     celestial bone pickaxe:
       chance: 0.02
@@ -10,7 +10,7 @@ Celestial Blessing:
     frame of chaos:
       chance: 0.05
 Divine Intervention:
-  duration: 14
+  duration: default
   prizes:
     celestial bone sword:
       chance: 0.02
@@ -21,7 +21,7 @@ Divine Intervention:
     blessed crystal mirror:
       chance: 0.05
 Heavenly Dominance:
-  duration: 14
+  duration: default
   prizes:
     celestial bone bow:
       chance: 0.02
@@ -32,7 +32,7 @@ Heavenly Dominance:
     frame of chance:
       chance: 0.05
 Stellar Impact:
-  duration: 14
+  duration: default
   prizes:
     celestial bone axe:
       chance: 0.02

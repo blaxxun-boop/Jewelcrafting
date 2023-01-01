@@ -33,7 +33,7 @@ public static class GemStones
 		{
 			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && __instance.m_craftRecipe.m_resources[0].m_amount == __instance.m_craftRecipe.m_amount)
 			{
-				player.RaiseSkill("Jewelcrafting");
+				player.RaiseSkill("Jewelcrafting", __instance.m_craftRecipe.m_amount);
 
 				int successCount = __instance.m_craftRecipe.m_amount;
 

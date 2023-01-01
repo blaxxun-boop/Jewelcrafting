@@ -21,7 +21,12 @@ public class Prizes
 {
 	public string Name = "default";
 	public float RotationDays = 0;
-	public float DurationDays = 0;
+	private float durationDays = 0;
+	public float DurationDays
+	{
+		get => durationDays == -1 ? Jewelcrafting.defaultEventDuration.Value : durationDays;
+		set => durationDays = value;
+	}
 	public DateTime StartDate = DateTime.MinValue;
 	public DateTime EndDate = DateTime.MaxValue;
 	public readonly List<Prize> prizes = new();
@@ -70,19 +75,23 @@ public static class GachaDef
 		{
 			if (prizesConfig["duration"] is string durationString)
 			{
-				if (float.TryParse(durationString, NumberStyles.Float, CultureInfo.InvariantCulture, out float days))
+				if (durationString == "default")
+				{
+					prizes.DurationDays = -1;
+				}
+				else if (float.TryParse(durationString, NumberStyles.Float, CultureInfo.InvariantCulture, out float days))
 				{
 					prizes.DurationDays = days;
 				}
 				else
 				{
-					errorList.Add($"The duration is not a number. Got unexpected '{durationString}'. {errorLocation}");
+					errorList.Add($"The duration is not 'default' or a number. Got unexpected '{durationString}'. {errorLocation}");
 					return null;
 				}
 			}
 			else
 			{
-				errorList.Add($"The duration is not a number. Got unexpected {prizesConfig["duration"]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+				errorList.Add($"The duration is not a string. Got unexpected {prizesConfig["duration"]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
 				return null;
 			}
 		}

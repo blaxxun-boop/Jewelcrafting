@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.14";
+	private const string ModVersion = "1.3.15";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -63,6 +63,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<uint> headhunterDuration = null!;
 	private static ConfigEntry<int> headhunterDamage = null!;
 	private static ConfigEntry<float> experienceGainedFactor = null!;
+	private static ConfigEntry<int> experienceLoss = null!;
 	public static ConfigEntry<int> magicRepairAmount = null!;
 	private static ConfigEntry<int> aquaticDamageIncrease = null!;
 	public static ConfigEntry<int> modersBlessingDuration = null!;
@@ -91,6 +92,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<float> worldBossPoisonDamage = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
 	public static ConfigEntry<int> worldBossCountdownDisplayOffset = null!;
+	public static ConfigEntry<float> defaultEventDuration = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
 	public static ConfigEntry<Toggle> gemstoneFormationParticles = null!;
 
@@ -398,10 +400,14 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
 		worldBossCountdownDisplayOffset = config("4 - World Boss", "Countdown Display Offset", 0, new ConfigDescription("Offset for the world boss countdown display on the world map. Increase this, to move the display down, to prevent overlapping with other mods.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		worldBossCountdownDisplayOffset.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerPosition();
+		defaultEventDuration = config("4 - World Boss", "Default Event Duration", 2f, new ConfigDescription("Default duration for each event in days.", null, new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("5 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor = config("5 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
 		jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
+		experienceLoss = config("5 - Other", "Skill Experience Loss", 0, new ConfigDescription("How much experience to lose in the jewelcrafting skill on death.", new AcceptableValueRange<int>(0, 100)));
+		experienceLoss.SettingChanged += (_, _) => jewelcrafting.SkillLoss = experienceLoss.Value;
+		jewelcrafting.SkillLoss = experienceLoss.Value;
 		gemBagSlotsRows = config("5 - Other", "Jewelers Bag Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
 		gemBagSlotsColumns = config("5 - Other", "Jewelers Bag Columns", 8, new ConfigDescription("Columns in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
 		gemBagAutofill = config("5 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
