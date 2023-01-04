@@ -38,7 +38,7 @@ public static class FieryDoom
 		{
 			yield return player.WaitEffect<Config>(Effect.Fierydoom, c => c.MinCooldown, c => c.MaxCooldown);
 			Config config = player.GetEffect<Config>(Effect.Fierydoom);
-			if (config.Duration > 0 && !player.IsDead())
+			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
 				player.m_seman.AddStatusEffect(Jewelcrafting.fireStart);
 

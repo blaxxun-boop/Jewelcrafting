@@ -39,7 +39,7 @@ public static class IcyProtection
 		{
 			yield return player.WaitEffect<Config>(Effect.Icyprotection, c => c.MinCooldown, c => c.MaxCooldown);
 			Config config = player.GetEffect<Config>(Effect.Icyprotection);
-			if (config.Duration > 0 && !player.IsDead())
+			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
 				player.m_seman.AddStatusEffect(Jewelcrafting.iceStart);
 

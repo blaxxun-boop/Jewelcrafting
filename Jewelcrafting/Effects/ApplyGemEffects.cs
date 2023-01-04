@@ -15,7 +15,6 @@ public class TrackEquipmentChanges
 	private static IEnumerable<MethodInfo> TargetMethods() => new[]
 	{
 		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.SetupEquipment)),
-		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.HideHandItems)),
 		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.ShowHandItems))
 	};
 
@@ -25,6 +24,22 @@ public class TrackEquipmentChanges
 		if (__instance == Player.m_localPlayer)
 		{
 			CalculateEffects();
+		}
+	}
+
+	// HideHandItems called repeatedly when swimming, prevent recalculating all the time
+	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.HideHandItems))]
+	private static class TrackHideHandItems
+	{
+		private static void Prefix(Humanoid __instance, out bool __state) => __state = __instance.m_leftItem is not null || __instance.m_rightItem is not null;
+
+		[HarmonyPriority(Priority.Low)]
+		private static void Postfix(Humanoid __instance, bool __state)
+		{
+			if (__state && __instance == Player.m_localPlayer)
+			{
+				CalculateEffects();
+			}
 		}
 	}
 
@@ -57,7 +72,7 @@ public class TrackEquipmentChanges
 				}
 			}
 		}
-		
+
 		Utils.ApplyToAllPlayerItems(player, item =>
 		{
 			if (item?.Data().Get<Sockets>() is { } itemSockets)
@@ -129,7 +144,7 @@ public class TrackEquipmentChanges
 		Dictionary<string, GameObject[]>? effectPrefabs = item is null ? null : VisualEffects.prefabDict(item.m_shared);
 
 		int i = 0;
-		if (effectPrefabs is not null && item!.Data().Get<Sockets>() is {} itemSockets)
+		if (effectPrefabs is not null && item!.Data().Get<Sockets>() is { } itemSockets)
 		{
 			HashSet<string> effectNames = new();
 			foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))

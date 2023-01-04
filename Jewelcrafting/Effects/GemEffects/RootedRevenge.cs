@@ -71,7 +71,7 @@ public static class RootedRevenge
 		{
 			yield return player.WaitEffect<Config>(Effect.Rootedrevenge, c => c.MinCooldown, c => c.MaxCooldown);
 			Config config = player.GetEffect<Config>(Effect.Rootedrevenge);
-			if (config.Duration > 0 && !player.IsDead())
+			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
 				player.m_seman.AddStatusEffect(Jewelcrafting.rootStart);
 

@@ -22,8 +22,8 @@ public static class BossSpawn
 		foreach (KeyValuePair<string, Sprite> kv in bossIcons)
 		{
 			GameObject locationObject = new($"Jewelcrafting BossSpawn {kv.Key}");
-            locationObject.transform.SetParent(MergedGemStoneSetup.gemList.transform);
-            locations.Add(kv.Key, locationObject.AddComponent<Location>());
+			locationObject.transform.SetParent(MergedGemStoneSetup.gemList.transform);
+			locations.Add(kv.Key, locationObject.AddComponent<Location>());
 		}
 	}
 
@@ -43,7 +43,7 @@ public static class BossSpawn
 							yield return new WaitForSeconds(1);
 							continue;
 						}
-						
+
 						int oldRemainingTime = int.MaxValue;
 						int remainingTime = int.MaxValue - 1;
 						while (oldRemainingTime > remainingTime || oldRemainingTime > 50)
@@ -79,7 +79,7 @@ public static class BossSpawn
 										}
 									}
 								}
-								
+
 								BroadcastMinimapUpdate();
 							}
 
@@ -143,7 +143,7 @@ public static class BossSpawn
 	private static void HandleBossDeath(Vector2i sector)
 	{
 		ZoneSystem.instance.m_locationInstances.Remove(sector);
-        BroadcastMinimapUpdate();
+		BroadcastMinimapUpdate();
 	}
 
 	[HarmonyPatch(typeof(Character), nameof(Character.OnDeath))]
@@ -175,7 +175,7 @@ public static class BossSpawn
 			{
 				__instance.m_locationIcons.Add(new Minimap.LocationSpriteData { m_icon = kv.Value, m_name = locations[kv.Key].name });
 			}
-			
+
 			bossTimer = Object.Instantiate(__instance.m_largeRoot.transform.Find("PingPanel/Label"), __instance.m_largeRoot.transform).GetComponent<Text>();
 			bossTimer.name = "Jewelcrafting Boss Timer";
 			bossTimer.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
@@ -196,7 +196,7 @@ public static class BossSpawn
 							pin.m_name = TimeSpan.FromSeconds((int)pin.m_pos.y - (int)ZNet.instance.GetTimeSeconds()).ToString("c");
 						}
 					}
-					
+
 					yield return new WaitForSeconds(1);
 				}
 				// ReSharper disable once IteratorNeverReturns
@@ -223,9 +223,9 @@ public static class BossSpawn
 			bossTimer.GetComponent<RectTransform>().sizeDelta = rect.sizeDelta;
 		}
 	}
-	
-	private static DateTime lastBossSpawn = DateTime.MinValue; 
-	
+
+	private static DateTime lastBossSpawn = DateTime.MinValue;
+
 	public static void SpawnBoss()
 	{
 		if (lastBossSpawn != ZNet.instance.GetTime() && GetRandomSpawnPoint() is { } pos)
@@ -292,7 +292,7 @@ public static class BossSpawn
 			{
 				continue;
 			}
-			
+
 			List<ZDO> zdos = new();
 			for (int y = -1; y <= 1; ++y)
 			{

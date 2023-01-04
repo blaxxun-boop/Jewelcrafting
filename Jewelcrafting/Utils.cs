@@ -240,4 +240,6 @@ public static class Utils
 		itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
 		Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
 	}
+
+	public static bool SkipBossPower() => Player.m_localPlayer.m_rightItem?.m_shared.m_buildPieces is not null;
 }
