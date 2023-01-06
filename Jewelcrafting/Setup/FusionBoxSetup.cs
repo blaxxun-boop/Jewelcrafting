@@ -192,8 +192,8 @@ public static class FusionBoxSetup
 				{
 					rotation.Remove(__instance);
 					rotation.Add(__instance, new Q { q = rotate.rotation });
-					rotate.rotation = Quaternion.Euler(0, 45, 0);
-					__instance.m_visualItem.transform.localPosition = new Vector3(0.25f, -0.25f, 0);
+					rotate.rotation = Quaternion.Euler(0, 337, 0);
+					__instance.m_visualItem.transform.localPosition = new Vector3(0.05f, -0.45f, -0.1f);
 				}
 				else if (rotation.TryGetValue(__instance, out Q original))
 				{

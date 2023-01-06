@@ -195,8 +195,10 @@
         <Compile Include="Effects\GemEffects\Echo.cs"/>
         <Compile Include="Effects\GemEffects\EitrSurge.cs"/>
         <Compile Include="Effects\GemEffects\EndlessArrows.cs"/>
+        <Compile Include="Effects\GemEffects\EndlessBolts.cs"/>
         <Compile Include="Effects\GemEffects\Energetic.cs"/>
         <Compile Include="Effects\GemEffects\Explorer.cs"/>
+        <Compile Include="Effects\GemEffects\Fade.cs"/>
         <Compile Include="Effects\GemEffects\FieryDoom.cs"/>
         <Compile Include="Effects\GemEffects\FireStarter.cs"/>
         <Compile Include="Effects\GemEffects\Frenzy.cs"/>
@@ -212,6 +214,7 @@
         <Compile Include="Effects\GemEffects\MagicalBargain.cs"/>
         <Compile Include="Effects\GemEffects\Magnetic.cs"/>
         <Compile Include="Effects\GemEffects\Marathon.cs"/>
+        <Compile Include="Effects\GemEffects\MasterArbalist.cs"/>
         <Compile Include="Effects\GemEffects\MasterArcher.cs"/>
         <Compile Include="Effects\GemEffects\MercifulDeath.cs"/>
         <Compile Include="Effects\GemEffects\Mirror.cs"/>
@@ -221,6 +224,7 @@
         <Compile Include="Effects\GemEffects\Opportunity.cs"/>
         <Compile Include="Effects\GemEffects\PainTolerance.cs"/>
         <Compile Include="Effects\GemEffects\ParryMaster.cs"/>
+        <Compile Include="Effects\GemEffects\Perforation.cs"/>
         <Compile Include="Effects\GemEffects\PoisonousDrain.cs"/>
         <Compile Include="Effects\GemEffects\PowerRecovery.cs"/>
         <Compile Include="Effects\GemEffects\PreciousBlood.cs"/>
@@ -233,11 +237,13 @@
         <Compile Include="Effects\GemEffects\StealthArcher.cs"/>
         <Compile Include="Effects\GemEffects\Student.cs"/>
         <Compile Include="Effects\GemEffects\Tank.cs"/>
+        <Compile Include="Effects\GemEffects\Thunderclap.cs"/>
         <Compile Include="Effects\GemEffects\TurtleShell.cs"/>
         <Compile Include="Effects\GemEffects\Unbreakable.cs"/>
         <Compile Include="Effects\GemEffects\Unfazed.cs"/>
         <Compile Include="Effects\GemEffects\Vampire.cs"/>
         <Compile Include="Effects\GemEffects\Vitality.cs"/>
+        <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArcheryMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\Cowardice.cs"/>
         <Compile Include="Effects\GemEffects\Groups\DedicatedTank.cs"/>
@@ -302,6 +308,9 @@
         <Content Include="Libs\ItemManager.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Content Include="Libs\ItemDataManager.dll">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
         <Content Include="Libs\LocalizationManager.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -323,19 +332,6 @@
     </ItemGroup>
     <ItemGroup>
         <None Include="packages.config"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Content Include="Libs\ItemDataManager.dll">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
-    <ItemGroup>
-        <Compile Include="Effects\GemEffects\EndlessBolts.cs"/>
-        <Compile Include="Effects\GemEffects\Fade.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs"/>
-        <Compile Include="Effects\GemEffects\MasterArbalist.cs"/>
-        <Compile Include="Effects\GemEffects\Perforation.cs"/>
-        <Compile Include="Effects\GemEffects\Thunderclap.cs"/>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')"/>
