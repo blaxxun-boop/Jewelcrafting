@@ -35,7 +35,7 @@ same number of green and blue:
     
 many gems:
   conditions:
-    - sum all >= 15
+    - sum all >= 12
   effect:
     careful cutting: 2
     

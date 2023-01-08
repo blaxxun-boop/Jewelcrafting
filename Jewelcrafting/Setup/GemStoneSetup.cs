@@ -230,8 +230,11 @@ public static class GemStoneSetup
 		gemStone = AddGem("Boss_Crystal_3", GemType.Queen);
 		GemStones.bossToGem.Add("SeekerQueen", gemStone.Prefab);
 
-		gemStone = AddGem("Friendship_Group_Gem", GemType.Group);
-		GemStones.bossToGem.Add("Friendship", gemStone.Prefab);
+		if (Groups.API.IsLoaded())
+		{
+			gemStone = AddGem("Friendship_Group_Gem", GemType.Group);
+			GemStones.bossToGem.Add("Friendship", gemStone.Prefab);
+		}
 	}
 
 	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]

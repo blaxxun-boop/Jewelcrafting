@@ -956,7 +956,7 @@ public static class GemStones
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_frame_not_socketable");
 		}
-		if (socketingFrame && existingSockets?.socketedGems.Any(s => s.Count > 0) == true)
+		else if (socketingFrame && existingSockets?.socketedGems.Any(s => s.Count > 0) == true)
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_frame_requires_empty_sockets");
 		}

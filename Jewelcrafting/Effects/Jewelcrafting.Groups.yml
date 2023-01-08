@@ -43,8 +43,8 @@ together forever:
   gem: group
   power:
     movement speed: 30
-    min cooldown: 30
-    max cooldown: 60
+    min cooldown: 45
+    max cooldown: 90
     duration: 8
     attack speed: 20
     damage increase: 10

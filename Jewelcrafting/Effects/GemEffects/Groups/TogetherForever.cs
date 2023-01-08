@@ -13,7 +13,7 @@ public static class TogetherForever
 	static TogetherForever()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Togetherforever, typeof(Config));
-		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(Jewelcrafting.friendship.name) ? player.GetEffect<Config>(Effect.Togetherforever).AttackSpeed / 100f : 0);
+		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.GetStatusEffect(Jewelcrafting.friendship.name) is SE_Stats se ? se.m_healthOverTimeDuration / 100f : 0);
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -57,6 +57,7 @@ public static class TogetherForever
 					Jewelcrafting.friendship.m_ttl = config.Duration;
 					if (player.m_seman.AddStatusEffect(Jewelcrafting.friendship, true) is SE_Stats friendshipEffect)
 					{
+						friendshipEffect.m_healthOverTimeDuration = config.AttackSpeed;
 						friendshipEffect.m_speedModifier = config.MovementSpeed / 100f;
 						friendshipEffect.m_damageModifier = 1 + config.DamageIncrease / 100f;
 						friendshipEffect.m_modifyAttackSkill = Skills.SkillType.All;
@@ -99,8 +100,7 @@ public static class TogetherForever
 	{
 		public override string GetTooltipString()
 		{
-			Config config = Player.m_localPlayer.GetEffect<Config>(Effect.Togetherforever);
-			return Localization.instance.Localize(m_tooltip, config.MovementSpeed.ToString("0.#"), config.MinCooldown.ToString("0.#"), config.MaxCooldown.ToString("0.#"), config.Duration.ToString("0.#"), config.AttackSpeed.ToString("0.#"), config.DamageIncrease.ToString("0.#"));
+			return Localization.instance.Localize(m_tooltip, (m_speedModifier * 100).ToString("0.#"), m_healthOverTimeDuration.ToString("0.#"), ((m_damageModifier - 1) * 100).ToString("0.#"));
 		}
 	}
 
@@ -131,6 +131,7 @@ public static class TogetherForever
 			Jewelcrafting.friendship.m_ttl = config.Duration;
 			if (Player.m_localPlayer.m_seman.AddStatusEffect(Jewelcrafting.friendship, true) is SE_Stats statusEffect)
 			{
+				statusEffect.m_healthOverTimeDuration = config.AttackSpeed;
 				statusEffect.m_speedModifier = config.MovementSpeed / 100f;
 				statusEffect.m_damageModifier = 1 + config.DamageIncrease / 100f;
 				statusEffect.m_modifyAttackSkill = Skills.SkillType.All;

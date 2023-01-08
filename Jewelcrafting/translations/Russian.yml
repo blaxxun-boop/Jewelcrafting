@@ -384,7 +384,7 @@ jc_friendship_group_gem_description_flavor: |
 jc_se_start_group_friendship: "Надвигающаяся дружба"
 jc_se_start_group_friendship_description: "Вам предстоит испытать настоящую дружбу или получить разбитое сердце."
 jc_se_group_friendship: "Сила дружбы"
-jc_se_group_friendship_description: "Скорость передвижения увеличена на $1%, скорость атаки увеличена на $5%, а наносимый урон увеличен на $6%."
+jc_se_group_friendship_description: "Скорость передвижения увеличена на $1%, скорость атаки увеличена на $2%, а наносимый урон увеличен на $3%."
 jc_se_group_loneliness: "Одинокий"
 jc_se_group_loneliness_description: "Скорость передвижения снижена на $7%, а получаемый урон увеличен на $8%."
 jc_press_interact: "Нажмите [$1], чтобы установить Гнездо"

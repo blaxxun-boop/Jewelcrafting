@@ -384,7 +384,7 @@ jc_friendship_group_gem_description_flavor: |
 jc_se_start_group_friendship: "임박한 우정"
 jc_se_start_group_friendship_description: "당신은 곧 진정한 우정을 경험하거나, 마음을 다칠 수 있습니다."
 jc_se_group_friendship: "우정의 힘"
-jc_se_group_friendship_description: "이동 속도가 $1 %, 공격 속도가 $5 %, 공격력이 $6 % 증가"
+jc_se_group_friendship_description: "이동 속도가 $1 %, 공격 속도가 $2 %, 공격력이 $3 % 증가"
 jc_se_group_loneliness: "외로움"
 jc_se_group_loneliness_description: "이동 속도가 $7 % 감소하고 받는 피해가 $8 % 증가"
 jc_press_interact: "소켓을 보려면 [$1] 를 누르세요."

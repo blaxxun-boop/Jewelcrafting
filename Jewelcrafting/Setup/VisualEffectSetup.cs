@@ -14,6 +14,7 @@ public static class VisualEffectSetup
 	public static readonly Dictionary<VisualEffectCondition, GameObject> yellowGemEffects = new();
 	public static readonly Dictionary<VisualEffectCondition, GameObject> purpleGemEffects = new();
 	public static readonly Dictionary<VisualEffectCondition, GameObject> orangeGemEffects = new();
+	public static readonly Dictionary<VisualEffectCondition, GameObject> cyanGemEffects = new();
 
 	public static readonly Dictionary<GemType, GameObject> spearProjectiles = new();
 
@@ -140,5 +141,23 @@ public static class VisualEffectSetup
 		
 		orangeGemEffects.Add(Knives, PrefabManager.RegisterPrefab(assets, "JC_Perforation_Knife"));
 		orangeGemEffects.Add(Polearms, PrefabManager.RegisterPrefab(assets, "JC_ThunderClap_Atgeir"));
+		
+		cyanGemEffects.Add(Swords, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Sword"));
+		cyanGemEffects.Add(Axes, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Axe"));
+		cyanGemEffects.Add(Axes | TwoHanded, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_BAxe"));
+		cyanGemEffects.Add(Knives, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Knife"));
+		cyanGemEffects.Add(Spears, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Spear"));
+		cyanGemEffects.Add(Clubs, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Mace"));
+		cyanGemEffects.Add(Club, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Club"));
+		cyanGemEffects.Add(Clubs | TwoHanded, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Sledge"));
+		cyanGemEffects.Add(Polearms, PrefabManager.RegisterPrefab(assets, "JC_FleetingLife_Atgeir"));
+		cyanGemEffects.Add(Blocking, PrefabManager.RegisterPrefab(assets, "JC_DedicatedTank_Shield"));
+		cyanGemEffects.Add(Buckler, PrefabManager.RegisterPrefab(assets, "JC_DedicatedTank_AShield"));
+		cyanGemEffects.Add(Towershield, PrefabManager.RegisterPrefab(assets, "JC_DedicatedTank_BShield"));
+		cyanGemEffects.Add(Blocking | Blackmetal, PrefabManager.RegisterPrefab(assets, "JC_DedicatedTank_TShield"));
+		cyanGemEffects.Add(Bows, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Bow"));
+		cyanGemEffects.Add(BowHuntsman, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Bow"));
+		cyanGemEffects.Add(FineWoodBow, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Bow"));
+		cyanGemEffects.Add(BowDraugrFang, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_FangBow"));
 	}
 }
