@@ -156,8 +156,6 @@ public static class VisualEffectSetup
 		cyanGemEffects.Add(Towershield, PrefabManager.RegisterPrefab(assets, "JC_DedicatedTank_BShield"));
 		cyanGemEffects.Add(Blocking | Blackmetal, PrefabManager.RegisterPrefab(assets, "JC_DedicatedTank_TShield"));
 		cyanGemEffects.Add(Bows, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Bow"));
-		cyanGemEffects.Add(BowHuntsman, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Bow"));
-		cyanGemEffects.Add(FineWoodBow, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Bow"));
 		cyanGemEffects.Add(BowDraugrFang, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_FangBow"));
 	}
 }
