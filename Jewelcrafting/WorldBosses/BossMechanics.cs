@@ -30,19 +30,19 @@ public static class BossMechanics
 			IEnumerator delayedFrostEffect(Player player)
 			{
 				yield return new WaitForSeconds(5);
-				player.m_seman.AddStatusEffect(Jewelcrafting.frostBossDebuff, true);
+				player.m_seman.AddStatusEffect(GemEffectSetup.frostBossDebuff, true);
 			}
 			Check("JC_Boss_Explosion_Frost", delayedFrostEffect);
 			IEnumerator delayedPoisonEffect(Player player)
 			{
 				yield return new WaitForSeconds(5);
-				player.m_seman.AddStatusEffect(Jewelcrafting.poisonBossDebuff, true);
+				player.m_seman.AddStatusEffect(GemEffectSetup.poisonBossDebuff, true);
 			}
 			Check("JC_Boss_Explosion_Poison", delayedPoisonEffect);
 			IEnumerator delayedFireEffect(Player player)
 			{
 				yield return new WaitForSeconds(5);
-				player.m_seman.AddStatusEffect(Jewelcrafting.fireBossDebuff, true);
+				player.m_seman.AddStatusEffect(GemEffectSetup.fireBossDebuff, true);
 			}
 			Check("JC_Boss_Explosion_Flame", delayedFireEffect);
 		}
@@ -56,17 +56,17 @@ public static class BossMechanics
 		{
 			if (__instance is Player player)
 			{
-				if (player.m_seman.HaveStatusEffect(Jewelcrafting.fireBossDebuff.name))
+				if (player.m_seman.HaveStatusEffect(GemEffectSetup.fireBossDebuff.name))
 				{
 					hit.m_damage.m_fire *= 2;
 				}
 
-				if (player.m_seman.HaveStatusEffect(Jewelcrafting.frostBossDebuff.name))
+				if (player.m_seman.HaveStatusEffect(GemEffectSetup.frostBossDebuff.name))
 				{
 					hit.m_damage.m_frost *= 2;
 				}
 
-				if (player.m_seman.HaveStatusEffect(Jewelcrafting.poisonBossDebuff.name))
+				if (player.m_seman.HaveStatusEffect(GemEffectSetup.poisonBossDebuff.name))
 				{
 					hit.m_damage.m_poison *= 2;
 				}

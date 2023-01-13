@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
     <PropertyGroup>
         <Configuration Condition=" '$(Configuration)' == '' ">Release</Configuration>
         <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -104,7 +104,7 @@
         <Reference Include="LocationManager">
             <HintPath>Libs\LocationManager.dll</HintPath>
         </Reference>
-        <Reference Include="Microsoft.CSharp"/>
+        <Reference Include="Microsoft.CSharp" />
         <Reference Include="PieceManager">
             <HintPath>Libs\PieceManager.dll</HintPath>
         </Reference>
@@ -114,10 +114,10 @@
         <Reference Include="SkillManager">
             <HintPath>Libs\SkillManager.dll</HintPath>
         </Reference>
-        <Reference Include="System"/>
-        <Reference Include="System.Core"/>
-        <Reference Include="System.Data"/>
-        <Reference Include="System.Xml"/>
+        <Reference Include="System" />
+        <Reference Include="System.Core" />
+        <Reference Include="System.Data" />
+        <Reference Include="System.Xml" />
         <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>$(GamePath)\unstripped_corlib\UnityEngine.dll</HintPath>
         </Reference>
@@ -165,146 +165,147 @@
         </Reference>
     </ItemGroup>
     <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'APIStub|AnyCPU'">
-        <Compile Include="API\AssemblyResolver.cs"/>
-        <EmbeddedResource Include="bin\API\Jewelcrafting.dll" Link="Jewelcrafting.dll"/>
+        <Compile Include="API\AssemblyResolver.cs" />
+        <EmbeddedResource Include="bin\API\Jewelcrafting.dll" Link="Jewelcrafting.dll" />
     </ItemGroup>
     <ItemGroup Condition=" '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU' ">
-        <Compile Include="API\API.cs"/>
-        <Compile Include="API\PowerAttribute.cs"/>
-        <Compile Include="API\VisualEffectCondition.cs"/>
+        <Compile Include="API\API.cs" />
+        <Compile Include="API\PowerAttribute.cs" />
+        <Compile Include="API\VisualEffectCondition.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
-        <Compile Include="Effects\GemEffects\MountainGoat.cs"/>
-        <Compile Include="Effects\JewelryEffects\Aquatic.cs"/>
-        <Compile Include="Effects\JewelryEffects\Awareness.cs"/>
-        <Compile Include="Effects\JewelryEffects\Headhunter.cs"/>
-        <Compile Include="Effects\JewelryEffects\MagicRepair.cs"/>
-        <Compile Include="Effects\JewelryEffects\Warmth.cs"/>
-        <Compile Include="Effects\ApplyAttackSpeed.cs"/>
-        <Compile Include="Effects\ApplyGemEffects.cs"/>
-        <Compile Include="Effects\ApplySkillIncreases.cs"/>
-        <Compile Include="Effects\CompendiumDisplay.cs"/>
-        <Compile Include="Effects\ConfigEditor.cs"/>
-        <Compile Include="Effects\ConfigLoader.cs"/>
-        <Compile Include="Effects\EffectDef.cs"/>
-        <Compile Include="Effects\GemEffects\Avoidance.cs"/>
-        <Compile Include="Effects\GemEffects\Apotheosis.cs"/>
-        <Compile Include="Effects\GemEffects\Berserk.cs"/>
-        <Compile Include="Effects\GemEffects\Comfortable.cs"/>
-        <Compile Include="Effects\GemEffects\Defender.cs"/>
-        <Compile Include="Effects\GemEffects\Echo.cs"/>
-        <Compile Include="Effects\GemEffects\EitrSurge.cs"/>
-        <Compile Include="Effects\GemEffects\EndlessArrows.cs"/>
-        <Compile Include="Effects\GemEffects\EndlessBolts.cs"/>
-        <Compile Include="Effects\GemEffects\Energetic.cs"/>
-        <Compile Include="Effects\GemEffects\Explorer.cs"/>
-        <Compile Include="Effects\GemEffects\Fade.cs"/>
-        <Compile Include="Effects\GemEffects\FieryDoom.cs"/>
-        <Compile Include="Effects\GemEffects\FireStarter.cs"/>
-        <Compile Include="Effects\GemEffects\Frenzy.cs"/>
-        <Compile Include="Effects\GemEffects\Glider.cs"/>
-        <Compile Include="Effects\GemEffects\GlowingSpirit.cs"/>
-        <Compile Include="Effects\GemEffects\Gourmet.cs"/>
-        <Compile Include="Effects\GemEffects\Hercules.cs"/>
-        <Compile Include="Effects\GemEffects\IceHeart.cs"/>
-        <Compile Include="Effects\GemEffects\IcyProtection.cs"/>
-        <Compile Include="Effects\GemEffects\Inconspicuous.cs"/>
-        <Compile Include="Effects\GemEffects\Lifeguard.cs"/>
-        <Compile Include="Effects\GemEffects\LightningSpeed.cs"/>
-        <Compile Include="Effects\GemEffects\MagicalBargain.cs"/>
-        <Compile Include="Effects\GemEffects\Magnetic.cs"/>
-        <Compile Include="Effects\GemEffects\Marathon.cs"/>
-        <Compile Include="Effects\GemEffects\MasterArbalist.cs"/>
-        <Compile Include="Effects\GemEffects\MasterArcher.cs"/>
-        <Compile Include="Effects\GemEffects\MercifulDeath.cs"/>
-        <Compile Include="Effects\GemEffects\Mirror.cs"/>
-        <Compile Include="Effects\GemEffects\Necromancer.cs"/>
-        <Compile Include="Effects\GemEffects\Nimble.cs"/>
-        <Compile Include="Effects\GemEffects\Ninja.cs"/>
-        <Compile Include="Effects\GemEffects\Opportunity.cs"/>
-        <Compile Include="Effects\GemEffects\PainTolerance.cs"/>
-        <Compile Include="Effects\GemEffects\ParryMaster.cs"/>
-        <Compile Include="Effects\GemEffects\Perforation.cs"/>
-        <Compile Include="Effects\GemEffects\PoisonousDrain.cs"/>
-        <Compile Include="Effects\GemEffects\PowerRecovery.cs"/>
-        <Compile Include="Effects\GemEffects\PreciousBlood.cs"/>
-        <Compile Include="Effects\GemEffects\Regeneration.cs"/>
-        <Compile Include="Effects\GemEffects\Resilience.cs"/>
-        <Compile Include="Effects\GemEffects\RootedRevenge.cs"/>
-        <Compile Include="Effects\GemEffects\ShadowHit.cs"/>
-        <Compile Include="Effects\GemEffects\SnakeBite.cs"/>
-        <Compile Include="Effects\GemEffects\Sprinter.cs"/>
-        <Compile Include="Effects\GemEffects\StealthArcher.cs"/>
-        <Compile Include="Effects\GemEffects\Student.cs"/>
-        <Compile Include="Effects\GemEffects\Tank.cs"/>
-        <Compile Include="Effects\GemEffects\Thunderclap.cs"/>
-        <Compile Include="Effects\GemEffects\TurtleShell.cs"/>
-        <Compile Include="Effects\GemEffects\Unbreakable.cs"/>
-        <Compile Include="Effects\GemEffects\Unfazed.cs"/>
-        <Compile Include="Effects\GemEffects\Vampire.cs"/>
-        <Compile Include="Effects\GemEffects\Vitality.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\ArcheryMentor.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\Cowardice.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\DedicatedTank.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\FleetingLife.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\LeadingWolf.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\SafeHaven.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\SharedHealing.cs"/>
-        <Compile Include="Effects\GemEffects\Groups\TogetherForever.cs"/>
-        <Compile Include="Effects\JewelryEffects\Lumberjacking.cs"/>
-        <Compile Include="Effects\JewelryEffects\ModersBlessing.cs"/>
-        <Compile Include="Effects\ForcePet.cs"/>
-        <Compile Include="Effects\VisualEffects.cs"/>
-        <Compile Include="GemCursor.cs"/>
-        <Compile Include="GemStones.cs"/>
-        <Compile Include="GenerateVegetationSpawners.cs"/>
-        <Compile Include="Jewelcrafting.cs"/>
-        <Compile Include="OpenCompendium.cs"/>
-        <Compile Include="Properties\AssemblyInfo.cs"/>
-        <Compile Include="Setup\BossSetup.cs"/>
-        <Compile Include="Setup\BuildingPiecesSetup.cs"/>
-        <Compile Include="Setup\DestructibleSetup.cs"/>
-        <Compile Include="Setup\FusionBoxSetup.cs"/>
-        <Compile Include="Setup\GachaSetup.cs"/>
-        <Compile Include="Setup\GemStoneSetup.cs"/>
-        <Compile Include="Setup\ItemSnapshots.cs"/>
-        <Compile Include="Setup\JewelrySetup.cs"/>
-        <Compile Include="Setup\MergedGemStoneSetup.cs"/>
-        <Compile Include="Setup\MiscSetup.cs"/>
-        <Compile Include="Setup\VisualEffectSetup.cs"/>
-        <Compile Include="WorldBosses\BossMechanics.cs"/>
-        <Compile Include="WorldBosses\BossSpawn.cs"/>
-        <Compile Include="WorldBosses\GachaChest.cs"/>
-        <Compile Include="WorldBosses\GachaDef.cs"/>
-        <Compile Include="WorldBosses\GemStoneInteract.cs"/>
-        <Compile Include="Sockets.cs"/>
-        <Compile Include="TerminalCommands.cs"/>
-        <Compile Include="BossDied.cs"/>
-        <Compile Include="Utils.cs"/>
-        <Compile Include="SocketsBackground.cs"/>
-        <Compile Include="Effects\SynergyEffects\Equilibrium.cs"/>
-        <Compile Include="Effects\SynergyEffects\Pyromaniac.cs"/>
-        <Compile Include="Effects\SynergyEffects\ResonatingEchoes.cs"/>
-        <Compile Include="PositionStorage.cs"/>
-        <Compile Include="Synergy\Synergy.cs"/>
-        <Compile Include="Synergy\SynergyDef.cs"/>
+        <Compile Include="Effects\GemEffects\MountainGoat.cs" />
+        <Compile Include="Effects\JewelryEffects\Aquatic.cs" />
+        <Compile Include="Effects\JewelryEffects\Awareness.cs" />
+        <Compile Include="Effects\JewelryEffects\Headhunter.cs" />
+        <Compile Include="Effects\JewelryEffects\MagicRepair.cs" />
+        <Compile Include="Effects\JewelryEffects\Warmth.cs" />
+        <Compile Include="Effects\ApplyAttackSpeed.cs" />
+        <Compile Include="Effects\ApplyGemEffects.cs" />
+        <Compile Include="Effects\ApplySkillIncreases.cs" />
+        <Compile Include="Effects\CompendiumDisplay.cs" />
+        <Compile Include="Effects\ConfigEditor.cs" />
+        <Compile Include="Effects\ConfigLoader.cs" />
+        <Compile Include="Effects\EffectDef.cs" />
+        <Compile Include="Effects\GemEffects\Avoidance.cs" />
+        <Compile Include="Effects\GemEffects\Apotheosis.cs" />
+        <Compile Include="Effects\GemEffects\Berserk.cs" />
+        <Compile Include="Effects\GemEffects\Comfortable.cs" />
+        <Compile Include="Effects\GemEffects\Defender.cs" />
+        <Compile Include="Effects\GemEffects\Echo.cs" />
+        <Compile Include="Effects\GemEffects\EitrSurge.cs" />
+        <Compile Include="Effects\GemEffects\EndlessArrows.cs" />
+        <Compile Include="Effects\GemEffects\EndlessBolts.cs" />
+        <Compile Include="Effects\GemEffects\Energetic.cs" />
+        <Compile Include="Effects\GemEffects\Explorer.cs" />
+        <Compile Include="Effects\GemEffects\Fade.cs" />
+        <Compile Include="Effects\GemEffects\FieryDoom.cs" />
+        <Compile Include="Effects\GemEffects\FireStarter.cs" />
+        <Compile Include="Effects\GemEffects\Frenzy.cs" />
+        <Compile Include="Effects\GemEffects\Glider.cs" />
+        <Compile Include="Effects\GemEffects\GlowingSpirit.cs" />
+        <Compile Include="Effects\GemEffects\Gourmet.cs" />
+        <Compile Include="Effects\GemEffects\Hercules.cs" />
+        <Compile Include="Effects\GemEffects\IceHeart.cs" />
+        <Compile Include="Effects\GemEffects\IcyProtection.cs" />
+        <Compile Include="Effects\GemEffects\Inconspicuous.cs" />
+        <Compile Include="Effects\GemEffects\Lifeguard.cs" />
+        <Compile Include="Effects\GemEffects\LightningSpeed.cs" />
+        <Compile Include="Effects\GemEffects\MagicalBargain.cs" />
+        <Compile Include="Effects\GemEffects\Magnetic.cs" />
+        <Compile Include="Effects\GemEffects\Marathon.cs" />
+        <Compile Include="Effects\GemEffects\MasterArbalist.cs" />
+        <Compile Include="Effects\GemEffects\MasterArcher.cs" />
+        <Compile Include="Effects\GemEffects\MercifulDeath.cs" />
+        <Compile Include="Effects\GemEffects\Mirror.cs" />
+        <Compile Include="Effects\GemEffects\Necromancer.cs" />
+        <Compile Include="Effects\GemEffects\Nimble.cs" />
+        <Compile Include="Effects\GemEffects\Ninja.cs" />
+        <Compile Include="Effects\GemEffects\Opportunity.cs" />
+        <Compile Include="Effects\GemEffects\PainTolerance.cs" />
+        <Compile Include="Effects\GemEffects\ParryMaster.cs" />
+        <Compile Include="Effects\GemEffects\Perforation.cs" />
+        <Compile Include="Effects\GemEffects\PoisonousDrain.cs" />
+        <Compile Include="Effects\GemEffects\PowerRecovery.cs" />
+        <Compile Include="Effects\GemEffects\PreciousBlood.cs" />
+        <Compile Include="Effects\GemEffects\Regeneration.cs" />
+        <Compile Include="Effects\GemEffects\Resilience.cs" />
+        <Compile Include="Effects\GemEffects\RootedRevenge.cs" />
+        <Compile Include="Effects\GemEffects\ShadowHit.cs" />
+        <Compile Include="Effects\GemEffects\SnakeBite.cs" />
+        <Compile Include="Effects\GemEffects\Sprinter.cs" />
+        <Compile Include="Effects\GemEffects\StealthArcher.cs" />
+        <Compile Include="Effects\GemEffects\Student.cs" />
+        <Compile Include="Effects\GemEffects\Tank.cs" />
+        <Compile Include="Effects\GemEffects\Thunderclap.cs" />
+        <Compile Include="Effects\GemEffects\TurtleShell.cs" />
+        <Compile Include="Effects\GemEffects\Unbreakable.cs" />
+        <Compile Include="Effects\GemEffects\Unfazed.cs" />
+        <Compile Include="Effects\GemEffects\Vampire.cs" />
+        <Compile Include="Effects\GemEffects\Vitality.cs" />
+        <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs" />
+        <Compile Include="Effects\GemEffects\Groups\ArcheryMentor.cs" />
+        <Compile Include="Effects\GemEffects\Groups\Cowardice.cs" />
+        <Compile Include="Effects\GemEffects\Groups\DedicatedTank.cs" />
+        <Compile Include="Effects\GemEffects\Groups\FleetingLife.cs" />
+        <Compile Include="Effects\GemEffects\Groups\LeadingWolf.cs" />
+        <Compile Include="Effects\GemEffects\Groups\SafeHaven.cs" />
+        <Compile Include="Effects\GemEffects\Groups\SharedHealing.cs" />
+        <Compile Include="Effects\GemEffects\Groups\TogetherForever.cs" />
+        <Compile Include="Effects\JewelryEffects\Lumberjacking.cs" />
+        <Compile Include="Effects\JewelryEffects\ModersBlessing.cs" />
+        <Compile Include="Effects\ForcePet.cs" />
+        <Compile Include="Effects\VisualEffects.cs" />
+        <Compile Include="GemCursor.cs" />
+        <Compile Include="GemStones.cs" />
+        <Compile Include="GenerateVegetationSpawners.cs" />
+        <Compile Include="Jewelcrafting.cs" />
+        <Compile Include="OpenCompendium.cs" />
+        <Compile Include="Properties\AssemblyInfo.cs" />
+        <Compile Include="Setup\BossSetup.cs" />
+        <Compile Include="Setup\BuildingPiecesSetup.cs" />
+        <Compile Include="Setup\DestructibleSetup.cs" />
+        <Compile Include="Setup\FusionBoxSetup.cs" />
+        <Compile Include="Setup\GachaSetup.cs" />
+        <Compile Include="Setup\GemEffectSetup.cs" />
+        <Compile Include="Setup\GemStoneSetup.cs" />
+        <Compile Include="Setup\ItemSnapshots.cs" />
+        <Compile Include="Setup\JewelrySetup.cs" />
+        <Compile Include="Setup\MergedGemStoneSetup.cs" />
+        <Compile Include="Setup\MiscSetup.cs" />
+        <Compile Include="Setup\VisualEffectSetup.cs" />
+        <Compile Include="WorldBosses\BossMechanics.cs" />
+        <Compile Include="WorldBosses\BossSpawn.cs" />
+        <Compile Include="WorldBosses\GachaChest.cs" />
+        <Compile Include="WorldBosses\GachaDef.cs" />
+        <Compile Include="WorldBosses\GemStoneInteract.cs" />
+        <Compile Include="Sockets.cs" />
+        <Compile Include="TerminalCommands.cs" />
+        <Compile Include="BossDied.cs" />
+        <Compile Include="Utils.cs" />
+        <Compile Include="SocketsBackground.cs" />
+        <Compile Include="Effects\SynergyEffects\Equilibrium.cs" />
+        <Compile Include="Effects\SynergyEffects\Pyromaniac.cs" />
+        <Compile Include="Effects\SynergyEffects\ResonatingEchoes.cs" />
+        <Compile Include="PositionStorage.cs" />
+        <Compile Include="Synergy\Synergy.cs" />
+        <Compile Include="Synergy\SynergyDef.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
-        <EmbeddedResource Include="translations\Chinese.yml"/>
-        <EmbeddedResource Include="translations\French.yml"/>
-        <EmbeddedResource Include="translations\English.yml"/>
-        <EmbeddedResource Include="translations\Korean.yml"/>
-        <EmbeddedResource Include="translations\Russian.yml"/>
-        <EmbeddedResource Include="translations\Spanish.yml"/>
-        <EmbeddedResource Include="Effects\Jewelcrafting.Groups.yml"/>
-        <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml"/>
-        <EmbeddedResource Include="Synergy\Jewelcrafting.Synergy.yml"/>
-        <EmbeddedResource Include="WorldBosses\Jewelcrafting.Gacha.yml"/>
-        <EmbeddedResource Include="icons\gem_cursor.png"/>
-        <EmbeddedResource Include="assets\jewelcrafting"/>
-        <EmbeddedResource Include="assets\jc_ui_additions"/>
-        <Content Include="ILRepack.targets"/>
+        <EmbeddedResource Include="translations\Chinese.yml" />
+        <EmbeddedResource Include="translations\French.yml" />
+        <EmbeddedResource Include="translations\English.yml" />
+        <EmbeddedResource Include="translations\Korean.yml" />
+        <EmbeddedResource Include="translations\Russian.yml" />
+        <EmbeddedResource Include="translations\Spanish.yml" />
+        <EmbeddedResource Include="Effects\Jewelcrafting.Groups.yml" />
+        <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml" />
+        <EmbeddedResource Include="Synergy\Jewelcrafting.Synergy.yml" />
+        <EmbeddedResource Include="WorldBosses\Jewelcrafting.Gacha.yml" />
+        <EmbeddedResource Include="icons\gem_cursor.png" />
+        <EmbeddedResource Include="assets\jewelcrafting" />
+        <EmbeddedResource Include="assets\jc_ui_additions" />
+        <Content Include="ILRepack.targets" />
         <Content Include="Libs\ItemManager.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -331,15 +332,18 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-        <None Include="packages.config"/>
+        <None Include="packages.config" />
     </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
-    <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')"/>
+    <ItemGroup>
+      <Compile Include="Effects\AoeEffects.cs" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
     <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
         <PropertyGroup>
             <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
         </PropertyGroup>
-        <Error Condition="!Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))"/>
+        <Error Condition="!Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))" />
     </Target>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
@@ -349,6 +353,6 @@
     </Target>
     -->
     <Target Name="Copy" AfterTargets="ILRepack" Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU' and '$(Configuration)|$(Platform)' != 'APIStub|AnyCPU'">
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(GamePath)\BepInEx\plugins\$(AssemblyName).dll&quot;"/>
+        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(GamePath)\BepInEx\plugins\$(AssemblyName).dll&quot;" />
     </Target>
 </Project>

@@ -33,7 +33,7 @@ public static class ShadowHit
 				if (characters.Count > 0)
 				{
 					Character character = characters[Random.Range(0, characters.Count)];
-					GameObject sword = Object.Instantiate(Jewelcrafting.swordFall, character.gameObject.transform);
+					GameObject sword = Object.Instantiate(GemEffectSetup.swordFall, character.gameObject.transform);
 					sword.AddComponent<ShadowSword>();
 					sword.transform.localPosition = new Vector3(0, 2, 0);
 					character.StartCoroutine(DamageEnemy(character, hit)); 

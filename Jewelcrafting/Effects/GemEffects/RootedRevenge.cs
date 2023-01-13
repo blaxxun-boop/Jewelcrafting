@@ -44,7 +44,7 @@ public static class RootedRevenge
 		public override void OnDamaged(HitData hit, Character attacker)
 		{
 			base.OnDamaged(hit, attacker);
-			if (attacker is Player player && player.m_seman.HaveStatusEffect(Jewelcrafting.rootedRevenge.name))
+			if (attacker is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.rootedRevenge.name))
 			{
 				hit.m_damage.Modify(1 + player.GetEffect<Config>(Effect.Rootedrevenge).BonusDamage / 100f);
 			}
@@ -73,11 +73,11 @@ public static class RootedRevenge
 			Config config = player.GetEffect<Config>(Effect.Rootedrevenge);
 			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
-				player.m_seman.AddStatusEffect(Jewelcrafting.rootStart);
+				player.m_seman.AddStatusEffect(GemEffectSetup.rootStart);
 
 				yield return new WaitForSeconds(4);
 				
-				player.m_seman.AddStatusEffect(Jewelcrafting.rootedRevenge).m_ttl = config.Duration;
+				player.m_seman.AddStatusEffect(GemEffectSetup.rootedRevenge).m_ttl = config.Duration;
 
 				GameObject root = ZNetScene.instance.GetPrefab("TentaRoot");
 

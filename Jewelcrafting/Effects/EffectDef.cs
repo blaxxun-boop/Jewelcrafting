@@ -746,7 +746,7 @@ public class EffectDef
 
 			if (Player.m_localPlayer)
 			{
-				TrackEquipmentChanges.CalculateEffects();
+				TrackEquipmentChanges.CalculateEffects(Player.m_localPlayer);
 			}
 		}
 

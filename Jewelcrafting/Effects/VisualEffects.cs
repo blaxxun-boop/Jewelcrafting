@@ -103,11 +103,11 @@ public static class VisualEffects
 
 		private static void Postfix(VisEquipment __instance)
 		{
-			if (__instance.m_nview.m_zdo is { } zdo && __instance.m_isPlayer)
+			if (__instance.m_isPlayer)
 			{
 				Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive = activeEffects.GetOrCreateValue(__instance);
 
-				void Apply(VisSlot part, GameObject? equipRoot) => ApplyEffects(effectsActive, zdo, part, equipRoot);
+				void Apply(VisSlot part, GameObject? equipRoot) => ApplyEffects(effectsActive, __instance.m_nview.m_zdo?.m_ints ?? TrackEquipmentChanges.VisualEquipmentInts, part, equipRoot);
 
 				Apply(VisSlot.HandLeft, __instance.m_leftItemInstance);
 				Apply(VisSlot.BackLeft, __instance.m_leftBackItemInstance);
@@ -117,7 +117,7 @@ public static class VisualEffects
 		}
 	}
 
-	private static void ApplyEffects(Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive, ZDO zdo, VisSlot part, GameObject? equipRoot)
+	private static void ApplyEffects(Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive, Dictionary<int, int> zdoInts, VisSlot part, GameObject? equipRoot)
 	{
 		if (equipRoot is null)
 		{
@@ -129,10 +129,10 @@ public static class VisualEffects
 			partEffects = effectsActive[part] = new Dictionary<int, GameObject>();
 		}
 
-		ApplySlotEffects(partEffects, zdo, $"JewelCrafting {part}", equipRoot);
+		ApplySlotEffects(partEffects, zdoInts, $"JewelCrafting {part}", equipRoot);
 	}
 
-	private static void ApplySlotEffects(Dictionary<int, GameObject> slotEffects, ZDO zdo, string keyPrefix, GameObject equipRoot)
+	private static void ApplySlotEffects(Dictionary<int, GameObject> slotEffects, Dictionary<int, int> zdoInts, string keyPrefix, GameObject equipRoot)
 	{
 		if (Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.Off)
 		{
@@ -154,7 +154,10 @@ public static class VisualEffects
 		bool changed = false;
 		for (int i = 0;; ++i)
 		{
-			int effect = zdo.GetInt($"{keyPrefix} Effect {i}");
+			if (!zdoInts.TryGetValue($"{keyPrefix} Effect {i}".GetStableHashCode(), out int effect))
+			{
+				effect = 0;
+			}
 			if (effect == 0)
 			{
 				if (i != slotEffects.Count)
@@ -177,7 +180,7 @@ public static class VisualEffects
 		if (changed)
 		{
 			HashSet<int> removeEffects = new(slotEffects.Keys);
-			for (int i = 0, effect; (effect = zdo.GetInt($"{keyPrefix} Effect {i}")) != 0; ++i)
+			for (int i = 0; zdoInts.TryGetValue($"{keyPrefix} Effect {i}".GetStableHashCode(), out int effect) && effect != 0; ++i)
 			{
 				removeEffects.Remove(effect);
 			}
@@ -203,7 +206,7 @@ public static class VisualEffects
 		{
 			if (__instance.m_nview.m_zdo is { } zdo && __instance.m_visualItem)
 			{
-				ApplySlotEffects(activeEffects.GetOrCreateValue(__instance), zdo, "JewelCrafting Beard", __instance.m_visualItem);
+				ApplySlotEffects(activeEffects.GetOrCreateValue(__instance), zdo.m_ints, "JewelCrafting Beard", __instance.m_visualItem);
 			}
 		}
 	}

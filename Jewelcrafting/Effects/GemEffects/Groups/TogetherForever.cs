@@ -13,7 +13,7 @@ public static class TogetherForever
 	static TogetherForever()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Togetherforever, typeof(Config));
-		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.GetStatusEffect(Jewelcrafting.friendship.name) is SE_Stats se ? se.m_healthOverTimeDuration / 100f : 0);
+		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.GetStatusEffect(GemEffectSetup.friendship.name) is SE_Stats se ? se.m_healthOverTimeDuration / 100f : 0);
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -46,30 +46,30 @@ public static class TogetherForever
 			Config config = player.GetEffect<Config>(Effect.Togetherforever);
 			if (config.Duration > 0 && global::Groups.API.GroupPlayers().Count > 1)
 			{
-				player.m_seman.AddStatusEffect(Jewelcrafting.friendshipStart);
+				player.m_seman.AddStatusEffect(GemEffectSetup.friendshipStart);
 
 				yield return new WaitForSeconds(4);
 				
-				Jewelcrafting.loneliness.m_ttl = config.Duration;
+				GemEffectSetup.loneliness.m_ttl = config.Duration;
 
 				if (FindBuffTarget() is { } target)
 				{
-					Jewelcrafting.friendship.m_ttl = config.Duration;
-					if (player.m_seman.AddStatusEffect(Jewelcrafting.friendship, true) is SE_Stats friendshipEffect)
+					GemEffectSetup.friendship.m_ttl = config.Duration;
+					if (player.m_seman.AddStatusEffect(GemEffectSetup.friendship, true) is SE_Stats friendshipEffect)
 					{
 						friendshipEffect.m_healthOverTimeDuration = config.AttackSpeed;
 						friendshipEffect.m_speedModifier = config.MovementSpeed / 100f;
 						friendshipEffect.m_damageModifier = 1 + config.DamageIncrease / 100f;
 						friendshipEffect.m_modifyAttackSkill = Skills.SkillType.All;
 					}
-					GameObject tether = Object.Instantiate(Jewelcrafting.friendshipTether, player.transform);
-					StatusEffect statusEffect = player.m_seman.GetStatusEffect(Jewelcrafting.friendship.name);
+					GameObject tether = Object.Instantiate(GemEffectSetup.friendshipTether, player.transform);
+					StatusEffect statusEffect = player.m_seman.GetStatusEffect(GemEffectSetup.friendship.name);
 					statusEffect.m_startEffectInstances = statusEffect.m_startEffectInstances.Concat(new[] { tether }).ToArray();
 					target.m_nview.InvokeRPC("Jewelcrafting ApplyFriendship", player.GetZDOID());
 					tether.GetComponent<ZNetView>().GetZDO().Set("Jewelcrafting Friendship PlayerStart", player.GetZDOID());
 					tether.GetComponent<ZNetView>().GetZDO().Set("Jewelcrafting Friendship PlayerEnd", target.GetZDOID());
 				}
-				else if (HasPlayersInDebuffRange() && player.GetEffect(Effect.Neveralone) is { } neverAlone and < 100 && player.m_seman.AddStatusEffect(Jewelcrafting.loneliness) is SE_Stats statusEffectDebuff)
+				else if (HasPlayersInDebuffRange() && player.GetEffect(Effect.Neveralone) is { } neverAlone and < 100 && player.m_seman.AddStatusEffect(GemEffectSetup.loneliness) is SE_Stats statusEffectDebuff)
 				{
 					statusEffectDebuff.m_speedModifier = -config.MovementSpeedReduction / 100f * (1 - neverAlone / 100f);
 				}
@@ -128,8 +128,8 @@ public static class TogetherForever
 		if (ZNetScene.instance.FindInstance(playerId)?.GetComponent<Player>() is { } otherPlayer)
 		{
 			Config config = otherPlayer.GetEffect<Config>(Effect.Togetherforever);
-			Jewelcrafting.friendship.m_ttl = config.Duration;
-			if (Player.m_localPlayer.m_seman.AddStatusEffect(Jewelcrafting.friendship, true) is SE_Stats statusEffect)
+			GemEffectSetup.friendship.m_ttl = config.Duration;
+			if (Player.m_localPlayer.m_seman.AddStatusEffect(GemEffectSetup.friendship, true) is SE_Stats statusEffect)
 			{
 				statusEffect.m_healthOverTimeDuration = config.AttackSpeed;
 				statusEffect.m_speedModifier = config.MovementSpeed / 100f;
@@ -197,7 +197,7 @@ public class FriendshipTether : MonoBehaviour
 		active.Remove(this);
 		if (active.Count == 0 && Player.m_localPlayer)
 		{
-			Player.m_localPlayer.m_seman.RemoveStatusEffect(Jewelcrafting.friendship);
+			Player.m_localPlayer.m_seman.RemoveStatusEffect(GemEffectSetup.friendship);
 		}
 	}
 }

@@ -23,7 +23,7 @@ public class MagicRepair : SE_Stats
 			{
 				item.m_durability = Mathf.Min(item.GetMaxDurability(), item.m_durability + Jewelcrafting.magicRepairAmount.Value);
 			}
-			m_startEffectInstances[startEffectIndex] = Instantiate(Jewelcrafting.magicRepair, Player.m_localPlayer.transform);
+			m_startEffectInstances[startEffectIndex] = Instantiate(GemEffectSetup.magicRepair, Player.m_localPlayer.transform);
 			m_tickTimer = 0;
 		}
 		base.UpdateStatusEffect(dt);

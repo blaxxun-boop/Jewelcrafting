@@ -16,7 +16,7 @@ public static class Fade
 			Material defaultPlayerMaterial = bodyRenderer.material;
 			__instance.m_nview.Register<bool>("Jewelcrafting Fade Shader", (_, hide) =>
 			{
-				bodyRenderer.material = hide ? Jewelcrafting.fadingMaterial : defaultPlayerMaterial;
+				bodyRenderer.material = hide ? GemEffectSetup.fadingMaterial : defaultPlayerMaterial;
                 ToggleEquipment(__instance, !hide);
 			});
 		}
@@ -32,8 +32,8 @@ public static class Fade
 			{
 				if (hit.GetTotalDamage() > __instance.GetMaxHealth() * 0.3f && !__instance.IsDead())
 				{
-					Jewelcrafting.fading.m_ttl = __instance.GetEffect(Effect.Fade);
-					__instance.m_seman.AddStatusEffect(Jewelcrafting.fading);
+					GemEffectSetup.fading.m_ttl = __instance.GetEffect(Effect.Fade);
+					__instance.m_seman.AddStatusEffect(GemEffectSetup.fading);
 				}
 			}
 		}

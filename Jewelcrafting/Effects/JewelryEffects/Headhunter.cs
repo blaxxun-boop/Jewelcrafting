@@ -11,7 +11,7 @@ public static class Headhunter
 		{
 			if (Player.m_localPlayer.m_utilityItem?.m_shared.m_name != "$jc_ring_green")
 			{
-				Player.m_localPlayer.m_seman.RemoveStatusEffect(Jewelcrafting.headhunter);
+				Player.m_localPlayer.m_seman.RemoveStatusEffect(GemEffectSetup.headhunter);
 			}
 		};
 	}
@@ -28,7 +28,7 @@ public static class Headhunter
 			{
 				if (p.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.greenRingHash)
 				{
-					p.m_seman.AddStatusEffect(Jewelcrafting.headhunter.name, true);
+					p.m_seman.AddStatusEffect(GemEffectSetup.headhunter.name, true);
 				}
 			}
 		}

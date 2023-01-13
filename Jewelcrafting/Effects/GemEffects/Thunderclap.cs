@@ -13,11 +13,11 @@ public static class Thunderclap
 			if (hit.GetAttacker() is Player player && player.GetEffect(Effect.Thunderclap) is { } thunder and > 0)
 			{
 				float explosiveDmg = 0;
-				if (__instance.GetSEMan().HaveStatusEffect(Jewelcrafting.thunderclapMark.name))
+				if (__instance.GetSEMan().HaveStatusEffect(GemEffectSetup.thunderclapMark.name))
 				{
 					explosiveDmg = __instance.m_nview.GetZDO().GetFloat("Jewelcrafting Thunderclap");
 				}
-				__instance.GetSEMan().AddStatusEffect(Jewelcrafting.thunderclapMark, true);
+				__instance.GetSEMan().AddStatusEffect(GemEffectSetup.thunderclapMark, true);
 				explosiveDmg += hit.GetTotalDamage() * thunder / 100f;
 				__instance.m_nview.GetZDO().Set("Jewelcrafting Thunderclap", explosiveDmg);
 			}
@@ -29,13 +29,13 @@ public static class Thunderclap
 	{
 		private static void Postfix(Character __instance, HitData hit)
 		{
-			if (__instance.GetSEMan().HaveStatusEffect(Jewelcrafting.thunderclapMark.name) && !__instance.IsDead())
+			if (__instance.GetSEMan().HaveStatusEffect(GemEffectSetup.thunderclapMark.name) && !__instance.IsDead())
 			{
 				float explosiveDmg = __instance.m_nview.GetZDO().GetFloat("Jewelcrafting Thunderclap");
 				float damageScale = Game.instance.GetDifficultyDamageScaleEnemy(__instance.transform.position);
 				if (explosiveDmg * damageScale > __instance.GetHealth())
 				{
-					Object.Instantiate(Jewelcrafting.thunderclapExplosion, __instance.transform.position, Quaternion.identity);
+					Object.Instantiate(GemEffectSetup.thunderclapExplosion, __instance.transform.position, Quaternion.identity);
 					DamageText.instance.ShowText(HitData.DamageModifier.VeryWeak, hit.m_point, explosiveDmg);
 					__instance.SetHealth(0);
 					__instance.OnDamaged(hit);

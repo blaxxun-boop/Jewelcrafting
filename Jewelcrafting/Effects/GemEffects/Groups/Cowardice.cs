@@ -30,8 +30,8 @@ public static class Cowardice
 				List<Player> nearbyPlayers = Utils.GetNearbyGroupMembers(player, 40);
 				if (nearbyPlayers.Count > 0)
 				{
-					player.m_seman.AddStatusEffect(Jewelcrafting.cowardice, true);
-					SE_Stats coward = (SE_Stats)player.m_seman.GetStatusEffect(Jewelcrafting.cowardice.name);
+					player.m_seman.AddStatusEffect(GemEffectSetup.cowardice, true);
+					SE_Stats coward = (SE_Stats)player.m_seman.GetStatusEffect(GemEffectSetup.cowardice.name);
 					coward.m_speedModifier += player.GetEffect(Effect.Cowardice) / 100f;
 					coward.m_speedModifier = Math.Min(player.GetEffect(Effect.Cowardice) / 100f * 5, coward.m_speedModifier);
 				}

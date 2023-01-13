@@ -20,11 +20,11 @@ public static class Glider
 
 			GlideInsteadOfFalling.glidingUsed = false;
 
-			if (__instance.m_seman.HaveStatusEffect(Jewelcrafting.gliding.name) || __instance.m_seman.HaveStatusEffect(Jewelcrafting.glidingDark.name))
+			if (__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name))
 			{
-				___m_maxAirAltitude = Mathf.Min(3.99f + __instance.transform.position.y, ___m_maxAirAltitude);
-				__instance.m_seman.RemoveStatusEffect(Jewelcrafting.gliding.name, true);
-				__instance.m_seman.RemoveStatusEffect(Jewelcrafting.glidingDark.name, true);
+				___m_maxAirAltitude = Mathf.Min(3.49f + __instance.transform.position.y, ___m_maxAirAltitude);
+				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.name, true);
+				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.glidingDark.name, true);
 			}
 		}
 	}
@@ -37,24 +37,24 @@ public static class Glider
 		[UsedImplicitly]
 		private static void Postfix(Player __instance)
 		{
-			if (!__instance.IsOnGround() && !__instance.IsSwiming() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, 4f, Character.m_groundRayMask))
+			if (!__instance.IsOnGround() && !__instance.IsSwiming() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, 3.5f, Character.m_groundRayMask))
 			{
 				float effect = __instance.GetEffect(Effect.Glider);
 				if (!glidingUsed && effect > 0)
 				{
 					if (EnvMan.instance.IsNight())
 					{
-						__instance.m_seman.AddStatusEffect(Jewelcrafting.gliding).m_ttl = effect;
+						__instance.m_seman.AddStatusEffect(GemEffectSetup.gliding).m_ttl = effect;
 					}
 					else
 					{
-						__instance.m_seman.AddStatusEffect(Jewelcrafting.glidingDark).m_ttl = effect;
+						__instance.m_seman.AddStatusEffect(GemEffectSetup.glidingDark).m_ttl = effect;
 					}
 					glidingUsed = true;
 				}
 			}
 
-			if ((__instance.m_seman.HaveStatusEffect(Jewelcrafting.gliding.name) || __instance.m_seman.HaveStatusEffect(Jewelcrafting.glidingDark.name)) && __instance.m_body)
+			if ((__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name)) && __instance.m_body)
 			{
 				Vector3 velocity = __instance.m_body.velocity;
 				velocity.y = Math.Max(-2, velocity.y);
@@ -69,8 +69,8 @@ public static class Glider
 	{
 		private static void Prefix(Character __instance)
 		{
-			__instance.m_seman.RemoveStatusEffect(Jewelcrafting.gliding.name, true);
-			__instance.m_seman.RemoveStatusEffect(Jewelcrafting.glidingDark.name, true);
+			__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.name, true);
+			__instance.m_seman.RemoveStatusEffect(GemEffectSetup.glidingDark.name, true);
 		}
 	}
 }

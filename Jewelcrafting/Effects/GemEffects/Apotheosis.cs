@@ -10,7 +10,7 @@ public static class Apotheosis
 	static Apotheosis()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Apotheosis, typeof(Config));
-		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(Jewelcrafting.apotheosis.name) ? player.GetEffect<Config>(Effect.Apotheosis).AttackSpeed / 100f : 0);
+		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name) ? player.GetEffect<Config>(Effect.Apotheosis).AttackSpeed / 100f : 0);
 	}
 	
 	[StructLayout(LayoutKind.Sequential)]
@@ -41,12 +41,12 @@ public static class Apotheosis
 			Config config = player.GetEffect<Config>(Effect.Apotheosis);
 			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
-				player.m_seman.AddStatusEffect(Jewelcrafting.apotheosisStart);
+				player.m_seman.AddStatusEffect(GemEffectSetup.apotheosisStart);
 				
 				yield return new WaitForSeconds(4);
 				
-				Jewelcrafting.apotheosis.m_ttl = config.Duration;
-				if (player.m_seman.AddStatusEffect(Jewelcrafting.apotheosis) is SE_Stats statusEffect)
+				GemEffectSetup.apotheosis.m_ttl = config.Duration;
+				if (player.m_seman.AddStatusEffect(GemEffectSetup.apotheosis) is SE_Stats statusEffect)
 				{
 					statusEffect.m_damageModifier = 1 + config.MagicDamageIncrease / 100f;
 					statusEffect.m_modifyAttackSkill = Skills.SkillType.ElementalMagic;
@@ -61,7 +61,7 @@ public static class Apotheosis
 	{
 		private static void Postfix(Attack __instance, ref float __result)
 		{
-			if (__instance.m_character is Player player && player.m_seman.HaveStatusEffect(Jewelcrafting.apotheosis.name))
+			if (__instance.m_character is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name))
 			{
 				__result *= 1 - player.GetEffect<Config>(Effect.Apotheosis).EitrReduction / 100f;
 			}

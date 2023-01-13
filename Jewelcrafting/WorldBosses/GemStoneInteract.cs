@@ -66,7 +66,7 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 			{
 				endDate = GachaChest.Expiration(prizes).Date;
 			}
-			window.transform.Find("Bkg/Middle_Season_Banner/Season_Time").GetComponent<Text>().text = endDate != DateTime.MaxValue ? Localization.instance.Localize("$jc_gacha_time_left", Utils.GetHumanFriendlyTime((int)(endDate - DateTime.Now).TotalSeconds)) : "";
+			window.transform.Find("Bkg/Middle_Season_Banner/Season_Time").GetComponent<Text>().text = endDate != DateTime.MaxValue ? Localization.instance.Localize("$jc_gacha_time_left", Utils.GetHumanFriendlyTime((int)(endDate - DateTime.UtcNow).TotalSeconds)) : "";
 			window.transform.Find("Bkg/Coins_Middle/Middle_Coins_Text").GetComponent<Text>().text = Localization.instance.Localize("$jc_gacha_coins: ") + Player.m_localPlayer.m_inventory.CountItems(gachaCoinName);
 
 			window.transform.Find("Bkg/Middle_Roll_Button").GetComponent<Button>().onClick.AddListener(() =>

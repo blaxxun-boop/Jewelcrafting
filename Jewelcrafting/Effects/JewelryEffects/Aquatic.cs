@@ -10,7 +10,7 @@ public static class Aquatic
 		{
 			if (Player.m_localPlayer.m_utilityItem?.m_shared.m_name != "$jc_necklace_blue")
 			{
-				Player.m_localPlayer.m_seman.RemoveStatusEffect(Jewelcrafting.aquatic);
+				Player.m_localPlayer.m_seman.RemoveStatusEffect(GemEffectSetup.aquatic);
 			}
 		};
 	}
@@ -25,9 +25,9 @@ public static class Aquatic
 				return;
 			}
 			
-			if (humanoid.GetSEMan().GetStatusEffect(Jewelcrafting.aquatic.name) is not { } aquatic)
+			if (humanoid.GetSEMan().GetStatusEffect(GemEffectSetup.aquatic.name) is not { } aquatic)
 			{
-				aquatic = humanoid.GetSEMan().AddStatusEffect(Jewelcrafting.aquatic);
+				aquatic = humanoid.GetSEMan().AddStatusEffect(GemEffectSetup.aquatic);
 			}
 			aquatic.m_ttl = __instance.m_ttl;
 			aquatic.m_time = __instance.m_time;

@@ -10,7 +10,6 @@ using HarmonyLib;
 using ItemManager;
 using JetBrains.Annotations;
 using Jewelcrafting.GemEffects;
-using Jewelcrafting.GemEffects.Groups;
 using Jewelcrafting.WorldBosses;
 using LocalizationManager;
 using ServerSync;
@@ -27,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.19";
+	private const string ModVersion = "1.3.20";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -41,10 +40,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> colorItemName = null!;
 	public static ConfigEntry<Unsocketing> allowUnsocketing = null!;
 	public static ConfigEntry<InteractBehaviour> inventoryInteractBehaviour = null!;
-	public static ConfigEntry<int> breakChanceUnsocketSimple = null!;
-	public static ConfigEntry<int> breakChanceUnsocketAdvanced = null!;
-	public static ConfigEntry<int> breakChanceUnsocketPerfect = null!;
-	public static ConfigEntry<int> breakChanceUnsocketMerged = null!;
+	public static ConfigEntry<float> breakChanceUnsocketSimple = null!;
+	public static ConfigEntry<float> breakChanceUnsocketAdvanced = null!;
+	public static ConfigEntry<float> breakChanceUnsocketPerfect = null!;
+	public static ConfigEntry<float> breakChanceUnsocketMerged = null!;
 	public static ConfigEntry<Toggle> socketingItemsExperience = null!;
 	public static ConfigEntry<Toggle> visualEffects = null!;
 	public static ConfigEntry<UniqueDrop> uniqueGemDropSystem = null!;
@@ -129,47 +128,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly List<SynergyDef> Synergies = new();
 
 	private static Skill jewelcrafting = null!;
-
-	public static GameObject swordFall = null!;
-	public static StatusEffect gliding = null!;
-	public static StatusEffect glidingDark = null!;
-	public static SE_Stats glowingSpirit = null!;
-	public static GameObject glowingSpiritPrefab = null!;
-	public static SE_Stats lightningSpeed = null!;
-	public static SE_Stats rootedRevenge = null!;
-	public static SE_Stats poisonousDrain = null!;
-	public static GameObject poisonousDrainCloud = null!;
-	public static SE_Stats icyProtection = null!;
-	public static SE_Stats fieryDoom = null!;
-	public static GameObject fieryDoomExplosion = null!;
-	public static SE_Stats apotheosis = null!;
-	public static SE_Stats awareness = null!;
-	public static GameObject heardIcon = null!;
-	public static GameObject attackedIcon = null!;
-	public static SE_Stats headhunter = null!;
-	private static SE_Stats rigidFinger = null!;
-	public static GameObject magicRepair = null!;
-	public static SE_Stats aquatic = null!;
-	public static SE_Stats lightningStart = null!;
-	public static SE_Stats rootStart = null!;
-	public static SE_Stats poisonStart = null!;
-	public static SE_Stats iceStart = null!;
-	public static SE_Stats fireStart = null!;
-	public static SE_Stats apotheosisStart = null!;
-	public static SE_Stats friendshipStart = null!;
-	public static SE_Stats friendship = null!;
-	public static SE_Stats loneliness = null!;
-	public static GameObject friendshipTether = null!;
-	public static SE_Stats cowardice = null!;
-	public static SE_Stats fireBossDebuff = null!;
-	public static SE_Stats frostBossDebuff = null!;
-	public static SE_Stats poisonBossDebuff = null!;
-	public static SE_Stats thunderclapMark = null!;
-	public static GameObject thunderclapExplosion = null!;
-	public static SE_Stats fading = null!;
-	public static Material fadingMaterial = null!;
-	public static GameObject fusingFailSound = null!;
-	public static GameObject fusingSuccessSound = null!;
 
 	private static Jewelcrafting self = null!;
 
@@ -320,10 +278,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		uniqueGemDropChance = config("2 - Socket System", "Drop Chance for Unique Gems", 30, new ConfigDescription("Drop chance for Unique Gems. Has no effect, if the drop system is not set to custom.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropOnePerPlayer = config("2 - Socket System", "Drop one Gem per Player", Toggle.On, new ConfigDescription("If bosses should drop one Unique Gem per player. Has no effect, if the drop system is not set to custom.", null, new ConfigurationManagerAttributes { Order = --order }));
 		allowUnsocketing = config("2 - Socket System", "Gems can be removed from items", Unsocketing.All, new ConfigDescription("All: All gems can be removed from items.\nUnique Only: Only unique gems can be removed from items.\nDisabled: No gems can be removed from items.\nDoes not affect gems without an effect.", null, new ConfigurationManagerAttributes { Order = --order }));
-		breakChanceUnsocketSimple = config("2 - Socket System", "Simple Gem Break Chance", 0, new ConfigDescription("Chance to break a simple gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		breakChanceUnsocketAdvanced = config("2 - Socket System", "Advanced Gem Break Chance", 0, new ConfigDescription("Chance to break an advanced gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		breakChanceUnsocketMerged = config("2 - Socket System", "Merged Gem Break Chance", 0, new ConfigDescription("Chance to break a merged gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		breakChanceUnsocketSimple = config("2 - Socket System", "Simple Gem Break Chance", 0f, new ConfigDescription("Chance to break a simple gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		breakChanceUnsocketAdvanced = config("2 - Socket System", "Advanced Gem Break Chance", 0f, new ConfigDescription("Chance to break an advanced gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0f, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		breakChanceUnsocketMerged = config("2 - Socket System", "Merged Gem Break Chance", 0f, new ConfigDescription("Chance to break a merged gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 50, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRateDistance = config("2 - Socket System", "Maximum Distance for Item Recovery", 0, new ConfigDescription("Maximum distance between the position where the item has been crafted and the position where the item has been destroyed to recover non-teleportable resources. This can be used, to prevent people from crafting items from metal, taking them through a portal and destroying them on the other side, to teleport the metal. Setting this to 0 disables this.", null, new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 5), new ConfigurationManagerAttributes { Order = --order }));
@@ -455,6 +413,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			config.SettingChanged += (_, _) => setter(config.Value);
 		}
 
+		GemEffectSetup.initializeGemEffect(assets);
 		MiscSetup.initializeMisc(assets);
 		BuildingPiecesSetup.initializeBuildingPieces(assets);
 		GemStoneSetup.initializeGemStones(assets);
@@ -533,61 +492,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Harmony harmony = new(ModGUID);
 		harmony.PatchAll(assembly);
 
-		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
-		gliding = assets.LoadAsset<SE_Stats>("JCGliding");
-		glidingDark = assets.LoadAsset<SE_Stats>("SE_DarkWings");
-		glowingSpirit = assets.LoadAsset<SE_Stats>("SE_Crystal_Magelight");
-		glowingSpiritPrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Magelight");
-		glowingSpiritPrefab.AddComponent<GlowingSpirit.OrbDestroy>();
-		lightningSpeed = Utils.ConvertStatusEffect<LightningSpeed.LightningSpeedEffect>(assets.LoadAsset<SE_Stats>("JC_Electric_Wings_SE"));
-		apotheosis = Utils.ConvertStatusEffect<Apotheosis.ApotheosisEffect>(assets.LoadAsset<SE_Stats>("SE_Apotheosis"));
-		poisonousDrain = assets.LoadAsset<SE_Stats>("SE_Boss_2");
-		poisonousDrainCloud = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_2");
-		rootedRevenge = assets.LoadAsset<SE_Stats>("SE_Boss_3");
-		icyProtection = assets.LoadAsset<SE_Stats>("SE_Boss_4");
-		fieryDoom = assets.LoadAsset<SE_Stats>("SE_Boss_5");
-		fieryDoomExplosion = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_3");
-		awareness = assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Red");
-		heardIcon = assets.LoadAsset<GameObject>("JC_Eyeball_Obj");
-		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
-		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
-		headhunter.m_modifyAttackSkill = Skills.SkillType.All;
-		assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Yellow");
-		rigidFinger = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Purple");
-		rigidFinger.m_modifyAttackSkill = Skills.SkillType.All;
-		magicRepair = PrefabManager.RegisterPrefab(assets, "VFX_Buff_Green");
-		aquatic = assets.LoadAsset<SE_Stats>("JC_Se_Necklace_Blue");
-		aquatic.m_modifyAttackSkill = Skills.SkillType.All;
-		lightningStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
-		rootStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Brown");
-		poisonStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Green");
-		iceStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Blue");
-		fireStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Red");
-		apotheosisStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Black");
-		friendshipStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
-		friendship = Utils.ConvertStatusEffect<TogetherForever.TogetherForeverEffect>(assets.LoadAsset<SE_Stats>("SE_Friendship_Group"));
-		loneliness = Utils.ConvertStatusEffect<TogetherForever.LonelinessEffect>(assets.LoadAsset<SE_Stats>("SE_Loneliness_Group"));
-		friendshipTether = assets.LoadAsset<GameObject>("VFX_FriendLine_Render");
-		friendshipTether.AddComponent<FriendshipTether>();
-		cowardice = assets.LoadAsset<SE_Stats>("SE_Cowardice");
-		fireBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Fire");
-		frostBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Frost");
-		poisonBossDebuff = assets.LoadAsset<SE_Stats>("SE_Boss_Poison");
-		thunderclapMark = assets.LoadAsset<SE_Stats>("SE_ThunderClap_Marked");
-		thunderclapExplosion = assets.LoadAsset<GameObject>("JC_Marked_Explode");
-		fading = Utils.ConvertStatusEffect<Fade.FadeSE>(assets.LoadAsset<SE_Stats>("SE_VFX_Fade"));
-		fadingMaterial = assets.LoadAsset<Material>("JC_Player_Distortion");
-		fusingFailSound = assets.LoadAsset<GameObject>("sfx_crystal_destroyed");
-		Destroy(fusingFailSound.GetComponent<ZNetView>());
-		fusingSuccessSound = assets.LoadAsset<GameObject>("sfx_crystal_fuse");
-		Destroy(fusingSuccessSound.GetComponent<ZNetView>());
-
 		SocketsBackground.background = assets.LoadAsset<GameObject>("JC_ItemBackground");
 
-		SetCfgValue(value => rigidFinger.m_damageModifier = 1 - value / 100f, rigidDamageReduction);
-		SetCfgValue(value => headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
-		SetCfgValue(value => headhunter.m_ttl = value, headhunterDuration);
-		SetCfgValue(value => aquatic.m_damageModifier = 1 + value / 100f, aquaticDamageIncrease);
+		SetCfgValue(value => GemEffectSetup.rigidFinger.m_damageModifier = 1 - value / 100f, rigidDamageReduction);
+		SetCfgValue(value => GemEffectSetup.headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
+		SetCfgValue(value => GemEffectSetup.headhunter.m_ttl = value, headhunterDuration);
+		SetCfgValue(value => GemEffectSetup.aquatic.m_damageModifier = 1 + value / 100f, aquaticDamageIncrease);
 
 		Necromancer.skeleton = PrefabManager.RegisterPrefab(assets, "JC_Skeleton");
 
@@ -719,7 +629,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	{
 		private static void Prefix(ObjectDB __instance)
 		{
-			__instance.m_StatusEffects.Add(headhunter);
+			__instance.m_StatusEffects.Add(GemEffectSetup.headhunter);
 		}
 	}
 }

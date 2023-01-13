@@ -41,11 +41,11 @@ public static class IcyProtection
 			Config config = player.GetEffect<Config>(Effect.Icyprotection);
 			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
-				player.m_seman.AddStatusEffect(Jewelcrafting.iceStart);
+				player.m_seman.AddStatusEffect(GemEffectSetup.iceStart);
 
 				yield return new WaitForSeconds(4);
 				
-				player.m_seman.AddStatusEffect(Jewelcrafting.icyProtection);
+				player.m_seman.AddStatusEffect(GemEffectSetup.icyProtection);
 
 				if (player.transform.position.y > 4500 || player.m_underRoof)
 				{
@@ -70,7 +70,7 @@ public static class IcyProtection
 		[UsedImplicitly]
 		private static void Prefix(Character __instance, HitData hit)
 		{
-			if (__instance is Player player && hit.GetAttacker() is { } attacker && attacker != __instance && player.m_seman.HaveStatusEffect(Jewelcrafting.icyProtection.name))
+			if (__instance is Player player && hit.GetAttacker() is { } attacker && attacker != __instance && player.m_seman.HaveStatusEffect(GemEffectSetup.icyProtection.name))
 			{
 				hit.ApplyModifier(1 - player.GetEffect<Config>(Effect.Icyprotection).DamageReduction / 100f);
 			}

@@ -176,7 +176,7 @@ public class Box : Socketable
 		if (!soundPlayed && progress == 100)
 		{
 			Debug.Log("Playing Sound");
-			GameObject sound = Object.Instantiate(socketedGems.Count > 1 ? Jewelcrafting.fusingFailSound : Jewelcrafting.fusingSuccessSound, Player.m_localPlayer.transform.position, Quaternion.identity);
+			GameObject sound = Object.Instantiate(socketedGems.Count > 1 ? GemEffectSetup.fusingFailSound : GemEffectSetup.fusingSuccessSound, Player.m_localPlayer.transform.position, Quaternion.identity);
 			sound.GetComponent<AudioSource>().Play();
 			soundPlayed = true;
 		}

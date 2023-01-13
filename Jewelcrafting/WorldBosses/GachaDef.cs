@@ -381,7 +381,7 @@ public static class GachaDef
 			double current = (double)now / 86400 % totalDays;
 			foreach (Prizes p in prizesList)
 			{
-				p.StartDate = DateTimeOffset.FromUnixTimeSeconds(now - (long)(current * 86400)).DateTime;
+				p.StartDate = DateTimeOffset.FromUnixTimeSeconds(now - (long)(current * 86400)).UtcDateTime;
 				current -= p.DurationDays;
 				if (current <= 0)
 				{

@@ -772,7 +772,7 @@ public static class GemStones
 				InventoryGui.instance.StartCoroutine(DelayedBoxDelete());
 			}
 
-			TrackEquipmentChanges.CalculateEffects();
+			TrackEquipmentChanges.CalculateEffects(Player.m_localPlayer);
 		}
 	}
 
@@ -1015,11 +1015,13 @@ public static class GemStones
 				}
 				else if (container.m_shared.m_name == MiscSetup.blessedMirrorName || container.m_shared.m_name == MiscSetup.celestialMirrorName)
 				{
-					if (!Player.m_localPlayer.m_inventory.AddItem(item.Clone()))
+					ItemDrop.ItemData itemClone = item.Clone();
+					itemClone.m_stack = 1;
+					if (!Player.m_localPlayer.m_inventory.AddItem(itemClone))
 					{
 						Transform transform = Player.m_localPlayer.transform;
 						Vector3 position = transform.position;
-						ItemDrop itemDrop = ItemDrop.DropItem(item.Clone(), 1, position + transform.forward + transform.up, transform.rotation);
+						ItemDrop itemDrop = ItemDrop.DropItem(itemClone, 1, position + transform.forward + transform.up, transform.rotation);
 						itemDrop.OnPlayerDrop();
 						itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
 						Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);

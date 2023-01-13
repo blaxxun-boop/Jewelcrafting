@@ -14,10 +14,10 @@ public static class Awareness
 	{
 		private static void Postfix(Hud __instance)
 		{
-			heardIcon = Object.Instantiate(Jewelcrafting.heardIcon, __instance.m_rootObject.transform);
+			heardIcon = Object.Instantiate(GemEffectSetup.heardIcon, __instance.m_rootObject.transform);
 			Vector3 localPosition = __instance.m_staggerProgress.transform.localPosition;
 			heardIcon.transform.localPosition = localPosition + Vector3.right * 30;
-			attackedIcon = Object.Instantiate(Jewelcrafting.attackedIcon, __instance.m_rootObject.transform);
+			attackedIcon = Object.Instantiate(GemEffectSetup.attackedIcon, __instance.m_rootObject.transform);
 			attackedIcon.transform.localPosition = localPosition + Vector3.right * 30;
 		}
 	}
@@ -27,7 +27,7 @@ public static class Awareness
 	{
 		private static void Postfix()
 		{
-			if (Player.m_localPlayer?.m_seman.HaveStatusEffect(Jewelcrafting.awareness.name) != true)
+			if (Player.m_localPlayer?.m_seman.HaveStatusEffect(GemEffectSetup.awareness.name) != true)
 			{
 				attackedIcon.gameObject.SetActive(false);
 				heardIcon.gameObject.SetActive(false);

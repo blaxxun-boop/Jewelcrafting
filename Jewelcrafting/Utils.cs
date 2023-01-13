@@ -104,7 +104,7 @@ public static class Utils
 			Skills.SkillType.Polearms => GemLocation.Polearm,
 			Skills.SkillType.Spears => GemLocation.Spear,
 			Skills.SkillType.Blocking => GemLocation.Shield,
-			Skills.SkillType.Axes => player?.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.yellowNecklaceHash ? GemLocation.Tool : GemLocation.Axe,
+			Skills.SkillType.Axes => (player is not null && player == Player.m_localPlayer ? player.m_utilityItem?.m_shared.m_name == JewelrySetup.yellowNecklaceName : player?.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.yellowNecklaceHash) ? GemLocation.Tool : GemLocation.Axe,
 			Skills.SkillType.Bows => GemLocation.Bow,
 			Skills.SkillType.Crossbows => GemLocation.Crossbow,
 			Skills.SkillType.Pickaxes => GemLocation.Tool,

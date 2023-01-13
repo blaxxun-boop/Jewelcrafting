@@ -24,10 +24,10 @@ public static class Synergy
 		inventoryIcon = assets.LoadAsset<Sprite>("JC_Gem_Tab");
 	}
 
-	public static Dictionary<GemType, int> GetGemDistribution()
+	public static Dictionary<GemType, int> GetGemDistribution(Player player)
 	{
 		List<GemType> gemTypes = new();
-		Utils.ApplyToAllPlayerItems(Player.m_localPlayer, item =>
+		Utils.ApplyToAllPlayerItems(player, item =>
 		{
 			if (item?.Data().Get<Sockets>() is { } itemSockets)
 			{
@@ -125,7 +125,7 @@ public static class Synergy
 
 		public void RedrawSynergyCircle()
 		{
-			Dictionary<GemType, int> distribution = GetGemDistribution();
+			Dictionary<GemType, int> distribution = GetGemDistribution(Player.m_localPlayer);
 
 			int total = distribution.Values.Sum();
 			Color[] colors = new Color[1000];

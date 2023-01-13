@@ -267,6 +267,7 @@ public static class BossSpawn
 	{
 		for (int i = 0; i < 10000; ++i)
 		{
+			retry:
 			Vector2 randomPoint = Random.insideUnitCircle * Jewelcrafting.bossSpawnMaxDistance.Value;
 			Vector3 point = new(randomPoint.x, 0, randomPoint.y);
 
@@ -279,7 +280,7 @@ public static class BossSpawn
 			float biomeHeight = WorldGenerator.instance.GetBiomeHeight(biome, point.x, point.z, out _);
 			float forestFactor = Minimap.instance.GetMaskColor(point.x, point.z, biomeHeight, biome).r;
 
-			if (biomeHeight < ZoneSystem.instance.m_waterLevel + 5 || forestFactor > 0.75)
+			if (biomeHeight < ZoneSystem.instance.m_waterLevel + 5 || forestFactor > 0.75 || (biome == Heightmap.Biome.AshLands && Random.Range(1, 6) != 1) || (biome == Heightmap.Biome.DeepNorth && Random.Range(1, 7) > 2))
 			{
 				continue;
 			}
@@ -292,6 +293,20 @@ public static class BossSpawn
 				continue;
 			}
 
+			for (int j = 0; j < 10; ++j)
+			{
+				Vector2 circle = Random.insideUnitCircle * j;
+				if (Mathf.Abs(biomeHeight - WorldGenerator.instance.GetBiomeHeight(biome, point.x + circle.x, point.z + circle.y, out _)) > 5)
+				{
+					goto retry;
+				}
+			}
+
+			if (WorldGenerator.instance.GetBiomeArea(point) == Heightmap.BiomeArea.Edge)
+			{
+				continue;
+			}
+			
 			List<ZDO> zdos = new();
 			for (int y = -1; y <= 1; ++y)
 			{

@@ -17,7 +17,7 @@ public static class GlowingSpirit
 		{
 			if (Player.m_localPlayer.GetEffect(Effect.Glowingspirit) == 0)
 			{
-				Player.m_localPlayer.m_seman.RemoveStatusEffect(Jewelcrafting.glowingSpirit);
+				Player.m_localPlayer.m_seman.RemoveStatusEffect(GemEffectSetup.glowingSpirit);
 			}
 		};
 	}
@@ -29,11 +29,11 @@ public static class GlowingSpirit
 		{
 			if (Player.m_localPlayer.GetEffect(Effect.Glowingspirit) > 0)
 			{
-				Jewelcrafting.glowingSpirit.m_ttl = Player.m_localPlayer.GetEffect(Effect.Glowingspirit) * 60;
-				Player.m_localPlayer.m_seman.AddStatusEffect(Jewelcrafting.glowingSpirit, true);
+				GemEffectSetup.glowingSpirit.m_ttl = Player.m_localPlayer.GetEffect(Effect.Glowingspirit) * 60;
+				Player.m_localPlayer.m_seman.AddStatusEffect(GemEffectSetup.glowingSpirit, true);
 				if (!lightOrb)
 				{
-					lightOrb = Object.Instantiate(Jewelcrafting.glowingSpiritPrefab);
+					lightOrb = Object.Instantiate(GemEffectSetup.glowingSpiritPrefab);
 					lightOrb.transform.position = Player.m_localPlayer.transform.position;
 				}
 			}
@@ -53,7 +53,7 @@ public static class GlowingSpirit
 				return;
 			}
 
-			if (!__instance.m_seman.HaveStatusEffect(Jewelcrafting.glowingSpirit.name))
+			if (!__instance.m_seman.HaveStatusEffect(GemEffectSetup.glowingSpirit.name))
 			{
 				ZNetScene.instance.Destroy(lightOrb);
 				lightOrb = null;
@@ -105,9 +105,9 @@ public static class GlowingSpirit
 			if (zdo.IsValid() && zdo.IsOwner())
 			{
 				ZDOMan.instance.DestroyZDO(zdo);
-				if (Player.m_localPlayer && Player.m_localPlayer.m_seman.HaveStatusEffect(Jewelcrafting.glowingSpirit.name))
+				if (Player.m_localPlayer && Player.m_localPlayer.m_seman.HaveStatusEffect(GemEffectSetup.glowingSpirit.name))
 				{
-					lightOrb = Instantiate(Jewelcrafting.glowingSpiritPrefab);
+					lightOrb = Instantiate(GemEffectSetup.glowingSpiritPrefab);
 					lightOrb.transform.position = Player.m_localPlayer.transform.position;
 				}
 				else

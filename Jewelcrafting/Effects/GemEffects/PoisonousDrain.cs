@@ -3,6 +3,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using JetBrains.Annotations;
+using Jewelcrafting.Effects;
 using UnityEngine;
 
 namespace Jewelcrafting.GemEffects;
@@ -12,6 +13,7 @@ public static class PoisonousDrain
 	static PoisonousDrain()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Poisonousdrain, typeof(Config));
+		AoeEffects.ExemptEffects.Add(GemEffectSetup.poisonousDrainCloud.name);
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -70,13 +72,13 @@ public static class PoisonousDrain
 			Config config = player.GetEffect<Config>(Effect.Poisonousdrain);
 			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
-				player.m_seman.AddStatusEffect(Jewelcrafting.poisonStart);
+				player.m_seman.AddStatusEffect(GemEffectSetup.poisonStart);
 
 				yield return new WaitForSeconds(4);
 
-				StatusEffect se = player.m_seman.AddStatusEffect(Jewelcrafting.poisonousDrain);
+				StatusEffect se = player.m_seman.AddStatusEffect(GemEffectSetup.poisonousDrain);
 				se.m_ttl = config.Duration;
-				GameObject aoe = Object.Instantiate(Jewelcrafting.poisonousDrainCloud, player.transform);
+				GameObject aoe = Object.Instantiate(GemEffectSetup.poisonousDrainCloud, player.transform);
 				aoe.GetComponent<Aoe>().Setup(player, Vector3.zero, 30, new HitData
 				{
 					m_damage = new HitData.DamageTypes { m_poison = config.PoisonDamage },
@@ -94,7 +96,7 @@ public static class PoisonousDrain
 		[UsedImplicitly]
 		private static void Prefix(Character __instance, ref float hp)
 		{
-			if (__instance is Player player && player.m_seman.HaveStatusEffect(Jewelcrafting.poisonousDrain.name))
+			if (__instance is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.poisonousDrain.name))
 			{
 				hp *= 1 + player.GetEffect<Config>(Effect.Poisonousdrain).HealingIncrease / 100f;
 			}

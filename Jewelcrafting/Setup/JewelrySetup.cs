@@ -14,6 +14,7 @@ public static class JewelrySetup
 	public static int greenRingHash;
 	public static string redRingName = null!;
 	public static int yellowNecklaceHash;
+	public static string yellowNecklaceName = null!;
 
 	private static GameObject customNecklacePrefab = null!;
 	private static GameObject customRingPrefab = null!;
@@ -62,6 +63,7 @@ public static class JewelrySetup
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 		yellowNecklaceHash = item.Prefab.name.GetStableHashCode();
+		yellowNecklaceName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
