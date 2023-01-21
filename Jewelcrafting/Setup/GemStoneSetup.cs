@@ -24,7 +24,8 @@ public enum GemType
 	Moder,
 	Yagluth,
 	Queen,
-	Group
+	Group,
+	Wisplight
 }
 
 public struct GemDefinition
@@ -95,6 +96,7 @@ public static class GemStoneSetup
 		prefab.GetComponent<ItemDrop>().m_itemData.m_dropPrefab = prefab;
 		string gemName = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		GemStones.socketableGemStones.Add(gemName);
+		colorGems.RemoveAll(g => g.Name == gemName);
 		colorGems.Add(new GemDefinition
 		{
 			Prefab = prefab,
@@ -106,6 +108,19 @@ public static class GemStoneSetup
 			Type = color,
 			Tier = colorGems.Count
 		};
+	}
+
+	public static void DisableGemColor(GemType color)
+	{
+		if (Gems.TryGetValue(color, out List<GemDefinition> gems))
+		{
+			foreach (GemDefinition gem in gems)
+			{
+				GemStones.socketableGemStones.Remove(gem.Name);
+				GemInfos.Remove(gem.Name);
+			}
+			Gems.Remove(color);
+		}
 	}
 
 	public static void RegisterShard(GameObject prefab, GemType color)

@@ -33,7 +33,7 @@ public abstract class ItemContainer : ItemData
 public abstract class Socketable : ItemContainer
 {
 	public List<SocketItem> socketedGems = new() { new SocketItem("") };
-	
+
 	public override Inventory ReadInventory()
 	{
 		int size = socketedGems.Count;
@@ -71,7 +71,7 @@ public abstract class Socketable : ItemContainer
 public class Sockets : Socketable
 {
 	public int Worth = 0;
-	
+
 	public override void Save()
 	{
 		Worth = CalculateItemWorth();
@@ -83,7 +83,7 @@ public class Sockets : Socketable
 		socketedGems = Value.Split(',').Select(s => new SocketItem(s)).ToList();
 		Worth = CalculateItemWorth();
 	}
-	
+
 	private int CalculateItemWorth()
 	{
 		int sum = socketedGems.Count * (socketedGems.Count + 1) / 2;
@@ -124,14 +124,18 @@ public class SocketBag : Socketable, ItemBag
 
 	public override void Load()
 	{
-		socketedGems = Value.Split(',').Select(s => { string[] split = s.Split(':'); return new SocketItem(split[0], split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0); }).ToList();
+		socketedGems = Value.Split(',').Select(s =>
+		{
+			string[] split = s.Split(':');
+			return new SocketItem(split[0], split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0);
+		}).ToList();
 	}
 }
 
 public class InventoryBag : ItemContainer, ItemBag
 {
 	private Inventory inventory = new("Items", Player.m_localPlayer?.GetInventory().m_bkg, Jewelcrafting.gemBoxSlotsColumns.Value, Jewelcrafting.gemBoxSlotsRows.Value);
-	
+
 	public override void Save()
 	{
 		ZPackage pkg = new();
@@ -148,7 +152,7 @@ public class InventoryBag : ItemContainer, ItemBag
 			inventory.Load(new ZPackage(Convert.FromBase64String(info[2])));
 		}
 	}
-	
+
 	public override Inventory ReadInventory() => inventory;
 
 	public override void SaveSocketsInventory(Inventory inv) => inventory = inv;
@@ -175,7 +179,6 @@ public class Box : Socketable
 	{
 		if (!soundPlayed && progress == 100)
 		{
-			Debug.Log("Playing Sound");
 			GameObject sound = Object.Instantiate(socketedGems.Count > 1 ? GemEffectSetup.fusingFailSound : GemEffectSetup.fusingSuccessSound, Player.m_localPlayer.transform.position, Quaternion.identity);
 			sound.GetComponent<AudioSource>().Play();
 			soundPlayed = true;
@@ -204,7 +207,20 @@ public class Box : Socketable
 		progress += amount;
 		if (progress >= 100)
 		{
-			if (socketedGems[0].Name == "Boss_Crystal_7" || socketedGems[1].Name == "Boss_Crystal_7")
+			if (socketedGems[0].Name is "JC_Common_Gembox" or "JC_Epic_Gembox")
+			{
+				if (Random.value <= Jewelcrafting.boxSelfMergeChances[Item.m_shared.m_name].Value / 100f)
+				{
+					socketedGems[0] = new SocketItem(FusionBoxSetup.Boxes[FusionBoxSetup.boxTier[Item.m_dropPrefab] + 1].name);
+					socketedGems.RemoveAt(1);
+				}
+				else
+				{
+					socketedGems[0] = new SocketItem(Utils.getRandomGem(-1)!.name);
+					socketedGems[1] = new SocketItem(Utils.getRandomGem(-1)!.name);
+				}
+			}
+			else if (socketedGems[0].Name == "Boss_Crystal_7" || socketedGems[1].Name == "Boss_Crystal_7")
 			{
 				if (Random.value <= Jewelcrafting.boxBossGemMergeChance.Value / 100f)
 				{
@@ -217,7 +233,7 @@ public class Box : Socketable
 					socketedGems[1] = new SocketItem("Shattered_Cyan_Crystal");
 				}
 			}
-			else if (Random.value < Jewelcrafting.boxMergeChances[Item.m_shared.m_name][Tier].Value / 100f)
+			else if (Random.value <= Jewelcrafting.boxMergeChances[Item.m_shared.m_name][Tier].Value / 100f)
 			{
 				if (GemStoneSetup.GemInfos.TryGetValue(ObjectDB.instance.GetItemPrefab(socketedGems[0].Name).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info1))
 				{

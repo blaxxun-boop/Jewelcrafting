@@ -114,11 +114,6 @@ public static class FusionBoxSetup
 				return;
 			}
 
-			if (gem1 == gem2)
-			{
-				return;
-			}
-
 			if (Groups.API.IsLoaded() && (gem1.name == "Boss_Crystal_7" || gem2.name == "Boss_Crystal_7") && GemStones.bossToGem.Values.Contains(gem1) && GemStones.bossToGem.Values.Contains(gem2) && Jewelcrafting.boxBossGemMergeChance.Value > 0)
 			{
 				if (box.Item.m_shared.m_name != "$jc_legendary_gembox")
@@ -127,8 +122,21 @@ public static class FusionBoxSetup
 					return;
 				}
 			}
+			else if (gem1.name is "JC_Common_Gembox" or "JC_Epic_Gembox" || gem2.name is "JC_Common_Gembox" or "JC_Epic_Gembox")
+			{
+				if (gem1.name != gem2.name)
+				{
+					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_box_mismatch"));
+					return;
+				}
+			}
 			else
 			{
+				if (gem1 == gem2)
+				{
+					return;
+				}
+
 				if (!GemStoneSetup.GemInfos.TryGetValue(gem1.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info1) || !GemStoneSetup.GemInfos.TryGetValue(gem2.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info2))
 				{
 					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_merged_gem"));

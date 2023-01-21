@@ -113,7 +113,8 @@ public enum Effect
 	Preciousblood,
 	Perforation,
 	Thunderclap,
-	Fade
+	Fade,
+	Wisplight
 }
 
 public enum Uniqueness
@@ -388,7 +389,7 @@ public class EffectDef
 					return;
 				}
 
-				int tiers = GemStoneSetup.Gems[effectDef.Type].Count;
+				int tiers = GemStoneSetup.Gems.TryGetValue(effectDef.Type, out List<GemDefinition> gemDefinitions) ? gemDefinitions.Count : 1;
 				effectDef.Power = new object[tiers];
 
 				if (!ConfigTypes.TryGetValue(ValidEffects[effect], out Type configType))
@@ -702,6 +703,11 @@ public class EffectDef
 			{
 				foreach (EffectDef def in kv.Value)
 				{
+					if (def.Type == GemType.Wisplight && Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.Off)
+					{
+						continue;
+					}
+
 					void ApplyToGems(List<GameObject> gems)
 					{
 						for (int i = 0; i < gems.Count; ++i)
@@ -730,6 +736,7 @@ public class EffectDef
 							}
 						}
 					}
+					
 					ApplyToGems(GemStoneSetup.Gems[def.Type].Select(g => g.Prefab).ToList());
 					foreach (KeyValuePair<GemType, Dictionary<GemType, GameObject[]>> mergedGem in MergedGemStoneSetup.mergedGems)
 					{

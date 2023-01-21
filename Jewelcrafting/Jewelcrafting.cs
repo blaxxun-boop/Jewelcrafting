@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.20";
+	private const string ModVersion = "1.3.21";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -94,6 +94,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<float> defaultEventDuration = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
 	public static ConfigEntry<Toggle> gemstoneFormationParticles = null!;
+	public static ConfigEntry<Toggle> wisplightGem = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -113,11 +114,15 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{ "$enemy_bonemass", new[] { 20f, 4f, 1.5f } },
 		{ "$enemy_dragon", new[] { 28f, 12f, 3f } },
 		{ "$enemy_goblinking", new[] { 40f, 20f, 6f } },
+		{ "$jc_crystal_frost_reaper", new[] { 47f, 25f, 8f } },
+		{ "$jc_crystal_flame_reaper", new[] { 47f, 25f, 8f } },
+		{ "$jc_crystal_soul_reaper", new[] { 47f, 25f, 8f } },
 		{ "$enemy_seekerqueen", new[] { 55f, 30f, 9f } }
 	};
 
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
 	public static readonly Dictionary<string, ConfigEntry<int>[]> boxMergeChances = new();
+	public static readonly Dictionary<string, ConfigEntry<int>> boxSelfMergeChances = new();
 	public static readonly Dictionary<string, ConfigEntry<float>[]> boxBossProgress = new();
 	public static ConfigEntry<int> boxBossGemMergeChance = null!;
 
@@ -398,6 +403,32 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				}
 			}
 		};
+		wisplightGem = config("5 - Other", "Wisplight Gem", Toggle.On, new ConfigDescription("If on, the Wisplight is a gem for utility items, instead of a utility item itself.", null, new ConfigurationManagerAttributes { Order = --order }));
+		wisplightGem.SettingChanged += (_, _) =>
+		{
+			GemStones.ApplyWisplightGem();
+			ConfigLoader.TryReapplyConfig();
+			if (wisplightGem.Value == Toggle.Off)
+			{
+				Player.m_localPlayer?.m_seman?.RemoveStatusEffect("Demister");
+			}
+			if (ObjectDB.instance)
+			{
+				if (Player.m_localPlayer is { } player && player && player.m_utilityItem.m_shared.m_name == "$item_demister")
+				{
+					player.UnequipItem(player.m_utilityItem);
+				}
+				Inventory[] inventories = Player.m_players.Select(p => p.GetInventory()).Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null).ToArray();
+				foreach (ItemDrop.ItemData itemdata in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>()).Concat(ItemDrop.m_instances).Select(i => i.m_itemData).Concat(inventories.SelectMany(i => i.GetAllItems())))
+				{
+					if (itemdata.m_shared.m_name == "$item_demister")
+					{
+						itemdata.m_shared.m_itemType = wisplightGem.Value == Toggle.On ? ItemDrop.ItemData.ItemType.Material : ItemDrop.ItemData.ItemType.Utility;
+					}
+				}
+			}
+			API.InvokeEffectRecalc();
+		};
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
 		headhunterDuration = config("Emerald Headhunter Ring", "Effect Duration", 20U, new ConfigDescription("Effect duration for the Emerald Headhunter Ring."));
@@ -480,6 +511,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		foreach (KeyValuePair<string, int[]> kv in defaultBoxMergeChances)
 		{
 			boxMergeChances.Add(kv.Key, kv.Value.Select((chance, i) => config("3 - Fusion Box", $"Merge Chance {boxMergeCategory[i]} gems in {english.Localize(kv.Key)}", chance, new ConfigDescription($"Success chance while merging two {boxMergeCategory[i]} gems in a {Localization.instance.Localize(kv.Key)}", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --boxMergeOrder }))).ToArray());
+			if (kv.Key != "$jc_legendary_gembox")
+			{
+				boxSelfMergeChances.Add(kv.Key, config("3 - Fusion Box", $"Merge Chance {english.Localize(kv.Key)}", 100, new ConfigDescription($"Success chance while merging two {Localization.instance.Localize(kv.Key)} in another {Localization.instance.Localize(kv.Key)}. 0 to disable merging of these gem boxes.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --boxMergeOrder })));
+			}
 		}
 		boxBossGemMergeChance = config("3 - Fusion Box", $"Merge Chance boss gems in {english.Localize("$jc_legendary_gembox")}", 100, new ConfigDescription($"Success chance while merging two boss gems in a {Localization.instance.Localize("$jc_legendary_gembox")}", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --boxMergeOrder }));
 

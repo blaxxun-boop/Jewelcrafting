@@ -237,6 +237,17 @@ public static class ConfigLoader
 		}
 	}
 
+	public static void TryReapplyConfig()
+	{
+		foreach (Loader loader in loaders)
+		{
+			if (ZNetScene.instance?.GetPrefab("_ZoneCtrl") != null && loader.Enabled)
+			{
+				loader.ApplyConfig();
+			}
+		}
+	}
+
 	private static void consumeConfigFileEvent(object sender, FileSystemEventArgs args)
 	{
 		if (((Jewelcrafting.Toggle?)Jewelcrafting.useExternalYaml.LocalBaseValue ?? Jewelcrafting.useExternalYaml.Value) == Jewelcrafting.Toggle.Off)

@@ -145,6 +145,11 @@ glowing spirit:
   gem: blue
   power: [4, 6, 8]
 
+wisplight:
+  slot: utility
+  gem: wisplight
+  power: 10
+
 # Head
 
 explorer:

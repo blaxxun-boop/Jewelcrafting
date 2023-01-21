@@ -349,8 +349,24 @@ public static class GemStones
 					items[itemDrop.m_itemData.m_shared.m_name] = item;
 				}
 			}
+			ApplyWisplightGem();
 		}
 	}
+
+	public static void ApplyWisplightGem()
+	{
+		GemStoneSetup.DisableGemColor(GemType.Wisplight);
+		if (ObjectDB.instance?.GetItemPrefab("Demister") is { } wisplight)
+		{
+			GemStoneSetup.RegisterGem(wisplight, GemType.Wisplight);
+			ItemDrop.ItemData.SharedData sharedData = wisplight.GetComponent<ItemDrop>().m_itemData.m_shared;
+			sharedData.m_itemType = Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.On ? ItemDrop.ItemData.ItemType.Material : ItemDrop.ItemData.ItemType.Utility;
+			if (Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.Off)
+			{
+				socketableGemStones.Remove(sharedData.m_name);
+			}
+		}
+	} 
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
 	private class AddSocketToItem
@@ -652,7 +668,7 @@ public static class GemStones
 						ConfigEntry<int>[] mergeChances = Jewelcrafting.boxMergeChances[item.m_shared.m_name];
 						if (box.boxSealed)
 						{
-							sb.Append($"\n\n$jc_merge_success_chance: <color=orange>{mergeChances[box.Tier].Value}%</color>");
+							sb.Append($"\n\n$jc_merge_success_chance: <color=orange>{(box.socketedGems[0].Name is "JC_Common_Gembox" or "JC_Epic_Gembox" ? Jewelcrafting.boxSelfMergeChances[item.m_shared.m_name] : mergeChances[box.Tier]).Value}%</color>");
 						}
 						else
 						{
@@ -660,6 +676,10 @@ public static class GemStones
 							sb.Append($"\n$jc_gem_tier_1: <color=orange>{mergeChances[0].Value}%</color>");
 							sb.Append($"\n$jc_gem_tier_2: <color=orange>{mergeChances[1].Value}%</color>");
 							sb.Append($"\n$jc_gem_tier_3: <color=orange>{mergeChances[2].Value}%</color>");
+							if (box.Item.m_shared.m_name != "$jc_legendary_gembox" && Jewelcrafting.boxSelfMergeChances[item.m_shared.m_name].Value > 0)
+							{
+								sb.Append($"\n{box.Item.m_shared.m_name}: <color=orange>{Jewelcrafting.boxSelfMergeChances[item.m_shared.m_name].Value}%</color>");
+							}
 							if (Groups.API.IsLoaded() && box.Item.m_shared.m_name == "$jc_legendary_gembox" && Jewelcrafting.boxBossGemMergeChance.Value > 0)
 							{
 								sb.Append($"\n$jc_gem_tier_boss: <color=orange>{Jewelcrafting.boxBossGemMergeChance.Value}%</color>");
@@ -1033,6 +1053,12 @@ public static class GemStones
 		}
 	}
 
+	private static bool ItemEligibleForSocketing(ItemDrop.ItemData item)
+	{
+		Box? box = AddFakeSocketsContainer.openEquipment?.Get<Box>();
+		return (socketableGemStones.Contains(item.m_shared.m_name) && box is not { progress: >= 100 } && AddFakeSocketsContainer.openInventory?.HaveItem(item.m_shared.m_name) == false) || (box?.Item.m_shared.m_name == item.m_shared.m_name && Jewelcrafting.boxSelfMergeChances.TryGetValue(item.m_shared.m_name, out ConfigEntry<int> selfMergeChance) && selfMergeChance.Value > 0 && item != box.Item);
+	}
+
 	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.DropItem))]
 	private class AllowGemStonesOnly
 	{
@@ -1131,15 +1157,15 @@ public static class GemStones
 				return false;
 			}
 
-			if (socketableGemStones.Contains(item.m_shared.m_name) && AddFakeSocketsContainer.openEquipment?.Get<Box>() is not { progress: >= 100 })
+			ItemDrop.ItemData? oldItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
+			if (oldItem == item)
 			{
-				ItemDrop.ItemData? oldItem = __instance.m_inventory.GetItemAt(pos.x, pos.y);
-				if (oldItem == item)
-				{
-					return true;
-				}
+				return true;
+			}
 
-				if ((oldItem is not null && !AllowsUnsocketing(oldItem)) || __instance.m_inventory.HaveItem(item.m_shared.m_name))
+			if (ItemEligibleForSocketing(item))
+			{
+				if (oldItem is not null && !AllowsUnsocketing(oldItem))
 				{
 					__result = false;
 					return false;
@@ -1345,7 +1371,7 @@ public static class GemStones
 				{
 					return Utils.ItemAllowedInGemBag(item);
 				}
-				if (!socketableGemStones.Contains(item.m_shared.m_name) || AddFakeSocketsContainer.openInventory.HaveItem(item.m_shared.m_name) || AddFakeSocketsContainer.openEquipment?.Get<Box>() is { progress: >= 100 })
+				if (!ItemEligibleForSocketing(item))
 				{
 					return false;
 				}
