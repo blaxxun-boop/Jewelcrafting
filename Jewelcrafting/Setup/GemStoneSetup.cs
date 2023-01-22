@@ -96,7 +96,6 @@ public static class GemStoneSetup
 		prefab.GetComponent<ItemDrop>().m_itemData.m_dropPrefab = prefab;
 		string gemName = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		GemStones.socketableGemStones.Add(gemName);
-		colorGems.RemoveAll(g => g.Name == gemName);
 		colorGems.Add(new GemDefinition
 		{
 			Prefab = prefab,
