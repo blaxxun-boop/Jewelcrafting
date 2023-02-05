@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using JetBrains.Annotations;
+using Jewelcrafting.LootSystem;
 using UnityEngine;
 #if ! API
 using System.Diagnostics;
@@ -94,6 +95,7 @@ public static class API
 			effects = new Dictionary<Effect, List<EffectDef>>(),
 			Synergy = new Dictionary<string, SynergyDef>(),
 			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float> { { (GemType)colorName.GetStableHashCode(), 0.04f } }),
+			drops = new DropDef(),
 			Prizes = new List<Prizes>()
 		});
 
