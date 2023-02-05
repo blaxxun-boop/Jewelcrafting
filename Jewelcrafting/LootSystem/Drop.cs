@@ -64,7 +64,7 @@ public static class Drop
 						{
 							if (itemObj is string item)
 							{
-								dropDef.blacklist.Add(item);
+								dropDef.blacklist.Add(item.ToLower());
 							}
 							else
 							{
@@ -128,7 +128,7 @@ public static class Drop
 								{
 									if (resourceObj is string resource)
 									{
-										dropBiome.resourceMap.Add(resource);
+										dropBiome.resourceMap.Add(resource.ToLower());
 									}
 									else
 									{
@@ -204,7 +204,7 @@ public static class Drop
 			List<Recipe> drops = new();
 			foreach (Recipe recipe in ObjectDB.instance.m_recipes)
 			{
-				bool matchLocalized(ICollection<string> list, ItemDrop item) => list.Contains(item.name) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name)) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name)); 
+				bool matchLocalized(ICollection<string> list, ItemDrop item) => list.Contains(item.name.ToLower()) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name).ToLower()); 
 				if (!processedRecipes.Contains(recipe) && recipe.m_resources.Any(r => matchLocalized(kv.Value, r.m_resItem)) && recipe.m_enabled && !matchLocalized(dropBlacklist, recipe.m_item))
 				{
 					processedRecipes.Add(recipe);
@@ -240,8 +240,8 @@ public static class Drop
 			{
 				List<GameObject> filteredDrops = drops.Where(recipe => Jewelcrafting.lootRestriction.Value switch
 				{
-					Jewelcrafting.LootRestriction.KnownStation => recipe.m_craftingStation is null || (Player.m_localPlayer.m_knownStations.TryGetValue(recipe.m_craftingStation.name, out int level) && recipe.m_minStationLevel <= level),
-					Jewelcrafting.LootRestriction.KnownRecipe => Player.m_localPlayer.m_knownRecipes.Contains(recipe.name),
+					Jewelcrafting.LootRestriction.KnownStation => recipe.m_craftingStation is null || (Player.m_localPlayer.m_knownStations.TryGetValue(recipe.m_craftingStation.m_name, out int level) && recipe.m_minStationLevel <= level),
+					Jewelcrafting.LootRestriction.KnownRecipe => Player.m_localPlayer.m_knownRecipes.Contains(recipe.m_item.m_itemData.m_shared.m_name),
 					_ => true
 				}).Select(r => r.m_item.gameObject).ToList();
 
@@ -250,7 +250,7 @@ public static class Drop
 					return;
 				}
 				
-				GameObject prefab = filteredDrops[Random.Range(0, drops.Count)];
+				GameObject prefab = filteredDrops[Random.Range(0, filteredDrops.Count)];
 				GameObject item = Object.Instantiate(prefab, character.GetCenterPoint() + Random.insideUnitSphere * 0.5f, Quaternion.Euler(0, Random.Range(0, 360), 0));
 				Vector3 insideUnitSphere = Random.insideUnitSphere;
 				if (insideUnitSphere.y < 0)
