@@ -1,0 +1,69 @@
+equipment:
+  biome order:
+    - meadows
+    - black forest
+    - swamp
+    - ocean
+    - ash lands
+    - mountain
+    - plains
+    - mistlands
+  meadows:
+    low health: 10
+    high health: 50
+    resource map:
+      - deer hide
+      - flint
+  black forest:
+    low health: 30
+    high health: 100
+    resource map:
+      - bronze
+      - copper
+      - tin
+      - skeleton trophy
+      - core wood
+  swamp:
+    low health: 40
+    high health: 150
+    resource map:
+      - iron
+      - root
+  mountain:
+    low health: 60
+    high health: 250
+    resource map:
+      - silver
+      - wolf pelt
+      - wolf fang
+      - obsidian
+  plains:
+    low health: 80
+    high health: 400
+    resource map:
+      - linen thread
+      - black metal
+      - lox pelt
+  mistlands:
+    low health: 100
+    high health: 800
+    resource map:
+      - refined eitr
+      - yggdrasil wood
+      - scale hide
+      - bilebag
+      - mandible
+      - carapace
+  ocean:
+    low health: 60
+    high health: 150
+    resource map:
+      - serpent scale
+      - chitin
+  ash lands:
+    low health: 40
+    high health: 120
+    resource map:
+      - iron
+  blacklist:
+    - jewelers bag

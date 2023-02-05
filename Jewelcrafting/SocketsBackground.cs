@@ -220,5 +220,5 @@ public static class SocketsBackground
 		}
 	}
 
-	private static Color ItemColor(Sockets sockets) => sockets.Worth <= maxWorth ? colors[sockets.Worth] : Color.red;
+	public static Color ItemColor(Sockets sockets) => sockets.Worth <= maxWorth ? colors[sockets.Worth] : Color.red;
 }

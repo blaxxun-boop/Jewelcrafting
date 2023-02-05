@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using JetBrains.Annotations;
+using Jewelcrafting.LootSystem;
 using Jewelcrafting.WorldBosses;
 using ServerSync;
 using UnityEngine;
@@ -169,7 +170,7 @@ public class EffectDef
 	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).Where(t => t != GemType.Cyan || global::Groups.API.IsLoaded()).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
-	private static Dictionary<string, Heightmap.Biome> ValidBiomes => new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None or Heightmap.Biome.BiomesMax or Heightmap.Biome.Ocean).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.InvariantCultureIgnoreCase);
+	public static Dictionary<string, Heightmap.Biome> ValidBiomes => new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None or Heightmap.Biome.BiomesMax or Heightmap.Biome.Ocean).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.InvariantCultureIgnoreCase);
 
 	public static readonly Dictionary<GemType, string> GemTypeNames = ValidGemTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
 	public static readonly Dictionary<Effect, string> EffectNames = ValidEffects.ToDictionary(kv => kv.Value, kv => kv.Key);
@@ -181,6 +182,7 @@ public class EffectDef
 		public Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution;
 		public Dictionary<Effect, List<EffectDef>> effects;
 		public Dictionary<string, SynergyDef> Synergy;
+		public DropDef drops;
 		public List<Prizes> Prizes;
 	}
 
@@ -190,7 +192,7 @@ public class EffectDef
 		Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
 		Dictionary<string, SynergyDef> synergies = new();
 		List<Prizes> prizes = new();
-		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes };
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes, drops = new DropDef() };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)
@@ -223,6 +225,15 @@ public class EffectDef
 					prizes.Add(prize);
 				}
 
+				continue;
+			}
+
+			if (rootDictKv.Key == "equipment")
+			{
+				if (Drop.Parse(rootDictKv.Value, errors) is { } drops)
+				{
+					configurationResult.drops = drops;
+				}
 				continue;
 			}
 			
@@ -628,7 +639,7 @@ public class EffectDef
 
 		public void Reset()
 		{
-			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && k != "Synergies" && k != "Gacha" && !k.StartsWith("/")).ToArray())
+			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && k != "Synergies" && k != "Gacha" && k != "Loot" && !k.StartsWith("/")).ToArray())
 			{
 				parsed.Remove(key);
 			}
@@ -696,6 +707,35 @@ public class EffectDef
 				GachaDef.Apply(result.Prizes);
 			}
 
+			Dictionary<Heightmap.Biome, DropBiome> dropBiomes = ValidBiomes.Values.ToDictionary(b => b, _ => new DropBiome
+			{
+				lowHp = 0,
+				highHp = 0,
+				resourceMap = new List<string>(),
+			});
+			foreach (KeyValuePair<Heightmap.Biome, DropBiome> dropKv in parsed.Values.SelectMany(p => p.drops.biomeConfig))
+			{
+				DropBiome dropBiome = dropBiomes[dropKv.Key];
+				if (dropKv.Value.lowHp is { } lowHp)
+				{
+					dropBiome.lowHp = lowHp;
+				}
+				if (dropKv.Value.highHp is { } highHp)
+				{
+					dropBiome.highHp = highHp;
+				}
+				if (dropKv.Value.resourceMap is { } resources)
+				{
+					dropBiome.resourceMap = resources;
+				}
+			}
+			Drop.Apply(new DropDef
+			{
+				biomeOrder = parsed.Values.Last(p => p.drops.biomeOrder.Count > 0).drops.biomeOrder,
+				biomeConfig = dropBiomes,
+				blacklist = parsed.Values.Last(p => p.drops.blacklist is not null).drops.blacklist,
+			});
+
 			Jewelcrafting.SocketEffects = socketEffects;
 			Jewelcrafting.GemDistribution = gemDistribution;
 			Jewelcrafting.EffectPowers.Clear();
@@ -760,6 +800,6 @@ public class EffectDef
 		public string FilePattern => "Jewelcrafting.*.yml";
 		public string EditButtonName => Localization.instance.Localize("$jc_edit_socket_yaml_config");
 		public CustomSyncedValue<List<string>> FileData => Jewelcrafting.socketEffectDefinitions;
-		public bool Enabled => Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On;
+		public bool Enabled => true;
 	}
 }

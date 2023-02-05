@@ -465,7 +465,7 @@ public static class GemStones
 
 		private static void Postfix(InventoryGrid __instance, ItemDrop.ItemData item, UITooltip tooltip)
 		{
-			if (item.Data().Get<ItemContainer>() is not null && Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On)
+			if (item.Data().Get<ItemContainer>() is not null)
 			{
 				if (tooltip.m_tooltipPrefab != GemStoneSetup.SocketTooltip)
 				{
@@ -914,7 +914,7 @@ public static class GemStones
 			{
 				return false;
 			}
-			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")))
+			if (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse"))
 			{
 				if (Jewelcrafting.inventoryInteractBehaviour.Value == Jewelcrafting.InteractBehaviour.Disabled)
 				{

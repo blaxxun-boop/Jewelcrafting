@@ -10,6 +10,7 @@ using HarmonyLib;
 using ItemManager;
 using JetBrains.Annotations;
 using Jewelcrafting.GemEffects;
+using Jewelcrafting.Setup;
 using Jewelcrafting.WorldBosses;
 using LocalizationManager;
 using ServerSync;
@@ -20,20 +21,18 @@ namespace Jewelcrafting;
 
 [BepInPlugin(ModGUID, ModName, ModVersion)]
 [BepInIncompatibility("randyknapp.mods.epicloot")]
-[BepInIncompatibility("DasSauerkraut.Terraheim")]
 [BepInIncompatibility("org.bepinex.plugins.valheim_plus")]
 [BepInDependency("org.bepinex.plugins.groups", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.3.22";
+	private const string ModVersion = "1.4.0";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
 
 	private static ConfigEntry<Toggle> serverConfigLocked = null!;
 	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
-	public static ConfigEntry<Toggle> socketSystem = null!;
 	public static ConfigEntry<Toggle> inventorySocketing = null!;
 	public static ConfigEntry<Toggle> displayGemcursor = null!;
 	public static ConfigEntry<Toggle> displaySocketBackground = null!;
@@ -95,6 +94,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> frameOfChanceChance = null!;
 	public static ConfigEntry<Toggle> gemstoneFormationParticles = null!;
 	public static ConfigEntry<Toggle> wisplightGem = null!;
+	public static ConfigEntry<LootSystem> lootSystem = null!;
+	public static ConfigEntry<Toggle> lootBeams = null!;
+	public static ConfigEntry<float> lootSkew = null!;
+	public static ConfigEntry<float> lootLowHpChance = null!;
+	public static ConfigEntry<float> lootDefaultChance = null!;
+	public static ConfigEntry<LootRestriction> lootRestriction = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -180,6 +185,22 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		General = 0,
 		Detailed = 1
 	}
+	
+	[Flags]
+	public enum LootSystem
+	{
+		GemDrops = 1,
+		EquipmentDrops = 2,
+		//GemChests = 4,
+		//EquipmentChests = 8
+	}
+	
+	public enum LootRestriction
+	{
+		None = 0,
+		KnownStation = 1,
+		KnownRecipe = 2
+	}
 
 	[PublicAPI]
 	public class ConfigurationManagerAttributes
@@ -234,24 +255,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On, "If on, the configuration is locked and can be changed by server admins only.");
 		configSync.AddLockingConfigEntry(serverConfigLocked);
 		// Socket System
-		socketSystem = config("2 - Socket System", "Socket System", Toggle.On, "Enables or disables the socket system.");
-		socketSystem.SettingChanged += (_, _) =>
-		{
-			if (socketSystem.Value == Toggle.On)
-			{
-				ConfigLoader.loaders.First(l => l.GetType() == typeof(EffectDef.Loader)).ApplyConfig();
-			}
-			else
-			{
-				SocketEffects.Clear();
-				EffectPowers.Clear();
-			}
-			foreach (DestructibleSetup.DestructibleGem destructibleGem in FindObjectsOfType<DestructibleSetup.DestructibleGem>())
-			{
-				destructibleGem.gameObject.SetActive(socketSystem.Value == Toggle.On);
-			}
-		};
-
 		int order = 0;
 
 		config("2 - Socket System", "YAML Editor Anchor", 0, new ConfigDescription("Just ignore this.", null, new ConfigurationManagerAttributes { HideSettingName = true, HideDefaultButton = true, CustomDrawer = DrawYamlEditorButton }), false);
@@ -364,23 +367,43 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		worldBossCountdownDisplayOffset = config("4 - World Boss", "Countdown Display Offset", 0, new ConfigDescription("Offset for the world boss countdown display on the world map. Increase this, to move the display down, to prevent overlapping with other mods.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		worldBossCountdownDisplayOffset.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerPosition();
 		defaultEventDuration = config("4 - World Boss", "Default Event Duration", 2f, new ConfigDescription("Default duration for each event in days.", null, new ConfigurationManagerAttributes { Order = --order }));
-		upgradeChanceIncrease = config("5 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		experienceGainedFactor = config("5 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
+		lootSystem = config("5 - Loot System", "Loot System", LootSystem.GemDrops, new ConfigDescription("Loot system to be used for Jewelcrafting.\nGem Drops: Creatures have a chance to drop uncut gems.\nEquipment Drops: Creatures have a chance to drop Equipment items with sockets and gems.\nGem Chests: Creatures have a chance to drop a chest with some gems, so you can choose one.\nEquipment Chests: Creatures have a chance to drop a chest with some equipment, so you can choose one piece.", null, new ConfigurationManagerAttributes { Order = --order }));
+		lootBeams = config("5 - Loot System", "Loot Beams", Toggle.On, new ConfigDescription("Loot beams for dropped items.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		lootBeams.SettingChanged += (_, _) =>
+		{
+			foreach (ItemDrop item in ItemDrop.m_instances)
+			{
+				if (lootBeams.Value == Toggle.On)
+				{
+					LootSystemSetup.AddLootBeam.Postfix(item);
+				}
+				else if (item.transform.Find(LootSystemSetup.lootBeam.name + "(Clone)") is { } beam)
+				{
+					Destroy(beam);
+				}
+			}
+		};
+		lootSkew = config("5 - Loot System", "Drop Skew", 20f, new ConfigDescription("Can be used to skew the worth of loot that is dropped.", new AcceptableValueRange<float>(0f, 100f), new ConfigurationManagerAttributes { Order = --order }));
+		lootDefaultChance = config("5 - Loot System", "Drop Chance", 20f, new ConfigDescription("Chance for loot to be dropped.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		lootLowHpChance = config("5 - Loot System", "Drop Low HP Chance", 7f, new ConfigDescription("Chance for loot to be dropped from low HP creatures.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		lootRestriction = config("5 - Loot System", "Loot Restriction", LootRestriction.KnownRecipe, new ConfigDescription("None: No restrictions for item drops.\nKnown Station: You can only drop items that can be crafted on crafting stations that you know.\nKnown Recipe: You can only drop items that you know the recipe of.", null, new ConfigurationManagerAttributes { Order = --order }));
+		upgradeChanceIncrease = config("6 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		experienceGainedFactor = config("6 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
 		jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
-		experienceLoss = config("5 - Other", "Skill Experience Loss", 0, new ConfigDescription("How much experience to lose in the jewelcrafting skill on death.", new AcceptableValueRange<int>(0, 100)));
+		experienceLoss = config("6 - Other", "Skill Experience Loss", 0, new ConfigDescription("How much experience to lose in the jewelcrafting skill on death.", new AcceptableValueRange<int>(0, 100)));
 		experienceLoss.SettingChanged += (_, _) => jewelcrafting.SkillLoss = experienceLoss.Value;
 		jewelcrafting.SkillLoss = experienceLoss.Value;
-		gemBagSlotsRows = config("5 - Other", "Jewelers Bag Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
-		gemBagSlotsColumns = config("5 - Other", "Jewelers Bag Columns", 8, new ConfigDescription("Columns in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
-		gemBagAutofill = config("5 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		gemBoxSlotsRows = config("5 - Other", "Jewelers Box Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
-		gemBoxSlotsColumns = config("5 - Other", "Jewelers Box Columns", 2, new ConfigDescription("Columns in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
-		frameOfChanceChance = config("5 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }), false);
-		advancedTooltipKey = config("5 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		advancedTooltipMode = config("5 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		advancedTooltipAlwaysOn = config("5 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		gemstoneFormationParticles = config("5 - Other", "Gemstone Formation Particles", Toggle.On, new ConfigDescription("You can use this to disable the particles around gemstone formations in the world. If you think this will improve your performance, you will be disappointed. Let me tell you a thing or two about performance. If you are one of those people that still look at their instance count and worry about it being too high, please stop doing that. There are 'good' instances and 'bad' instances. You can have a million good instances and still get 100 FPS and you can have a single bad instance and your FPS drop to 5. So, if you want to improve your performance, get rid of the bad instances in your base. Creatures? Bad instances. Crops? Bad instances. Building pieces? Okayish instances. Gemstone formation particles? Good instances.\n\nIf you need an indicator for the performance of an area, how about looking at your FPS, instead of some arbitrary instance count?", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		gemBagSlotsRows = config("6 - Other", "Jewelers Bag Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
+		gemBagSlotsColumns = config("6 - Other", "Jewelers Bag Columns", 8, new ConfigDescription("Columns in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
+		gemBagAutofill = config("6 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		gemBoxSlotsRows = config("6 - Other", "Jewelers Box Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
+		gemBoxSlotsColumns = config("6 - Other", "Jewelers Box Columns", 2, new ConfigDescription("Columns in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
+		frameOfChanceChance = config("6 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipKey = config("6 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipMode = config("6 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		advancedTooltipAlwaysOn = config("6 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		gemstoneFormationParticles = config("6 - Other", "Gemstone Formation Particles", Toggle.On, new ConfigDescription("You can use this to disable the particles around gemstone formations in the world. If you think this will improve your performance, you will be disappointed. Let me tell you a thing or two about performance. If you are one of those people that still look at their instance count and worry about it being too high, please stop doing that. There are 'good' instances and 'bad' instances. You can have a million good instances and still get 100 FPS and you can have a single bad instance and your FPS drop to 5. So, if you want to improve your performance, get rid of the bad instances in your base. Creatures? Bad instances. Crops? Bad instances. Building pieces? Okayish instances. Gemstone formation particles? Good instances.\n\nIf you need an indicator for the performance of an area, how about looking at your FPS, instead of some arbitrary instance count?", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		gemstoneFormationParticles.SettingChanged += (_, _) =>
 		{
 			void SetActive(GameObject destructible)
@@ -403,7 +426,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				}
 			}
 		};
-		wisplightGem = config("5 - Other", "Wisplight Gem", Toggle.On, new ConfigDescription("If on, the Wisplight is a gem for utility items, instead of a utility item itself.", null, new ConfigurationManagerAttributes { Order = --order }));
+		wisplightGem = config("6 - Other", "Wisplight Gem", Toggle.On, new ConfigDescription("If on, the Wisplight is a gem for utility items, instead of a utility item itself.", null, new ConfigurationManagerAttributes { Order = --order }));
 		wisplightGem.SettingChanged += (_, _) =>
 		{
 			GemStones.ApplyWisplightGem();
@@ -457,6 +480,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		ConfigLoader.LoadBuiltinConfig();
 		GachaSetup.initializeGacha(assets);
 		BossSetup.initializeBosses(assets);
+		LootSystemSetup.initializeLootSystem(assets);
 		SocketsBackground.CalculateColors();
 
 		WorldBossCustomChanged(null, null);

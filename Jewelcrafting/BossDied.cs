@@ -9,6 +9,22 @@ namespace Jewelcrafting;
 
 public static class BossDied
 {
+	[HarmonyPatch(typeof(Character), nameof(Character.OnDeath))]
+	public static class SetBossFlag
+	{
+		public static bool firstKill = false;
+		
+		private static void Prefix(Character __instance)
+		{
+			if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique)
+			{
+				firstKill = !BossKilled(__instance);
+			}
+		}
+		
+		private static bool BossKilled(Character boss) => ZoneSystem.instance.GetGlobalKey(boss.m_defeatSetGlobalKey);
+	}
+	
 	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
 	private static class AddGemDrop
 	{
@@ -26,12 +42,10 @@ public static class BossDied
 				{
 					if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique)
 					{
-						if (BossKilled(__instance.m_character))
+						if (SetBossFlag.firstKill)
 						{
-							return;
+							__result.Add(new KeyValuePair<GameObject, int>(bossDrop, 1));
 						}
-
-						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, 1));
 					}
 					else if (Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f)
 					{
@@ -40,8 +54,6 @@ public static class BossDied
 				}
 			}
 		}
-
-		private static bool BossKilled(Character boss) => ZoneSystem.instance.GetGlobalKey(boss.m_defeatSetGlobalKey);
 	}
 
 	[HarmonyPatch(typeof(Character), nameof(Character.OnDeath))]

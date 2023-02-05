@@ -148,11 +148,9 @@ public static class GemStoneSetup
 			case 0:
 				gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["GambleRecipe"].RequiredItems.Add($"Uncut_{colorName}_Stone", 1);
-				gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["MassRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["MassRecipe"].RequiredItems.Add($"Uncut_{colorName}_Stone", 5);
 				gemStone["MassRecipe"].CraftAmount = 5;
-				gemStone["MassRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Simple {colorName}", 12, new ConfigDescription($"{colorName} shards required to craft a Simple {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
@@ -167,11 +165,9 @@ public static class GemStoneSetup
 			case 1:
 				gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["GambleRecipe"].RequiredItems.Add($"Simple_{colorName}_Socket", 1);
-				gemStone["GambleRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["MassRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["MassRecipe"].RequiredItems.Add($"Simple_{colorName}_Socket", 5);
 				gemStone["MassRecipe"].CraftAmount = 5;
-				gemStone["MassRecipe"].RecipeIsActive = Jewelcrafting.socketSystem;
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Advanced {colorName}", 35, new ConfigDescription($"{colorName} shards required to craft an Advanced {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
@@ -186,7 +182,6 @@ public static class GemStoneSetup
 			case 2:
 				gemStone.Crafting.Add("op_transmution_table", 2);
 				gemStone.RequiredItems.Add($"Advanced_{colorName}_Socket", 1);
-				gemStone.RecipeIsActive = Jewelcrafting.socketSystem;
 				break;
 		}
 	}
@@ -256,7 +251,7 @@ public static class GemStoneSetup
 	{
 		private static void Postfix(List<KeyValuePair<GameObject, int>> __result)
 		{
-			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On)
+			if ((Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemDrops) != 0)
 			{
 				__result.AddRange(from gem in Jewelcrafting.gemDropChances.Keys where Random.value < Jewelcrafting.gemDropChances[gem].Value / 100f select new KeyValuePair<GameObject, int>(gem, 1));
 			}

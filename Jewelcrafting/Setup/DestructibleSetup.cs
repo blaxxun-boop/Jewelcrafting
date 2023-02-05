@@ -18,7 +18,6 @@ public static class DestructibleSetup
 	public static void AddDestructible(GameObject prefab, GemType type)
 	{
 		PrefabManager.RegisterPrefab(prefab);
-		prefab.AddComponent<DestructibleGem>();
 		destructibles.Add(type, prefab);
 
 		prefab.GetComponent<DropOnDestroyed>().m_dropWhenDestroyed.m_drops = new List<DropTable.DropData>
@@ -80,18 +79,7 @@ public static class DestructibleSetup
 			__instance.m_prefabs.Add(gemSpawner);
 		}
 	}
-
-	public class DestructibleGem : MonoBehaviour
-	{
-		private void Start()
-		{
-			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.Off)
-			{
-				gameObject.SetActive(false);
-			}
-		}
-	}
-
+	
 	public class GemSpawner : MonoBehaviour
 	{
 		public ZNetView netView = null!;

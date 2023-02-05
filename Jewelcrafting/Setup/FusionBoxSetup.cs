@@ -38,18 +38,15 @@ public static class FusionBoxSetup
 	{
 		private static void Postfix(CharacterDrop __instance, List<KeyValuePair<GameObject, int>> __result)
 		{
-			if (Jewelcrafting.socketSystem.Value == Jewelcrafting.Toggle.On)
+			for (int tier = 0; tier < Boxes.Length; ++tier)
 			{
-				for (int tier = 0; tier < Boxes.Length; ++tier)
+				if (Jewelcrafting.crystalFusionBoxDropRate[tier].Value == 0)
 				{
-					if (Jewelcrafting.crystalFusionBoxDropRate[tier].Value == 0)
-					{
-						continue;
-					}
-					if (Random.value < 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(__instance.GetComponent<Character>().GetMaxHealth() / averageHealth, 1 / 3f))
-					{
-						__result.Add(new KeyValuePair<GameObject, int>(Boxes[tier], 1));
-					}
+					continue;
+				}
+				if (Random.value < 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(__instance.GetComponent<Character>().GetMaxHealth() / averageHealth, 1 / 3f))
+				{
+					__result.Add(new KeyValuePair<GameObject, int>(Boxes[tier], 1));
 				}
 			}
 		}
