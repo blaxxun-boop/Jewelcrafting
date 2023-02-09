@@ -226,7 +226,7 @@ public static class Drop
 		{
 			Character character = __instance.m_character;
 
-			if (character.m_baseAI is not MonsterAI ai || (Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.EquipmentDrops) == 0)
+			if (character.m_baseAI is not MonsterAI ai || (Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.EquipmentDrops) == 0 || character.IsTamed())
 			{
 				return;
 			}
@@ -234,9 +234,7 @@ public static class Drop
 			EnsureDropCache();
 
 			Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
-			float lowHp = Drop.lowHp[biome];
-
-			if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.m_health < lowHp ? Jewelcrafting.lootLowHpChance : Jewelcrafting.lootDefaultChance).Value / 100f)
+			if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.GetMaxHealth() < lowHp[biome] ? Jewelcrafting.lootLowHpChance : Jewelcrafting.lootDefaultChance).Value / 100f)
 			{
 				List<GameObject> filteredDrops = drops.Where(recipe => Jewelcrafting.lootRestriction.Value switch
 				{
@@ -264,7 +262,7 @@ public static class Drop
 				float manyHp = highHp[biome];
 
 				// between 0 and 1
-				float hpFactor = (Mathf.Pow(Mathf.Clamp(character.m_health / manyHp * (1 + (character.GetLevel() > 1 ? 0.2f : 0)), 0.125f, 8), 1 / 3f) - 0.5f) / 1.5f;
+				float hpFactor = (Mathf.Pow(Mathf.Clamp(character.GetMaxHealth() / manyHp, 0.125f, 8), 1 / 3f) - 0.5f) / 1.5f;
 
 				// now, skew the probability distribution towards the hpFactor
 				float worthFactor = 0;
