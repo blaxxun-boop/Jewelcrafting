@@ -18,9 +18,20 @@ public static class Utils
 	private static readonly MethodInfo MemberwiseCloneMethod = AccessTools.DeclaredMethod(typeof(object), "MemberwiseClone");
 	public static T Clone<T>(T input) where T : notnull => (T)MemberwiseCloneMethod.Invoke(input, Array.Empty<object>());
 
-	public static bool IsSocketableItem(ItemDrop.ItemData.SharedData item)
+	public static bool IsSocketableItem(ItemDrop item)
 	{
-		return item.m_itemType is
+		item.m_itemData.m_dropPrefab = item.gameObject;
+		return IsSocketableItem(item.m_itemData);
+	}
+
+	public static bool IsSocketableItem(ItemDrop.ItemData item)
+	{
+		if (Jewelcrafting.socketBlacklist.Value.Replace(" ", "").Split(',').Contains(item.m_dropPrefab.name))
+		{
+			return false;
+		}
+		
+		return item.m_shared.m_itemType is
 			       ItemDrop.ItemData.ItemType.Bow or
 			       ItemDrop.ItemData.ItemType.Chest or
 			       ItemDrop.ItemData.ItemType.Hands or
@@ -32,7 +43,7 @@ public static class Utils
 			       ItemDrop.ItemData.ItemType.Tool or
 			       ItemDrop.ItemData.ItemType.TwoHandedWeapon or
 			       ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft ||
-		       (item.m_itemType is ItemDrop.ItemData.ItemType.OneHandedWeapon && !item.m_attack.m_consumeItem);
+		       (item.m_shared.m_itemType is ItemDrop.ItemData.ItemType.OneHandedWeapon && !item.m_shared.m_attack.m_consumeItem);
 	}
 
 	public static void ApplyToAllPlayerItems(Player player, Action<ItemDrop.ItemData?> callback)

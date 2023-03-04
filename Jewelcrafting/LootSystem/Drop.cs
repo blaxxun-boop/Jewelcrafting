@@ -208,7 +208,7 @@ public static class Drop
 				if (!processedRecipes.Contains(recipe) && recipe.m_resources.Any(r => matchLocalized(kv.Value, r.m_resItem)) && recipe.m_enabled && !matchLocalized(dropBlacklist, recipe.m_item))
 				{
 					processedRecipes.Add(recipe);
-					if (Utils.IsSocketableItem(recipe.m_item.GetComponent<ItemDrop>().m_itemData.m_shared))
+					if (Utils.IsSocketableItem(recipe.m_item.GetComponent<ItemDrop>()))
 					{
 						drops.Add(recipe);
 					}

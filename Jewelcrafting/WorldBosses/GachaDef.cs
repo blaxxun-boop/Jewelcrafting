@@ -307,7 +307,7 @@ public static class GachaDef
 			{
 				if (getItem(prize.Item) is { } item)
 				{
-					if (prize.Sockets.Count > 0 && !Utils.IsSocketableItem(item.m_itemData.m_shared))
+					if (prize.Sockets.Count > 0 && !Utils.IsSocketableItem(item))
 					{
 						Debug.LogWarning($"Prize item {prize.Item} for prize definition '{prizes.Name}' has a Sockets list despite not being socketable. Ignoring.");
 						invalidPrizes.Add(prize);

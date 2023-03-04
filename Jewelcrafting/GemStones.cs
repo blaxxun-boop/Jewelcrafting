@@ -316,7 +316,7 @@ public static class GemStones
 				}
 
 				__instance.m_recipeList.Clear();
-				foreach (ItemDrop.ItemData itemData in Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i.m_shared) || i.Data().Get<ItemContainer>() is { boxSealed: false }))
+				foreach (ItemDrop.ItemData itemData in Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i) || i.Data().Get<ItemContainer>() is { boxSealed: false }))
 				{
 					ItemDrop component = Utils.Clone(itemData.m_dropPrefab.GetComponent<ItemDrop>());
 					component.m_itemData = itemData;
@@ -972,7 +972,7 @@ public static class GemStones
 		bool socketingFrame = container.m_shared.m_name == MiscSetup.chanceFrameName || container.m_shared.m_name == MiscSetup.chaosFrameName;
 
 		Sockets? existingSockets = item.Data().Get<Sockets>();
-		if (socketingFrame && !Utils.IsSocketableItem(item.m_shared))
+		if (socketingFrame && !Utils.IsSocketableItem(item))
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_frame_not_socketable");
 		}
@@ -984,9 +984,13 @@ public static class GemStones
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_blessed_mirror_no_gem");
 		}
-		else if (container.m_shared.m_name == MiscSetup.celestialMirrorName && !Utils.IsSocketableItem(item.m_shared))
+		else if (container.m_shared.m_name == MiscSetup.celestialMirrorName && (!Utils.IsSocketableItem(item) || item.Data().Get<ItemBag>() is not null))
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_celestial_mirror_not_socketable");
+		}
+		else if (container.m_shared.m_name == MiscSetup.celestialMirrorName && Jewelcrafting.mirrorBlacklist.Value.Replace(" ", "").Split(',').Contains(item.m_dropPrefab.name))
+		{
+			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_celestial_mirror_blacklisted");
 		}
 		else if (!socketingFrame || existingSockets?.socketedGems.Count != Jewelcrafting.maximumNumberSockets.Value)
 		{

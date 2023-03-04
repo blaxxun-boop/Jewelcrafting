@@ -29,7 +29,7 @@ public static class TagItemsWithPosition
 {
 	private static void Postfix(ItemDrop.ItemData? __result)
 	{
-		if (__result is not null && Utils.IsSocketableItem(__result.m_shared))
+		if (__result is not null && Utils.IsSocketableItem(__result))
 		{
 			__result.Data().GetOrCreate<PositionStorage>().Position = Player.m_localPlayer.transform.position;
 		}

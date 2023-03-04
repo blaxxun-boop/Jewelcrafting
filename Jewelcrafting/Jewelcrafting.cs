@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.3";
+	private const string ModVersion = "1.4.4";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -92,6 +92,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> worldBossCountdownDisplayOffset = null!;
 	public static ConfigEntry<float> defaultEventDuration = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
+	public static ConfigEntry<string> socketBlacklist = null!;
+	public static ConfigEntry<string> mirrorBlacklist = null!;
 	public static ConfigEntry<Toggle> gemstoneFormationParticles = null!;
 	public static ConfigEntry<Toggle> wisplightGem = null!;
 	public static ConfigEntry<LootSystem> lootSystem = null!;
@@ -185,7 +187,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		General = 0,
 		Detailed = 1
 	}
-	
+
 	[Flags]
 	public enum LootSystem
 	{
@@ -194,7 +196,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		//GemChests = 4,
 		//EquipmentChests = 8
 	}
-	
+
 	public enum LootRestriction
 	{
 		None = 0,
@@ -296,6 +298,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		maximumNumberSockets.SettingChanged += (_, _) => SocketsBackground.CalculateColors();
 		gemRespawnRate = config("2 - Socket System", "Gemstone Respawn Time", 100, new ConfigDescription("Respawn time for raw gemstones in ingame days. Use 0 to disable respawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		socketingItemsExperience = config("2 - Socket System", "Adding Sockets grants Experience", Toggle.On, new ConfigDescription("If off, adding sockets to items does not grant Jewelcrafting experience anymore. This can be used, to prevent people from crafting cheap items and socketing them, to level up the skill.", null, new ConfigurationManagerAttributes { Order = --order }));
+		socketBlacklist = config("6 - Other", "Socketing Blacklist", "", new ConfigDescription("Comma separated list of prefabs that cannot be socketed.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[0] = config("3 - Fusion Box", "Drop rate for Fusion Box", 200, new ConfigDescription("Drop rate for the Common Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[1] = config("3 - Fusion Box", "Drop rate for Blessed Fusion Box", 500, new ConfigDescription("Drop rate for the Blessed Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxDropRate[2] = config("3 - Fusion Box", "Drop rate for Celestial Fusion Box", 1000, new ConfigDescription("Drop rate for the Celestial Crystal Fusion Box. Format is 1:x. The chance is further increased by creature health. Use 0 to disable the drop.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -396,10 +399,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		jewelcrafting.SkillLoss = experienceLoss.Value;
 		gemBagSlotsRows = config("6 - Other", "Jewelers Bag Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
 		gemBagSlotsColumns = config("6 - Other", "Jewelers Bag Columns", 8, new ConfigDescription("Columns in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
-		gemBagAutofill = config("6 - Other", "Jewelers Bag Autofill", Toggle.Off, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		gemBagAutofill = config("6 - Other", "Jewelers Bag Autofill", Toggle.On, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		gemBoxSlotsRows = config("6 - Other", "Jewelers Box Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
 		gemBoxSlotsColumns = config("6 - Other", "Jewelers Box Columns", 2, new ConfigDescription("Columns in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
-		frameOfChanceChance = config("6 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }), false);
+		frameOfChanceChance = config("6 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		mirrorBlacklist = config("6 - Other", "Celestial Mirror Blacklist", "", new ConfigDescription("Comma separated list of prefabs that cannot be duplicated with a celestial mirror.", null, new ConfigurationManagerAttributes { Order = --order }));
 		advancedTooltipKey = config("6 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipMode = config("6 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipAlwaysOn = config("6 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);
@@ -450,7 +454,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 					}
 				}
 			}
-			API.InvokeEffectRecalc();
+			if (Player.m_localPlayer)
+			{
+				API.InvokeEffectRecalc();
+			}
 		};
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
