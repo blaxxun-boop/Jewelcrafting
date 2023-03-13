@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Groups;
 using HarmonyLib;
+using ItemDataManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -231,15 +232,27 @@ public static class Utils
 		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_detail", numbers.Select(FormatShortNumber).ToArray());
 	}
 
-	public static ItemDrop? getRandomGem(int tier = 0, GemType? type = null)
+	public static ItemDrop? getRandomGem(int tier = 0, GemType? type = null, HashSet<ItemDrop>? blackList = null)
 	{
+		List<ItemDrop> gems;
 		if (tier == -1)
 		{
-			return (type is not null ? GemStoneSetup.shardColors[type.Value] : GemStoneSetup.shardColors.Values.ElementAt(Random.Range(0, GemStoneSetup.shardColors.Count))).GetComponent<ItemDrop>();
+			gems = type is not null ? new List<ItemDrop> { GemStoneSetup.shardColors[type.Value].GetComponent<ItemDrop>() } : GemStoneSetup.shardColors.Values.Select(i => i.GetComponent<ItemDrop>()).ToList();
 		}
-		IEnumerable<List<GemDefinition>> defLists = GemStoneSetup.Gems.Where(kv => type is null || kv.Key == type).Select(kv => kv.Value).Where(g => g.Count > 1);
-		List<GemDefinition> defs = (tier == 0 ? defLists.SelectMany(g => g) : defLists.Where(g => g.Count > tier - 1).Select(g => g[tier - 1])).ToList();
-		return defs.Count > 0 ? defs[Random.Range(0, defs.Count)].Prefab.GetComponent<ItemDrop>() : null;
+		else
+		{
+			IEnumerable<List<GemDefinition>> defLists = GemStoneSetup.Gems.Where(kv => type is null || kv.Key == type).Select(kv => kv.Value).Where(g => g.Count > 1);
+			gems = (tier == 0 ? defLists.SelectMany(g => g) : defLists.Where(g => g.Count > tier - 1).Select(g => g[tier - 1])).Select(g => g.Prefab.GetComponent<ItemDrop>()).ToList();
+		}
+		if (blackList is not null)
+		{
+			List<ItemDrop> filteredGems = gems.Where(d => !blackList.Contains(d)).ToList();
+			if (filteredGems.Count > 0)
+			{
+				gems = filteredGems;
+			}
+		}
+		return gems.Count > 0 ? gems[Random.Range(0, gems.Count)] : null;
 	}
 
 	public static void DropPlayerItems(ItemDrop.ItemData item, int amount)

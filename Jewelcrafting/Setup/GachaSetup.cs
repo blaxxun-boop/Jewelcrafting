@@ -94,7 +94,7 @@ public static class GachaSetup
 			MapIconSprite = gachaCoins.GetComponent<ItemDrop>().m_itemData.GetIcon(),
 			ShowMapIcon = Jewelcrafting.gachaLocationIcon.Value == Jewelcrafting.Toggle.On ? ShowIcon.Explored : ShowIcon.Never,
 			Biome = Heightmap.Biome.Meadows,
-			SpawnDistance = new Range(1000, 10000),
+			SpawnDistance = new Range(1000, 3000),
 			SpawnAltitude = new Range(10, 200),
 			Count = 5,
 			Unique = true,

@@ -175,7 +175,7 @@ public static class BossSpawn
 				__instance.m_locationIcons.Add(new Minimap.LocationSpriteData { m_icon = kv.Value, m_name = locations[kv.Key].name });
 			}
 
-			bossTimer = Object.Instantiate(__instance.m_largeRoot.transform.Find("PingPanel/Label"), __instance.m_largeRoot.transform).GetComponent<Text>();
+			bossTimer = Object.Instantiate(__instance.m_largeRoot.transform.Find("KeyHints/keyboard_hints/AddPin/Label"), __instance.m_largeRoot.transform).GetComponent<Text>();
 			bossTimer.name = "Jewelcrafting Boss Timer";
 			bossTimer.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
 			bossTimer.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
@@ -216,10 +216,13 @@ public static class BossSpawn
 	{
 		if (Minimap.instance)
 		{
-			RectTransform rect = (RectTransform)Minimap.instance.m_largeRoot.transform.Find("PingPanel").transform;
+			RectTransform rect = (RectTransform)Minimap.instance.m_largeRoot.transform.Find("IconPanel").transform;
 			Vector2 anchoredPosition = rect.anchoredPosition;
-			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y - Jewelcrafting.worldBossCountdownDisplayOffset.Value);
+			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(-anchoredPosition.x - 30, -anchoredPosition.y -5 - Jewelcrafting.worldBossCountdownDisplayOffset.Value);
+			bossTimer.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
+			bossTimer.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
 			bossTimer.GetComponent<RectTransform>().sizeDelta = rect.sizeDelta;
+			bossTimer.GetComponent<RectTransform>().pivot = new Vector2(0, 0);
 		}
 	}
 

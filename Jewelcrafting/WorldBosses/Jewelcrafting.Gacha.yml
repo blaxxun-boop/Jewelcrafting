@@ -69,3 +69,5 @@ Stellar Impact:
 #      chance: 0.02
 #      sockets:
 #        - perfect sapphire
+#  blacklist:
+#    - perfect sapphire

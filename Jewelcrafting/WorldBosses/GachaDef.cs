@@ -30,6 +30,7 @@ public class Prizes
 	public DateTime StartDate = DateTime.MinValue;
 	public DateTime EndDate = DateTime.MaxValue;
 	public readonly List<Prize> prizes = new();
+	public readonly HashSet<string> blackList = new();
 }
 
 public static class GachaDef
@@ -230,7 +231,7 @@ public static class GachaDef
 									}
 									else
 									{
-										errorList.Add($"Found something not a socket name in sockets list. Got unexpected {socketObj?.GetType().ToString() ?? "empty string (null)"}. {prizeErrorLocation}");
+										errorList.Add($"Found something that is not a socket name in sockets list. Got unexpected {socketObj?.GetType().ToString() ?? "empty string (null)"}. {prizeErrorLocation}");
 									}
 								}
 							}
@@ -273,7 +274,7 @@ public static class GachaDef
 
 		if (totalChances > 1.0001)
 		{
-			errorList.Add($"The sum of chances of the prizes must not 1. Found a total chance of {totalChances} for prize definition '{name}'.");
+			errorList.Add($"The sum of chances of the prizes must not be greater than 1. Found a total chance of {totalChances} for prize definition '{name}'.");
 		}
 		if (prizeWithoutChance.Count > 0)
 		{
@@ -284,7 +285,29 @@ public static class GachaDef
 			}
 		}
 
-		errorList.AddRange(from key in prizesConfig.Keys where !knownKeys.Contains(key) select $"An prize definition may not contain a key '{key}'. {errorLocation}");
+		if (HasKey("blacklist"))
+		{
+			if (prizesConfig["blacklist"] is List<object?> socketsList)
+			{
+				foreach (object? socketObj in socketsList)
+				{
+					if (socketObj is string socket)
+					{
+						prizes.blackList.Add(socket);
+					}
+					else
+					{
+						errorList.Add($"Found something that is not a socket name in sockets blacklist. Got unexpected {socketObj?.GetType().ToString() ?? "empty string (null)"} in blacklist of prize definition '{name}'.");
+					}
+				}
+			}
+			else
+			{
+				errorList.Add($"The blacklist is not a list of socket names. Got unexpected {prizesConfig["blacklist"]?.GetType().ToString() ?? "empty string (null)"} in prize definition '{name}'.");
+			}
+		}
+
+		errorList.AddRange(from key in prizesConfig.Keys where !knownKeys.Contains(key) select $"A prize definition may not contain a key '{key}'. {errorLocation}");
 
 		return prizes;
 	}

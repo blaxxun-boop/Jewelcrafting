@@ -37,9 +37,10 @@ public class GachaChest : Container, Hoverable
 			return;
 		}
 
-		for (int i = 0; i < coins; ++i)
+		Prizes? selectedPrizes = GachaDef.ActivePrizes();
+		if (selectedPrizes is not null)
 		{
-			if (GachaDef.ActivePrizes() is { } selectedPrizes)
+			for (int i = 0; i < coins; ++i)
 			{
 				float random = Random.value;
 				Random.State state = SetRandomState(selectedPrizes);
@@ -68,24 +69,25 @@ public class GachaChest : Container, Hoverable
 			}
 		}
 
+		HashSet<ItemDrop>? blacklistedItems = selectedPrizes is not null ? new HashSet<ItemDrop>(selectedPrizes.blackList.Select(GachaDef.getItem).Where(i => i is not null).ToList()!) : null;
 		for (int i = coins - m_inventory.NrOfItems(); i > 0; --i)
 		{
 			float roll = Random.value;
 			if (roll < 0.02)
 			{
-				m_inventory.AddItem(Utils.getRandomGem(3)!.gameObject, 1);
+				m_inventory.AddItem(Utils.getRandomGem(3, blackList: blacklistedItems)!.gameObject, 1);
 			}
 			else if (roll < 0.05)
 			{
-				m_inventory.AddItem(Utils.getRandomGem(2)!.gameObject, 1);
+				m_inventory.AddItem(Utils.getRandomGem(2, blackList: blacklistedItems)!.gameObject, 1);
 			}
 			else if (roll < 0.2)
 			{
-				m_inventory.AddItem(Utils.getRandomGem(1)!.gameObject, 1);
+				m_inventory.AddItem(Utils.getRandomGem(1, blackList: blacklistedItems)!.gameObject, 1);
 			}
 			else
 			{
-				m_inventory.AddItem(Utils.getRandomGem(-1)!.gameObject, 1);
+				m_inventory.AddItem(Utils.getRandomGem(-1, blackList: blacklistedItems)!.gameObject, 1);
 			}
 		}
 
@@ -99,7 +101,7 @@ public class GachaChest : Container, Hoverable
 
 	public static DateTimeOffset Expiration(Prizes prizes)
 	{
-		if (prizes.RotationDays == 0 && prizes.DurationDays <= 0)
+		if (prizes is { RotationDays: 0, DurationDays: <= 0 })
 		{
 			return DateTimeOffset.MinValue;
 		}
