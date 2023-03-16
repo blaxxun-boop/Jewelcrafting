@@ -20,8 +20,8 @@ public static class ItemSnapshots
 		topLight.transform.rotation = Quaternion.Euler(60, -5f, 0);
 		topLight.type = LightType.Directional;
 		topLight.cullingMask = 1 << layer;
-		topLight.intensity = 0.7f;
-		
+		topLight.intensity = 0.2f;
+
 		Rect rect = new(0, 0, 64, 64);
 
 		GameObject visual = Object.Instantiate(item.transform.Find("attach").gameObject);
@@ -39,7 +39,7 @@ public static class ItemSnapshots
 		float zDist = Mathf.Max(size.x, size.y) * 1.05f / Mathf.Tan(camera.fieldOfView * Mathf.Deg2Rad);
 		Transform transform = camera.transform;
 		transform.position = (min + max) / 2 + new Vector3(0, 0, -zDist);
-		topLight.transform.position = transform.position + new Vector3(-2, 0.2f) / 3 * zDist;
+		//topLight.transform.position = transform.position + new Vector3(-2, 0.2f) / 3 * zDist;
 
 		camera.Render();
 

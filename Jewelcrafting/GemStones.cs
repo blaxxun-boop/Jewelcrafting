@@ -366,7 +366,7 @@ public static class GemStones
 				socketableGemStones.Remove(sharedData.m_name);
 			}
 		}
-	} 
+	}
 
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
 	private class AddSocketToItem
@@ -467,13 +467,18 @@ public static class GemStones
 		{
 			if (item.Data().Get<ItemContainer>() is not null)
 			{
+				tooltipItem.Remove(tooltip);
+				tooltipItem.Add(tooltip, new Tuple<InventoryGrid?, ItemInfo>(__instance, item.Data()));
 				if (tooltip.m_tooltipPrefab != GemStoneSetup.SocketTooltip)
 				{
 					originalTooltip = tooltip.m_tooltipPrefab;
 					tooltip.m_tooltipPrefab = GemStoneSetup.SocketTooltip;
+					if (tooltip == UITooltip.m_current)
+					{
+						UITooltip.m_tooltip = Object.Instantiate(GemStoneSetup.SocketTooltip, UITooltip.m_tooltip.transform.parent);
+						tooltip.OnHoverStart(UITooltip.m_hovered);
+					}
 				}
-				tooltipItem.Remove(tooltip);
-				tooltipItem.Add(tooltip, new Tuple<InventoryGrid?, ItemInfo>(__instance, item.Data()));
 			}
 			else if (tooltip.m_tooltipPrefab == GemStoneSetup.SocketTooltip)
 			{
