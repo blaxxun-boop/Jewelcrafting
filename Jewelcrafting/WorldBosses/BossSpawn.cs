@@ -193,6 +193,18 @@ public static class BossSpawn
 						foreach (Minimap.PinData pin in __instance.m_pins.Where(p => bossIcons.ContainsValue(p.m_icon)))
 						{
 							pin.m_name = TimeSpan.FromSeconds((int)pin.m_pos.y - (int)ZNet.instance.GetTimeSeconds()).ToString("c");
+							if (pin.m_NamePinData is null)
+							{
+								pin.m_NamePinData = new Minimap.PinNameData(pin);
+								if (__instance.IsPointVisible(pin.m_pos, __instance.m_mapImageLarge))
+								{
+									__instance.CreateMapNamePin(pin, __instance.m_pinNameRootLarge);
+								}
+							}
+							if (pin.m_NamePinData.PinNameGameObject)
+							{
+								pin.m_NamePinData.PinNameText.text = pin.m_name;
+							}
 						}
 					}
 
