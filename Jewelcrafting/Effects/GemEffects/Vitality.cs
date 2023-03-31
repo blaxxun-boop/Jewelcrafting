@@ -1,4 +1,7 @@
-﻿using HarmonyLib;
+﻿using System.Collections.Generic;
+using System.Reflection;
+using System.Reflection.Emit;
+using HarmonyLib;
 using JetBrains.Annotations;
 
 namespace Jewelcrafting.GemEffects;
@@ -14,14 +17,25 @@ public static class Vitality
 			__result += __instance.GetEffect(Effect.Vitality);
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(Player), nameof(Player.GetTotalFoodValue))]
-	private class IncreaseFoodHealth
+	private class PlayerUseMethodForBaseHP
 	{
 		[UsedImplicitly]
-		private static void Postfix(Player __instance, ref float hp)
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{
-			hp += __instance.GetEffect(Effect.Vitality);
+			FieldInfo baseHpField = AccessTools.DeclaredField(typeof(Player), nameof(Player.m_baseHP));
+			foreach (CodeInstruction instruction in instructions)
+			{
+				if (instruction.opcode == OpCodes.Ldfld && instruction.OperandIs(baseHpField))
+				{
+					yield return new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(Player), nameof(Player.GetBaseFoodHP)));
+				}
+				else
+				{
+					yield return instruction;
+				}
+			}
 		}
 	}
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using HarmonyLib;
 using ItemManager;
 using UnityEngine;
@@ -12,6 +13,7 @@ namespace Jewelcrafting;
 public static class DestructibleSetup
 {
 	public static readonly Dictionary<GemType, GameObject> destructibles = new();
+	public static readonly HashSet<string> hpModifiableTypes = new();
 	public static GameObject gemSpawner = null!;
 	public static GameObject customDestructiblePrefab = null!;
 
@@ -19,6 +21,11 @@ public static class DestructibleSetup
 	{
 		PrefabManager.RegisterPrefab(prefab);
 		destructibles.Add(type, prefab);
+		if (Regex.IsMatch(prefab.name, "Raw_.*_Gemstone"))
+		{
+			hpModifiableTypes.Add(prefab.name);
+			prefab.GetComponent<Destructible>().m_health = Jewelcrafting.gemstoneFormationHealth.Value;
+		}
 
 		prefab.GetComponent<DropOnDestroyed>().m_dropWhenDestroyed.m_drops = new List<DropTable.DropData>
 		{
@@ -127,21 +134,25 @@ public static class DestructibleSetup
 			}
 
 			ZDOID gemId = zdo.GetZDOID("spawn gem");
-			if (!Jewelcrafting.GemDistribution.TryGetValue(biome, out Dictionary<GemType, float> gemChances))
-			{
-				return;
-			}
 
 			GameObject? prefab = null;
-			float random = netView.GetZDO().GetFloat("spawn random");
-			foreach (KeyValuePair<GemType, float> kv in gemChances)
+			if (Jewelcrafting.gemstoneFormations.Value == Jewelcrafting.Toggle.On)
 			{
-				if (kv.Value > random)
+				if (!Jewelcrafting.GemDistribution.TryGetValue(biome, out Dictionary<GemType, float> gemChances))
 				{
-					prefab = destructibles[kv.Key];
-					break;
+					return;
 				}
-				random -= kv.Value;
+
+				float random = netView.GetZDO().GetFloat("spawn random");
+				foreach (KeyValuePair<GemType, float> kv in gemChances)
+				{
+					if (kv.Value > random)
+					{
+						prefab = destructibles[kv.Key];
+						break;
+					}
+					random -= kv.Value;
+				}
 			}
 
 			if (gemId != ZDOID.None)

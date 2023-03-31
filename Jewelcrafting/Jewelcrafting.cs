@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.7";
+	private const string ModVersion = "1.4.8";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -49,6 +49,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> uniqueGemDropChance = null!;
 	public static ConfigEntry<Toggle> uniqueGemDropOnePerPlayer = null!;
 	public static ConfigEntry<int> resourceReturnRate = null!;
+	public static ConfigEntry<int> resourceReturnRateUpgrade = null!;
 	public static ConfigEntry<int> resourceReturnRateDistance = null!;
 	public static ConfigEntry<Toggle> badLuckRecipes = null!;
 	public static readonly ConfigEntry<int>[] crystalFusionBoxDropRate = new ConfigEntry<int>[FusionBoxSetup.Boxes.Length];
@@ -102,6 +103,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<float> lootLowHpChance = null!;
 	public static ConfigEntry<float> lootDefaultChance = null!;
 	public static ConfigEntry<LootRestriction> lootRestriction = null!;
+	public static ConfigEntry<Toggle> gemstoneFormations = null!;
+	public static ConfigEntry<float> gemstoneFormationHealth = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -292,7 +295,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		breakChanceUnsocketAdvanced = config("2 - Socket System", "Advanced Gem Break Chance", 0f, new ConfigDescription("Chance to break an advanced gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0f, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketMerged = config("2 - Socket System", "Merged Gem Break Chance", 0f, new ConfigDescription("Chance to break a merged gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 50, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 50, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it. This only considers the base cost of the item.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		resourceReturnRateUpgrade = config("2 - Socket System", "Percentage Recovered Upgrades", 100, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it. This only considers the upgrade cost of the item.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRateDistance = config("2 - Socket System", "Maximum Distance for Item Recovery", 0, new ConfigDescription("Maximum distance between the position where the item has been crafted and the position where the item has been destroyed to recover non-teleportable resources. This can be used, to prevent people from crafting items from metal, taking them through a portal and destroying them on the other side, to teleport the metal. Setting this to 0 disables this.", null, new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 5), new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets.SettingChanged += (_, _) => SocketsBackground.CalculateColors();
@@ -457,6 +461,25 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			if (Player.m_localPlayer)
 			{
 				API.InvokeEffectRecalc();
+			}
+		};
+		gemstoneFormations = config("6 - Other", "Gemstone Formations", Toggle.On, new ConfigDescription("Can be used to disable the gemstone formations in the world.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gemstoneFormationHealth = config("6 - Other", "Gemstone Formation Health", 20f, new ConfigDescription("Sets the health of the gemstone formations found in the world.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gemstoneFormationHealth.SettingChanged += (_, _) =>
+		{
+			foreach (GameObject destructible in DestructibleSetup.destructibles.Values)
+			{
+				if (DestructibleSetup.hpModifiableTypes.Contains(destructible.name))
+				{
+					destructible.GetComponent<Destructible>().m_health = gemstoneFormationHealth.Value;
+				}
+			}
+			foreach (DestructibleSetup.GemSpawner spawner in DestructibleSetup.GemSpawner.activeSpawners)
+			{
+				if (spawner.netView.GetZDO()?.GetZDOID("spawn gem") is { } gemId && gemId != ZDOID.None && ZNetScene.instance.FindInstance(gemId) is { } existingDestructible && DestructibleSetup.hpModifiableTypes.Contains(global::Utils.GetPrefabName(existingDestructible))) 
+				{
+					existingDestructible.GetComponent<Destructible>().m_health = gemstoneFormationHealth.Value;
+				}
 			}
 		};
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));

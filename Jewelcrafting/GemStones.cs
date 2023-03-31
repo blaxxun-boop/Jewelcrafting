@@ -309,6 +309,17 @@ public static class GemStones
 		{
 			if (AddSocketAddingTab.TabOpen())
 			{
+				HashSet<ItemDrop.ItemData> socketItems = new(Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i) || i.Data().Get<ItemContainer>() is { boxSealed: false }));
+
+				List<KeyValuePair<Recipe, ItemDrop.ItemData>> recipes = new();
+				foreach (KeyValuePair<Recipe, ItemDrop.ItemData> recipe in __instance.m_availableRecipes)
+				{
+					if (recipe.Key.m_item && socketItems.Remove(recipe.Value))
+					{
+						recipes.Add(recipe);
+					}
+				}
+				
 				__instance.m_availableRecipes.Clear();
 				foreach (GameObject recipe in __instance.m_recipeList)
 				{
@@ -316,13 +327,18 @@ public static class GemStones
 				}
 
 				__instance.m_recipeList.Clear();
-				foreach (ItemDrop.ItemData itemData in Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i) || i.Data().Get<ItemContainer>() is { boxSealed: false }))
+				foreach (ItemDrop.ItemData itemData in socketItems)
 				{
 					ItemDrop component = Utils.Clone(itemData.m_dropPrefab.GetComponent<ItemDrop>());
 					component.m_itemData = itemData;
 					Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
 					recipe.m_item = component;
-					__instance.AddRecipeToList(Player.m_localPlayer, recipe, itemData, CanAddMoreSockets(itemData));
+					recipes.Add(new KeyValuePair<Recipe, ItemDrop.ItemData>(recipe, itemData));
+				}
+
+				foreach (KeyValuePair<Recipe, ItemDrop.ItemData> recipe in recipes)
+				{
+					__instance.AddRecipeToList(Player.m_localPlayer, recipe.Key, recipe.Value, CanAddMoreSockets(recipe.Value));
 				}
 
 				__instance.m_recipeListRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(__instance.m_recipeListBaseSize, __instance.m_recipeList.Count * __instance.m_recipeListSpace));
@@ -406,7 +422,7 @@ public static class GemStones
 				Player.m_localPlayer.UnequipItem(__instance.m_craftUpgradeItem);
 				Player.m_localPlayer.GetInventory().RemoveItem(__instance.m_craftUpgradeItem);
 
-				if (Jewelcrafting.resourceReturnRate.Value > 0 && ObjectDB.instance.GetRecipe(__instance.m_craftUpgradeItem) is { } recipe)
+				if ((Jewelcrafting.resourceReturnRate.Value > 0 || Jewelcrafting.resourceReturnRateUpgrade.Value > 0) && ObjectDB.instance.GetRecipe(__instance.m_craftUpgradeItem) is { } recipe)
 				{
 					bool returnNonTeleportable = !(Jewelcrafting.resourceReturnRateDistance.Value > 0 && __instance.m_craftUpgradeItem.Data().Get<PositionStorage>() is { } positionStorage && global::Utils.DistanceXZ(positionStorage.Position, Player.m_localPlayer.transform.position) > Jewelcrafting.resourceReturnRateDistance.Value);
 
@@ -416,7 +432,7 @@ public static class GemStones
 						{
 							continue;
 						}
-						int amount = Mathf.FloorToInt(Random.value + requirement.m_amount * (Jewelcrafting.resourceReturnRate.Value / 100f));
+						int amount = Mathf.FloorToInt(Random.value + requirement.m_amount * Jewelcrafting.resourceReturnRate.Value / 100f + Enumerable.Range(2, Math.Max(0, __instance.m_craftUpgradeItem.m_quality - 1)).Sum(requirement.GetAmount) * (Jewelcrafting.resourceReturnRateUpgrade.Value / 100f));
 						if (amount > 0 && !Player.m_localPlayer.m_inventory.AddItem(ItemSharedMap.items[requirement.m_resItem.m_itemData.m_shared.m_name], amount))
 						{
 							Transform transform = Player.m_localPlayer.transform;
@@ -465,25 +481,34 @@ public static class GemStones
 
 		private static void Postfix(InventoryGrid __instance, ItemDrop.ItemData item, UITooltip tooltip)
 		{
+			bool recreateTooltip = false;
 			if (item.Data().Get<ItemContainer>() is not null)
 			{
-				tooltipItem.Remove(tooltip);
+				if (tooltipItem.TryGetValue(tooltip, out Tuple<InventoryGrid?, ItemInfo>? itemInfo))
+				{
+					recreateTooltip = itemInfo.Item2 != item.Data();
+					tooltipItem.Remove(tooltip);
+				}
 				tooltipItem.Add(tooltip, new Tuple<InventoryGrid?, ItemInfo>(__instance, item.Data()));
 				if (tooltip.m_tooltipPrefab != GemStoneSetup.SocketTooltip)
 				{
 					originalTooltip = tooltip.m_tooltipPrefab;
 					tooltip.m_tooltipPrefab = GemStoneSetup.SocketTooltip;
-					if (tooltip == UITooltip.m_current)
-					{
-						UITooltip.m_tooltip = Object.Instantiate(GemStoneSetup.SocketTooltip, UITooltip.m_tooltip.transform.parent);
-						tooltip.OnHoverStart(UITooltip.m_hovered);
-					}
+					recreateTooltip = true;
 				}
 			}
 			else if (tooltip.m_tooltipPrefab == GemStoneSetup.SocketTooltip)
 			{
 				tooltip.m_tooltipPrefab = originalTooltip;
 				tooltipItem.Remove(tooltip);
+				recreateTooltip = true;
+			}
+			
+			if (recreateTooltip && tooltip == UITooltip.m_current)
+			{
+				GameObject hovered = UITooltip.m_hovered;
+				UITooltip.HideTooltip();
+				tooltip.OnHoverStart(hovered);
 			}
 		}
 	}
