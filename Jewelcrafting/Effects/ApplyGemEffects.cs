@@ -12,7 +12,7 @@ namespace Jewelcrafting.GemEffects;
 [HarmonyPatch]
 public class TrackEquipmentChanges
 {
-	public static Dictionary<int, int> VisualEquipmentInts = new();
+	public static IDictionary<int, int> VisualEquipmentInts = new Dictionary<int, int>();
 
 	private static IEnumerable<MethodInfo> TargetMethods() => new[]
 	{
@@ -103,7 +103,15 @@ public class TrackEquipmentChanges
 		}
 
 		ZDO? zdo = player.m_nview.m_zdo;
-		VisualEquipmentInts = zdo is null ? new Dictionary<int, int>() : zdo.m_ints ??= new Dictionary<int, int>();
+		if (zdo is null)
+		{
+			VisualEquipmentInts = new Dictionary<int, int>();
+		}
+		else
+		{
+			ZDOExtraData.s_ints.Init(zdo.m_uid);
+			VisualEquipmentInts = ZDOExtraData.s_ints[zdo.m_uid];
+		}
 
 		StoreSocketGems(VisualEquipmentInts, VisSlot.HandLeft, player.m_leftItem);
 		StoreSocketGems(VisualEquipmentInts, VisSlot.BackLeft, player.m_hiddenLeftItem);
@@ -115,10 +123,11 @@ public class TrackEquipmentChanges
 			return;
 		}
 
-		zdo.m_byteArrays ??= new Dictionary<int, byte[]>();
+		ZDOExtraData.s_byteArrays.Init(zdo.m_uid);
+		IDictionary<int, byte[]> byteArrays = ZDOExtraData.s_byteArrays[zdo.m_uid];
 		foreach (string effect in Utils.zdoNames.Values)
 		{
-			zdo.m_byteArrays[effect.GetStableHashCode()] = Array.Empty<byte>();
+			byteArrays[effect.GetStableHashCode()] = Array.Empty<byte>();
 		}
 		foreach (KeyValuePair<Effect, object> kv in effects)
 		{
@@ -132,15 +141,15 @@ public class TrackEquipmentChanges
 					Marshal.StructureToPtr(kv.Value, (IntPtr)target, false);
 				}
 			}
-			zdo.m_byteArrays[effectHash] = buffer;
+			byteArrays[effectHash] = buffer;
 		}
 
-		zdo.IncreseDataRevision();
+		zdo.IncreaseDataRevision();
 
 		API.InvokeEffectRecalc();
 	}
 
-	private static void StoreSocketGems(Dictionary<int, int> zdoInts, VisSlot part, ItemDrop.ItemData? item)
+	private static void StoreSocketGems(IDictionary<int, int> zdoInts, VisSlot part, ItemDrop.ItemData? item)
 	{
 		Dictionary<string, GameObject[]>? effectPrefabs = item is null ? null : VisualEffects.prefabDict(item.m_shared);
 
@@ -177,7 +186,9 @@ public class TrackEquipmentChanges
 		{
 			if (__instance.m_nview?.IsOwner() == true)
 			{
-				StoreSocketGems(__instance.m_nview.GetZDO().m_ints, __instance.m_slots[index].m_slot, __instance.m_queuedItem);
+				ZDO zdo = __instance.m_nview.GetZDO();
+				ZDOExtraData.s_ints.Init(zdo.m_uid);
+				StoreSocketGems(ZDOExtraData.s_ints[zdo.m_uid], __instance.m_slots[index].m_slot, __instance.m_queuedItem);
 			}
 		}
 	}
@@ -189,7 +200,9 @@ public class TrackEquipmentChanges
 		{
 			if (__instance.m_nview?.IsOwner() == true)
 			{
-				StoreSocketGems(__instance.m_nview.GetZDO().m_ints, VisSlot.Beard, __instance.m_queuedItem);
+				ZDO zdo = __instance.m_nview.GetZDO();
+				ZDOExtraData.s_ints.Init(zdo.m_uid);
+				StoreSocketGems(ZDOExtraData.s_ints[zdo.m_uid], VisSlot.Beard, __instance.m_queuedItem);
 			}
 		}
 	}

@@ -137,7 +137,7 @@ public static class SocketsBackground
 			}
 			bg.SetActive(true);
 			bg.GetComponent<Image>().color = ItemColor(sockets);
-			bg.transform.Find("JC_SelectedItem")?.gameObject.SetActive(item.m_equiped);
+			bg.transform.Find("JC_SelectedItem")?.gameObject.SetActive(item.m_equipped);
 		}
 		else
 		{

@@ -26,7 +26,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.8";
+	private const string ModVersion = "1.4.9";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -378,7 +378,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		lootBeams = config("5 - Loot System", "Loot Beams", Toggle.On, new ConfigDescription("Loot beams for dropped items.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		lootBeams.SettingChanged += (_, _) =>
 		{
-			foreach (ItemDrop item in ItemDrop.m_instances)
+			foreach (ItemDrop item in ItemDrop.s_instances)
 			{
 				if (lootBeams.Value == Toggle.On)
 				{
@@ -441,7 +441,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			ConfigLoader.TryReapplyConfig();
 			if (wisplightGem.Value == Toggle.Off)
 			{
-				Player.m_localPlayer?.m_seman?.RemoveStatusEffect("Demister");
+				Player.m_localPlayer?.m_seman?.RemoveStatusEffect("Demister".GetStableHashCode());
 			}
 			if (ObjectDB.instance)
 			{
@@ -449,8 +449,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				{
 					player.UnequipItem(player.m_utilityItem);
 				}
-				Inventory[] inventories = Player.m_players.Select(p => p.GetInventory()).Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null).ToArray();
-				foreach (ItemDrop.ItemData itemdata in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>()).Concat(ItemDrop.m_instances).Select(i => i.m_itemData).Concat(inventories.SelectMany(i => i.GetAllItems())))
+				Inventory[] inventories = Player.s_players.Select(p => p.GetInventory()).Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null).ToArray();
+				foreach (ItemDrop.ItemData itemdata in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>()).Concat(ItemDrop.s_instances).Select(i => i.m_itemData).Concat(inventories.SelectMany(i => i.GetAllItems())))
 				{
 					if (itemdata.m_shared.m_name == "$item_demister")
 					{
@@ -476,7 +476,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 			foreach (DestructibleSetup.GemSpawner spawner in DestructibleSetup.GemSpawner.activeSpawners)
 			{
-				if (spawner.netView.GetZDO()?.GetZDOID("spawn gem") is { } gemId && gemId != ZDOID.None && ZNetScene.instance.FindInstance(gemId) is { } existingDestructible && DestructibleSetup.hpModifiableTypes.Contains(global::Utils.GetPrefabName(existingDestructible))) 
+				if (spawner.netView.GetZDO()?.GetZDOID("spawn gem") is { } gemId && gemId != ZDOID.None && ZNetScene.instance.FindInstance(gemId) is { } existingDestructible && DestructibleSetup.hpModifiableTypes.Contains(global::Utils.GetPrefabName(existingDestructible)))
 				{
 					existingDestructible.GetComponent<Destructible>().m_health = gemstoneFormationHealth.Value;
 				}
@@ -538,8 +538,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 					if (ObjectDB.instance)
 					{
-						Inventory[] inventories = Player.m_players.Select(p => p.GetInventory()).Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null).ToArray();
-						foreach (ItemDrop.ItemData itemdata in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>()).Concat(ItemDrop.m_instances).Select(i => i.m_itemData).Concat(inventories.SelectMany(i => i.GetAllItems())))
+						Inventory[] inventories = Player.s_players.Select(p => p.GetInventory()).Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null).ToArray();
+						foreach (ItemDrop.ItemData itemdata in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>()).Concat(ItemDrop.s_instances).Select(i => i.m_itemData).Concat(inventories.SelectMany(i => i.GetAllItems())))
 						{
 							if (itemdata.m_shared.m_name == sharedData.m_name)
 							{

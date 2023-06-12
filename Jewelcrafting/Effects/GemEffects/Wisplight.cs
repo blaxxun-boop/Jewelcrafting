@@ -1,5 +1,8 @@
-﻿namespace Jewelcrafting.GemEffects;
+﻿using JetBrains.Annotations;
 
+namespace Jewelcrafting.GemEffects;
+
+[UsedImplicitly]
 public static class Wisplight
 {
 	static Wisplight()
@@ -10,12 +13,12 @@ public static class Wisplight
 			{
 				if (Player.m_localPlayer.GetEffect(Effect.Wisplight) == 0)
 				{
-					Player.m_localPlayer.m_seman.RemoveStatusEffect("Demister");
+					Player.m_localPlayer.m_seman.RemoveStatusEffect("Demister".GetStableHashCode());
 				}
 				else
 				{
-					Player.m_localPlayer.m_seman.AddStatusEffect("Demister");
-					if (Player.m_localPlayer.m_seman.GetStatusEffect("Demister") is SE_Demister demister)
+					Player.m_localPlayer.m_seman.AddStatusEffect("Demister".GetStableHashCode());
+					if (Player.m_localPlayer.m_seman.GetStatusEffect("Demister".GetStableHashCode()) is SE_Demister demister)
 					{
 						demister.m_maxDistance = Player.m_localPlayer.GetEffect(Effect.Wisplight);
 					}

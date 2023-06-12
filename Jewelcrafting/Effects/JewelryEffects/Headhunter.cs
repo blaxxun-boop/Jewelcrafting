@@ -28,7 +28,7 @@ public static class Headhunter
 			{
 				if (p.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.greenRingHash)
 				{
-					p.m_seman.AddStatusEffect(GemEffectSetup.headhunter.name, true);
+					p.m_seman.AddStatusEffect(GemEffectSetup.headhunter.NameHash(), true);
 				}
 			}
 		}

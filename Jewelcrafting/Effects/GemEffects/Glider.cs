@@ -13,7 +13,7 @@ public static class Glider
 		[UsedImplicitly]
 		private static void Prefix(Character __instance, ref float ___m_maxAirAltitude)
 		{
-			if (__instance != Player.m_localPlayer || (!__instance.m_groundContact && !__instance.IsSwiming()))
+			if (__instance != Player.m_localPlayer || (!__instance.m_groundContact && !__instance.IsSwimming()))
 			{
 				return;
 			}
@@ -23,8 +23,8 @@ public static class Glider
 			if (__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name))
 			{
 				___m_maxAirAltitude = Mathf.Min(3.49f + __instance.transform.position.y, ___m_maxAirAltitude);
-				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.name, true);
-				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.glidingDark.name, true);
+				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.NameHash(), true);
+				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.glidingDark.NameHash(), true);
 			}
 		}
 	}
@@ -37,7 +37,7 @@ public static class Glider
 		[UsedImplicitly]
 		private static void Postfix(Player __instance)
 		{
-			if (!__instance.IsOnGround() && !__instance.IsSwiming() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, 3.5f, Character.m_groundRayMask))
+			if (!__instance.IsOnGround() && !__instance.IsSwimming() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, 3.5f, Character.s_groundRayMask))
 			{
 				float effect = __instance.GetEffect(Effect.Glider);
 				if (!glidingUsed && effect > 0)
@@ -69,8 +69,8 @@ public static class Glider
 	{
 		private static void Prefix(Character __instance)
 		{
-			__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.name, true);
-			__instance.m_seman.RemoveStatusEffect(GemEffectSetup.glidingDark.name, true);
+			__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.NameHash(), true);
+			__instance.m_seman.RemoveStatusEffect(GemEffectSetup.glidingDark.NameHash(), true);
 		}
 	}
 }

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using BepInEx.Configuration;
 using JetBrains.Annotations;
-using Jewelcrafting.LootSystem;
 using UnityEngine;
 #if ! API
 using System.Diagnostics;
@@ -12,6 +11,7 @@ using Jewelcrafting.GemEffects;
 using Jewelcrafting.WorldBosses;
 using LocalizationManager;
 using YamlDotNet.Serialization;
+using Jewelcrafting.LootSystem;
 using Debug = UnityEngine.Debug;
 #endif
 
@@ -282,6 +282,26 @@ public static class API
 		return gems;
 	}
 
+	public static bool SetGems(ItemDrop.ItemData item, List<GemInfo?> gems)
+	{
+#if ! API
+		if (!Utils.IsSocketableItem(item))
+		{
+			return false;
+		}
+		Socketable socketable = item.Data().Get<Socketable>() ?? item.Data().Add<Sockets>()!;
+		socketable.socketedGems.Clear();
+		foreach (GemInfo? gem in gems)
+		{
+			socketable.socketedGems.Add(gem is null ? new SocketItem("") : new SocketItem(gem.gemPrefab));
+		}
+
+		return true;
+#else
+		return false;
+#endif
+	}
+
 	public static Sprite GetSocketBorder()
 	{
 #if ! API
@@ -303,9 +323,9 @@ public static class API
 	public static void AddParticleEffect(string prefabName, GameObject effect, VisualEffectCondition displayCondition)
 	{
 #if ! API
-		if (VisualEffects.attachEffectPrefabs.ContainsKey(prefabName))
+		if (VisualEffects.attachEffectPrefabs.TryGetValue(prefabName, out Dictionary<VisualEffectCondition, GameObject>? prefab))
 		{
-			VisualEffects.attachEffectPrefabs[prefabName].Add(displayCondition, effect);
+			prefab.Add(displayCondition, effect);
 		}
 		else
 		{

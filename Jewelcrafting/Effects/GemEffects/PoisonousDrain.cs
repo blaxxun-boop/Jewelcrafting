@@ -82,7 +82,7 @@ public static class PoisonousDrain
 				aoe.GetComponent<Aoe>().Setup(player, Vector3.zero, 30, new HitData
 				{
 					m_damage = new HitData.DamageTypes { m_poison = config.PoisonDamage },
-					m_statusEffect = AddPoisonCloudStatusEffect.StatusEffect.name
+					m_statusEffectHash = AddPoisonCloudStatusEffect.StatusEffect.NameHash()
 				}, null, null);
 				se.m_startEffectInstances = se.m_startEffectInstances.Concat(new[] { aoe }).ToArray();
 			}
@@ -108,7 +108,7 @@ public static class PoisonousDrain
 	{
 		private static void Prefix(SE_Poison __instance, float damage)
 		{
-			if (__instance.m_character.m_seman.GetStatusEffect(AddPoisonCloudStatusEffect.StatusEffect.name) is PoisonCloudEffect { newCloud: true } activeCloud)
+			if (__instance.m_character.m_seman.GetStatusEffect(AddPoisonCloudStatusEffect.StatusEffect.name.GetStableHashCode()) is PoisonCloudEffect { newCloud: true } activeCloud)
 			{
 				activeCloud.damage = damage;
 				activeCloud.newCloud = false;
@@ -121,7 +121,7 @@ public static class PoisonousDrain
 	{
 		private static void Postfix(SE_Poison __instance)
 		{
-			if (__instance.m_timer == __instance.m_damageInterval && __instance.m_character?.m_seman.GetStatusEffect(AddPoisonCloudStatusEffect.StatusEffect.name) is PoisonCloudEffect activeCloud)
+			if (__instance.m_timer == __instance.m_damageInterval && __instance.m_character?.m_seman.GetStatusEffect(AddPoisonCloudStatusEffect.StatusEffect.name.GetStableHashCode()) is PoisonCloudEffect activeCloud)
 			{
 				activeCloud.damage -= __instance.m_damagePerHit;
 				if (activeCloud.attacker is Player player)

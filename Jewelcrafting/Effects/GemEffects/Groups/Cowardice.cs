@@ -31,7 +31,7 @@ public static class Cowardice
 				if (nearbyPlayers.Count > 0)
 				{
 					player.m_seman.AddStatusEffect(GemEffectSetup.cowardice, true);
-					SE_Stats coward = (SE_Stats)player.m_seman.GetStatusEffect(GemEffectSetup.cowardice.name);
+					SE_Stats coward = (SE_Stats)player.m_seman.GetStatusEffect(GemEffectSetup.cowardice.name.GetStableHashCode());
 					coward.m_speedModifier += player.GetEffect(Effect.Cowardice) / 100f;
 					coward.m_speedModifier = Math.Min(player.GetEffect(Effect.Cowardice) / 100f * 5, coward.m_speedModifier);
 				}

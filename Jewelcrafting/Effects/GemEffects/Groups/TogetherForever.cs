@@ -13,7 +13,7 @@ public static class TogetherForever
 	static TogetherForever()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Togetherforever, typeof(Config));
-		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.GetStatusEffect(GemEffectSetup.friendship.name) is SE_Stats se ? se.m_healthOverTimeDuration / 100f : 0);
+		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.GetStatusEffect(GemEffectSetup.friendship.name.GetStableHashCode()) is SE_Stats se ? se.m_healthOverTimeDuration / 100f : 0);
 	}
 
 	[StructLayout(LayoutKind.Sequential)]
@@ -63,7 +63,7 @@ public static class TogetherForever
 						friendshipEffect.m_modifyAttackSkill = Skills.SkillType.All;
 					}
 					GameObject tether = Object.Instantiate(GemEffectSetup.friendshipTether, player.transform);
-					StatusEffect statusEffect = player.m_seman.GetStatusEffect(GemEffectSetup.friendship.name);
+					StatusEffect statusEffect = player.m_seman.GetStatusEffect(GemEffectSetup.friendship.name.GetStableHashCode());
 					statusEffect.m_startEffectInstances = statusEffect.m_startEffectInstances.Concat(new[] { tether }).ToArray();
 					target.m_nview.InvokeRPC("Jewelcrafting ApplyFriendship", player.GetZDOID());
 					tether.GetComponent<ZNetView>().GetZDO().Set("Jewelcrafting Friendship PlayerStart", player.GetZDOID());

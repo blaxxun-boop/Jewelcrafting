@@ -1401,9 +1401,9 @@ public static class GemStones
 					HandleSocketingFrameAndMirrors(AddFakeSocketsContainer.openEquipment.ItemData, item);
 					return false;
 				}
-				if (AddFakeSocketsContainer.openEquipment?.Get<ItemContainer>() is ItemBag)
+				if (AddFakeSocketsContainer.openEquipment?.Get<ItemContainer>() is ItemBag bag)
 				{
-					return Utils.ItemAllowedInGemBag(item);
+					return bag is SocketBag ? Utils.ItemAllowedInGemBag(item) : Utils.ItemAllowedInGemBox(item);
 				}
 				if (!ItemEligibleForSocketing(item))
 				{

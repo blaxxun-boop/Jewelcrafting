@@ -11,7 +11,7 @@ public static class ApplyAttackSpeed
 {
 	public static readonly List<Func<Player, float>> Modifiers = new();
 
-	[HarmonyPatch(typeof(CharacterAnimEvent), nameof(CharacterAnimEvent.FixedUpdate))]
+	[HarmonyPatch(typeof(CharacterAnimEvent), nameof(CharacterAnimEvent.CustomFixedUpdate))]
 	public static class IncreaseAttackSpeed
 	{
 		[UsedImplicitly]

@@ -170,7 +170,7 @@ public class EffectDef
 	private static readonly Dictionary<string, GemLocation> ValidGemLocations = new(((GemLocation[])Enum.GetValues(typeof(GemLocation))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, GemType> ValidGemTypes = new(((GemType[])Enum.GetValues(typeof(GemType))).Where(t => t != GemType.Cyan || global::Groups.API.IsLoaded()).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
 	public static readonly Dictionary<string, Effect> ValidEffects = new(((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(i => i.ToString(), i => i), StringComparer.InvariantCultureIgnoreCase);
-	public static Dictionary<string, Heightmap.Biome> ValidBiomes => new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None or Heightmap.Biome.BiomesMax or Heightmap.Biome.Ocean).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.InvariantCultureIgnoreCase);
+	public static Dictionary<string, Heightmap.Biome> ValidBiomes => new(((Heightmap.Biome[])Enum.GetValues(typeof(Heightmap.Biome))).Where(b => b is not Heightmap.Biome.None).ToDictionary(i => Regex.Replace(i.ToString(), "(?!^)([A-Z])", " $1"), i => i), StringComparer.InvariantCultureIgnoreCase);
 
 	public static readonly Dictionary<GemType, string> GemTypeNames = ValidGemTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
 	public static readonly Dictionary<Effect, string> EffectNames = ValidEffects.ToDictionary(kv => kv.Value, kv => kv.Key);
@@ -331,9 +331,9 @@ public class EffectDef
 				{
 					if (effectDict["gem"] is string gem)
 					{
-						if (ValidGemTypes.ContainsKey(gem))
+						if (ValidGemTypes.TryGetValue(gem, out GemType type))
 						{
-							effectDef.Type = ValidGemTypes[gem];
+							effectDef.Type = type;
 						}
 						else
 						{
@@ -384,9 +384,9 @@ public class EffectDef
 					}
 					foreach (string slot in slots)
 					{
-						if (ValidGemLocations.ContainsKey(slot))
+						if (ValidGemLocations.TryGetValue(slot, out GemLocation location))
 						{
-							effectDef.Slots |= ValidGemLocations[slot];
+							effectDef.Slots |= location;
 						}
 						else
 						{

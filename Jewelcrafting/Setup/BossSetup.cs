@@ -15,7 +15,7 @@ public static class BossSetup
 	private static Aoe frostBossAoe = null!;
 	private static readonly List<BossCharacter> bosses = new();
 	private static Aoe bossSmashAttack = null!;
-	
+
 	public struct BalanceConfig
 	{
 		public float smashBlunt;
@@ -65,7 +65,7 @@ public static class BossSetup
 		PrefabManager.RegisterPrefab(assets, "Crystal_Frost_Reaper_Cage").AddComponent<RemoveBossDestructible>();
 		PrefabManager.RegisterPrefab(assets, "Crystal_Flame_Reaper_Cage").AddComponent<RemoveBossDestructible>();
 		PrefabManager.RegisterPrefab(assets, "Crystal_Soul_Reaper_Cage").AddComponent<RemoveBossDestructible>();
-		
+
 		BossSpawn.bossIcons["Crystal_Frost_Reaper_Cage"] = assets.LoadAsset<Sprite>("JCBossIconBlue");
 		BossSpawn.bossIcons["Crystal_Flame_Reaper_Cage"] = assets.LoadAsset<Sprite>("JCBossIconRed");
 		BossSpawn.bossIcons["Crystal_Soul_Reaper_Cage"] = assets.LoadAsset<Sprite>("JCBossIconGreen");
@@ -89,8 +89,8 @@ public static class BossSetup
 		frostBossAoe.m_damage.m_frost = config.aoeFrost;
 		poisonBossAoe.m_damage.m_poison = config.aoePoison;
 	}
-	
-	private class RemoveBossDestructible: MonoBehaviour
+
+	private class RemoveBossDestructible : MonoBehaviour
 	{
 		public void Start()
 		{
@@ -106,7 +106,7 @@ public static class BossSetup
 					// Give players a bit of extra time when a boss is spawned
 					destruction += 3600;
 
-					Character boss = Character.m_characters.Last();
+					Character boss = Character.s_characters.Last();
 					boss.m_nview.GetZDO().Set("Jewelcrafting World Boss", destruction);
 					Vector2i sector = ZoneSystem.instance.GetZone(boss.m_baseAI.m_spawnPoint);
 					if (ZoneSystem.instance.m_locationInstances.TryGetValue(sector, out ZoneSystem.LocationInstance location))

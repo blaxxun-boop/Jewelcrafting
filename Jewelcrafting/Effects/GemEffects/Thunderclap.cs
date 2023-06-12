@@ -40,7 +40,7 @@ public static class Thunderclap
 					__instance.SetHealth(0);
 					__instance.OnDamaged(hit);
 					__instance.m_onDamaged?.Invoke(explosiveDmg * damageScale, hit.GetAttacker());
-					if (Character.m_dpsDebugEnabled)
+					if (Character.s_dpsDebugEnabled)
 					{
 						Character.AddDPS(explosiveDmg * damageScale, __instance);
 					}

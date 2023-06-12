@@ -107,7 +107,12 @@ public static class VisualEffects
 			{
 				Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive = activeEffects.GetOrCreateValue(__instance);
 
-				void Apply(VisSlot part, GameObject? equipRoot) => ApplyEffects(effectsActive, __instance.m_nview.m_zdo?.m_ints ?? TrackEquipmentChanges.VisualEquipmentInts, part, equipRoot);
+				ZDO? zdo = __instance.m_nview.m_zdo;
+				if (zdo is not null)
+				{
+					ZDOExtraData.s_ints.Init(zdo.m_uid);
+				}
+				void Apply(VisSlot part, GameObject? equipRoot) => ApplyEffects(effectsActive, zdo is not null ? ZDOExtraData.s_ints[zdo.m_uid] : TrackEquipmentChanges.VisualEquipmentInts, part, equipRoot);
 
 				Apply(VisSlot.HandLeft, __instance.m_leftItemInstance);
 				Apply(VisSlot.BackLeft, __instance.m_leftBackItemInstance);
@@ -117,7 +122,7 @@ public static class VisualEffects
 		}
 	}
 
-	private static void ApplyEffects(Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive, Dictionary<int, int> zdoInts, VisSlot part, GameObject? equipRoot)
+	private static void ApplyEffects(Dictionary<VisSlot, Dictionary<int, GameObject>> effectsActive, IDictionary<int, int> zdoInts, VisSlot part, GameObject? equipRoot)
 	{
 		if (equipRoot is null)
 		{
@@ -132,7 +137,7 @@ public static class VisualEffects
 		ApplySlotEffects(partEffects, zdoInts, $"JewelCrafting {part}", equipRoot);
 	}
 
-	private static void ApplySlotEffects(Dictionary<int, GameObject> slotEffects, Dictionary<int, int> zdoInts, string keyPrefix, GameObject equipRoot)
+	private static void ApplySlotEffects(Dictionary<int, GameObject> slotEffects, IDictionary<int, int> zdoInts, string keyPrefix, GameObject equipRoot)
 	{
 		if (Jewelcrafting.visualEffects.Value == Jewelcrafting.Toggle.Off)
 		{
@@ -206,7 +211,8 @@ public static class VisualEffects
 		{
 			if (__instance.m_nview.m_zdo is { } zdo && __instance.m_visualItem)
 			{
-				ApplySlotEffects(activeEffects.GetOrCreateValue(__instance), zdo.m_ints, "JewelCrafting Beard", __instance.m_visualItem);
+				ZDOExtraData.s_ints.Init(zdo.m_uid);
+				ApplySlotEffects(activeEffects.GetOrCreateValue(__instance), ZDOExtraData.s_ints[zdo.m_uid], "JewelCrafting Beard", __instance.m_visualItem);
 			}
 		}
 	}

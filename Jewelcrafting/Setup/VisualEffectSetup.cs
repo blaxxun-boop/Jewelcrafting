@@ -44,7 +44,8 @@ public static class VisualEffectSetup
 		redGemEffects.Add(FineWoodBow, PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_FineBow"));
 		redGemEffects.Add(BowHuntsman, PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_HuntBow"));
 		redGemEffects.Add(BowDraugrFang, PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_FangBow"));
-
+		redGemEffects.Add(Crossbows, PrefabManager.RegisterPrefab(assets, "JC_EndlessArrows_Xbow"));
+		
 		blueGemEffects.Add(Swords, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Sword"));
 		blueGemEffects.Add(Axes, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_Axe"));
 		blueGemEffects.Add(Axes | TwoHanded, PrefabManager.RegisterPrefab(assets, "JC_FrostParticles_BAxe"));
@@ -72,7 +73,8 @@ public static class VisualEffectSetup
 		greenGemEffects.Add(FineWoodBow, PrefabManager.RegisterPrefab(assets, "JC_Necromancer_FineBow"));
 		greenGemEffects.Add(BowHuntsman, PrefabManager.RegisterPrefab(assets, "JC_Necromancer_HuntBow"));
 		greenGemEffects.Add(BowDraugrFang, PrefabManager.RegisterPrefab(assets, "JC_Necromancer_FangBow"));
-
+		greenGemEffects.Add(Crossbows, PrefabManager.RegisterPrefab(assets, "JC_Necromancer_Xbow"));
+		
 		blackGemEffects.Add(Swords, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Sword"));
 		blackGemEffects.Add(Axes, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_Axe"));
 		blackGemEffects.Add(Axes | TwoHanded, PrefabManager.RegisterPrefab(assets, "JC_ShadowParticles_BAxe"));
@@ -94,6 +96,7 @@ public static class VisualEffectSetup
 		blackGemEffects.Add(PickaxeIron, PrefabManager.RegisterPrefab(assets, "JC_Pick_Frenzy_Iron"));
 		blackGemEffects.Add(Hammer, PrefabManager.RegisterPrefab(assets, "JC_Hammer_Frenzy"));
 		blackGemEffects.Add(Hoe, PrefabManager.RegisterPrefab(assets, "JC_Hoe_Frenzy"));
+		blackGemEffects.Add(Crossbows, PrefabManager.RegisterPrefab(assets, "JC_Stealth_Archer_Xbow"));
 		
 		yellowGemEffects.Add(Swords, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Sword"));
 		yellowGemEffects.Add(Axes, PrefabManager.RegisterPrefab(assets, "JC_VampireParticles_Axe"));
@@ -116,6 +119,7 @@ public static class VisualEffectSetup
 		yellowGemEffects.Add(PickaxeIron, PrefabManager.RegisterPrefab(assets, "JC_PickIron_Energetic"));
 		yellowGemEffects.Add(Hammer, PrefabManager.RegisterPrefab(assets, "JC_Hammer_Energetic"));
 		yellowGemEffects.Add(Hoe, PrefabManager.RegisterPrefab(assets, "JC_Hoe_Energetic"));
+		yellowGemEffects.Add(Crossbows, PrefabManager.RegisterPrefab(assets, "JC_Echo_Xbow"));
 		
 		purpleGemEffects.Add(Swords, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Sword"));
 		purpleGemEffects.Add(Axes, PrefabManager.RegisterPrefab(assets, "JC_Berserk_Axe"));
@@ -138,6 +142,7 @@ public static class VisualEffectSetup
 		purpleGemEffects.Add(PickaxeIron, PrefabManager.RegisterPrefab(assets, "JC_PickIron_Unbreakable"));
 		purpleGemEffects.Add(Hammer, PrefabManager.RegisterPrefab(assets, "JC_Hammer_Unbreakable"));
 		purpleGemEffects.Add(Hoe, PrefabManager.RegisterPrefab(assets, "JC_Hoe_Unbreakable"));
+		purpleGemEffects.Add(Crossbows, PrefabManager.RegisterPrefab(assets, "JC_MasterArcher_Xbow"));
 		
 		orangeGemEffects.Add(Knives, PrefabManager.RegisterPrefab(assets, "JC_Perforation_Knife"));
 		orangeGemEffects.Add(Polearms, PrefabManager.RegisterPrefab(assets, "JC_ThunderClap_Atgeir"));
@@ -157,5 +162,6 @@ public static class VisualEffectSetup
 		cyanGemEffects.Add(Blocking | Blackmetal, PrefabManager.RegisterPrefab(assets, "JC_DedicatedTank_TShield"));
 		cyanGemEffects.Add(Bows, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Bow"));
 		cyanGemEffects.Add(BowDraugrFang, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_FangBow"));
+		cyanGemEffects.Add(Crossbows, PrefabManager.RegisterPrefab(assets, "JC_ArcheryMentor_Xbow"));
 	}
 }

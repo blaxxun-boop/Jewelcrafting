@@ -25,7 +25,7 @@ public static class Aquatic
 				return;
 			}
 			
-			if (humanoid.GetSEMan().GetStatusEffect(GemEffectSetup.aquatic.name) is not { } aquatic)
+			if (humanoid.GetSEMan().GetStatusEffect(GemEffectSetup.aquatic.name.GetStableHashCode()) is not { } aquatic)
 			{
 				aquatic = humanoid.GetSEMan().AddStatusEffect(GemEffectSetup.aquatic);
 			}

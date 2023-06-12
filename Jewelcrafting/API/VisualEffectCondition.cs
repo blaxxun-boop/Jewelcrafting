@@ -17,6 +17,7 @@ public enum VisualEffectCondition : uint
 	Unarmed = 11,
 	Pickaxes = 12,
 	WoodCutting = 13,
+	Crossbows = 14,
 	
 	IsItem = 0xFF << 12,
 	Helmet = 6 << 12,

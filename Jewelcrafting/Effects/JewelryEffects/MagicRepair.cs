@@ -19,7 +19,7 @@ public class MagicRepair : SE_Stats
 		m_tickTimer += dt;
 		if (m_tickTimer >= 60)
 		{
-			foreach (ItemDrop.ItemData item in Player.m_localPlayer.GetInventory().m_inventory.Where(i => i.m_equiped))
+			foreach (ItemDrop.ItemData item in Player.m_localPlayer.GetInventory().m_inventory.Where(i => i.m_equipped))
 			{
 				item.m_durability = Mathf.Min(item.GetMaxDurability(), item.m_durability + Jewelcrafting.magicRepairAmount.Value);
 			}

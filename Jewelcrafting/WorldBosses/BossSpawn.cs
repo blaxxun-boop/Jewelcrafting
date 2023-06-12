@@ -74,7 +74,7 @@ public static class BossSpawn
 									{
 										if (zdo.GetLong("Jewelcrafting World Boss", long.MaxValue) < currentTime)
 										{
-											zdo.SetOwner(ZDOMan.instance.GetMyID());
+											zdo.SetOwner(ZDOMan.instance.m_sessionID);
 											ZDOMan.instance.DestroyZDO(zdo);
 										}
 									}
@@ -230,7 +230,7 @@ public static class BossSpawn
 		{
 			RectTransform rect = (RectTransform)Minimap.instance.m_largeRoot.transform.Find("IconPanel").transform;
 			Vector2 anchoredPosition = rect.anchoredPosition;
-			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(-anchoredPosition.x - 30, -anchoredPosition.y -5 - Jewelcrafting.worldBossCountdownDisplayOffset.Value);
+			bossTimer.GetComponent<RectTransform>().anchoredPosition = new Vector2(-anchoredPosition.x - 30, -anchoredPosition.y - 5 - Jewelcrafting.worldBossCountdownDisplayOffset.Value);
 			bossTimer.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
 			bossTimer.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);
 			bossTimer.GetComponent<RectTransform>().sizeDelta = rect.sizeDelta;
@@ -255,9 +255,8 @@ public static class BossSpawn
 				m_location = locations[boss]
 			}, pos with { y = despawnTime }, true);
 
-			ZDO zdo = ZDOMan.instance.CreateNewZDO(pos);
-			zdo.m_persistent = true;
-			zdo.SetPrefab(boss.GetStableHashCode());
+			ZDO zdo = ZDOMan.instance.CreateNewZDO(pos, boss.GetStableHashCode());
+			zdo.Persistent = true;
 			zdo.Set("Jewelcrafting World Boss", despawnTime);
 
 			lastBossSpawn = ZNet.instance.GetTime();
@@ -321,7 +320,7 @@ public static class BossSpawn
 			{
 				continue;
 			}
-			
+
 			List<ZDO> zdos = new();
 			for (int y = -1; y <= 1; ++y)
 			{

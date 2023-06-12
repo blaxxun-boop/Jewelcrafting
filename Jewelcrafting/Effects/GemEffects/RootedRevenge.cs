@@ -81,7 +81,7 @@ public static class RootedRevenge
 
 				GameObject root = ZNetScene.instance.GetPrefab("TentaRoot");
 
-				foreach (Character character in Character.m_characters.Where(c => Vector3.Distance(c.transform.position, player.transform.position) <= config.Range && (BaseAI.IsEnemy(c, player) || (c is Player enemy && enemy.IsPVPEnabled()))).ToList())
+				foreach (Character character in Character.s_characters.Where(c => Vector3.Distance(c.transform.position, player.transform.position) <= config.Range && (BaseAI.IsEnemy(c, player) || (c is Player enemy && enemy.IsPVPEnabled()))).ToList())
 				{
 					AddRootedStatusEffect.StatusEffect.m_ttl = config.Duration;
 					character.m_seman.AddStatusEffect(AddRootedStatusEffect.StatusEffect, true);

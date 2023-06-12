@@ -18,7 +18,7 @@ public class ModersBlessing : SE_Stats
 			}
 			else
 			{
-				moder = Player.m_localPlayer.m_seman.GetStatusEffect(moderPrefab.name);
+				moder = Player.m_localPlayer.m_seman.GetStatusEffect(moderPrefab.name.GetStableHashCode());
 				moder.m_time -= Jewelcrafting.modersBlessingDuration.Value;
 			}
 			moderPrefab.m_startMessage = originalMessage;
