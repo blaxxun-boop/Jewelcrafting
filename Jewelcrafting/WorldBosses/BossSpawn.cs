@@ -256,6 +256,7 @@ public static class BossSpawn
 			}, pos with { y = despawnTime }, true);
 
 			ZDO zdo = ZDOMan.instance.CreateNewZDO(pos, boss.GetStableHashCode());
+			zdo.SetPrefab(boss.GetStableHashCode());
 			zdo.Persistent = true;
 			zdo.Set("Jewelcrafting World Boss", despawnTime);
 
