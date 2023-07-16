@@ -184,6 +184,7 @@ public class EffectDef
 		public Dictionary<string, SynergyDef> Synergy;
 		public DropDef drops;
 		public List<Prizes> Prizes;
+		public List<string> prizeBlacklist;
 	}
 
 	public static ParseResult Parse(object? rootDictObj, out List<string> errors)
@@ -192,7 +193,8 @@ public class EffectDef
 		Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
 		Dictionary<string, SynergyDef> synergies = new();
 		List<Prizes> prizes = new();
-		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes, drops = new DropDef() };
+		List<string> prizeBlacklist = new();
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes, drops = new DropDef(), prizeBlacklist = prizeBlacklist };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)
@@ -228,6 +230,15 @@ public class EffectDef
 				continue;
 			}
 
+			if (rootDictKv.Key == "global blacklist")
+			{
+				if (GachaDef.ParseBlacklist(rootDictKv.Value, errors) is { } blacklist)
+				{
+					prizeBlacklist.AddRange(blacklist);
+				}
+				continue;
+			}
+						
 			if (rootDictKv.Key == "equipment")
 			{
 				if (Drop.Parse(rootDictKv.Value, errors) is { } drops)
@@ -704,7 +715,7 @@ public class EffectDef
 
 			if (parsed.Values.LastOrDefault(p => p.Prizes.Count > 0) is { Prizes: not null } result)
 			{
-				GachaDef.Apply(result.Prizes);
+				GachaDef.Apply(result.Prizes, result.prizeBlacklist);
 			}
 
 			Dictionary<Heightmap.Biome, DropBiome> dropBiomes = ValidBiomes.Values.ToDictionary(b => b, _ => new DropBiome

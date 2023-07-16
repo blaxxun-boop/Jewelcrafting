@@ -43,6 +43,10 @@ Stellar Impact:
     celestial crystal mirror:
       chance: 0.02
       
+# You can create a global blacklist. Gems on the global blacklist cannot be obtained from any event.
+#global blacklist:
+#  - Shattered_Black_Crystal      
+
 # If you want to create your own Event, you can use the following example.     
 #Example Event:
 #  start:

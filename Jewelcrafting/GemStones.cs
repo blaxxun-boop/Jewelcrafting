@@ -319,7 +319,7 @@ public static class GemStones
 						recipes.Add(recipe);
 					}
 				}
-				
+
 				__instance.m_availableRecipes.Clear();
 				foreach (GameObject recipe in __instance.m_recipeList)
 				{
@@ -503,7 +503,7 @@ public static class GemStones
 				tooltipItem.Remove(tooltip);
 				recreateTooltip = true;
 			}
-			
+
 			if (recreateTooltip && tooltip == UITooltip.m_current)
 			{
 				GameObject hovered = UITooltip.m_hovered;
@@ -1090,7 +1090,7 @@ public static class GemStones
 	private static bool ItemEligibleForSocketing(ItemDrop.ItemData item)
 	{
 		Box? box = AddFakeSocketsContainer.openEquipment?.Get<Box>();
-		return (socketableGemStones.Contains(item.m_shared.m_name) && box is not { progress: >= 100 } && AddFakeSocketsContainer.openInventory?.HaveItem(item.m_shared.m_name) == false) || (box?.Item.m_shared.m_name == item.m_shared.m_name && Jewelcrafting.boxSelfMergeChances.TryGetValue(item.m_shared.m_name, out ConfigEntry<int> selfMergeChance) && selfMergeChance.Value > 0 && item != box.Item);
+		return (socketableGemStones.Contains(item.m_shared.m_name) && box is not { progress: >= 100 } && AddFakeSocketsContainer.openInventory?.HaveItem(item.m_shared.m_name) == false) || (box?.Item.m_shared.m_name == item.m_shared.m_name && Jewelcrafting.boxSelfMergeChances.TryGetValue(item.m_shared.m_name, out ConfigEntry<int> selfMergeChance) && selfMergeChance.Value > 0 && item != box.Item && item.Data().Get<Box>() is { progress: 0, boxSealed: false });
 	}
 
 	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.DropItem))]

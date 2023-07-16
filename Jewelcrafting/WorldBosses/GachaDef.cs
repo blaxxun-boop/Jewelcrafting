@@ -110,9 +110,9 @@ public static class GachaDef
 						int? ParseInt(string field)
 						{
 							knownDateKeys.Add(field);
-							if (dateDict.ContainsKey(field))
+							if (dateDict.TryGetValue(field, out object? value))
 							{
-								if (dateDict[field] is not string timeString)
+								if (value is not string timeString)
 								{
 									errorList.Add($"The '{name}' date is not a valid date. {field} is not a number. Got unexpected {dateDict["field"]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
 								}
@@ -312,7 +312,32 @@ public static class GachaDef
 		return prizes;
 	}
 
-	public static void Apply(List<Prizes> prizeLists)
+	public static List<string> ParseBlacklist(object? blacklistObject, List<string> errorList)
+	{
+		List<string> blacklist = new();
+		if (blacklistObject is List<object?> socketsList)
+		{
+			foreach (object? socketObj in socketsList)
+			{
+				if (socketObj is string socket)
+				{
+					blacklist.Add(socket);
+				}
+				else
+				{
+					errorList.Add($"Found something that is not a socket name in global blacklist. Got unexpected {socketObj?.GetType().ToString() ?? "empty string (null)"}.");
+				}
+			}
+		}
+		else
+		{
+			errorList.Add($"The global blacklist is not a list of socket names. Got unexpected {blacklistObject?.GetType().ToString() ?? "empty string (null)"}.");
+		}
+
+		return blacklist;
+	}
+
+	public static void Apply(List<Prizes> prizeLists, List<string> blacklist)
 	{
 		items.Clear();
 		foreach (ItemDrop item in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c != null))
@@ -352,6 +377,10 @@ public static class GachaDef
 					invalidPrizes.Add(prize);
 				}
 			}
+			foreach (string blacklistedSocket in blacklist)
+			{
+				prizes.blackList.Add(blacklistedSocket);
+			}
 			prizes.prizes.RemoveAll(p => invalidPrizes.Contains(p));
 		}
 
@@ -368,9 +397,9 @@ public static class GachaDef
 
 	public static ItemDrop? getItem(string name)
 	{
-		if (items.ContainsKey(name))
+		if (items.TryGetValue(name, out ItemDrop? item))
 		{
-			return items[name];
+			return item;
 		}
 
 		List<GameObject> gems = (name switch

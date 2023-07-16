@@ -125,7 +125,7 @@ public static class BossSetup
 	{
 		public new void Damage(HitData hit)
 		{
-			if (hit.GetAttacker() is Humanoid attacker && GachaSetup.worldBossBonusItems.Contains(attacker.GetCurrentWeapon().m_dropPrefab.name))
+			if (hit.GetAttacker() is Humanoid attacker && attacker.GetCurrentWeapon()?.m_dropPrefab is { } weaponPrefab && GachaSetup.worldBossBonusItems.Contains(weaponPrefab.name))
 			{
 				hit.m_damage.Modify(1 + Jewelcrafting.worldBossBonusWeaponDamage.Value / 100f);
 			}
