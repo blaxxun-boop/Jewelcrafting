@@ -35,7 +35,7 @@ public enum GemLocation
 	Tool = 1 << 17,
 	Shield = 1 << 18,
 	Utility = 1 << 19,
-	All = 1 << 20
+	All = 1 << 20,
 }
 
 public enum Effect
@@ -115,7 +115,7 @@ public enum Effect
 	Perforation,
 	Thunderclap,
 	Fade,
-	Wisplight
+	Wisplight,
 }
 
 public enum Uniqueness
@@ -124,7 +124,7 @@ public enum Uniqueness
 	All, // Only one of all gems flagged by this
 	Gem, // Only one of these gems
 	Tier, // Only one gem of the same tier across all items
-	Item // Only one gem in the same item
+	Item, // Only one gem in the same item
 }
 
 public struct EffectPower
@@ -772,7 +772,7 @@ public class EffectDef
 							{
 								Effect = kv.Key,
 								Config = def.Power[i],
-								Unique = def.Unique
+								Unique = def.Unique,
 							};
 							foreach (GemLocation location in (GemLocation[])Enum.GetValues(typeof(GemLocation)))
 							{

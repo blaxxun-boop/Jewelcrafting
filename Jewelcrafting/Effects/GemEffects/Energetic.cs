@@ -28,7 +28,7 @@ public static class Energetic
 			AccessTools.DeclaredMethod(typeof(Attack), nameof(Attack.Update)),
 			AccessTools.DeclaredMethod(typeof(Attack), nameof(Attack.Start)),
 			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.UpdatePlacement)),
-			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.Repair))
+			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.Repair)),
 		};
 
 		private static void Prefix()

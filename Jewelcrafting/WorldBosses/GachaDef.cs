@@ -392,7 +392,7 @@ public static class GachaDef
 		prefab.name.ToLower(),
 		prefab.m_itemData.m_shared.m_name.ToLower(),
 		Localization.instance.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
-		Jewelcrafting.english.Localize(prefab.m_itemData.m_shared.m_name).ToLower()
+		Jewelcrafting.english.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
 	};
 
 	public static ItemDrop? getItem(string name)
@@ -412,7 +412,7 @@ public static class GachaDef
 			"advanced merged gem" => MergedGemStoneSetup.mergedGems.Values.SelectMany(kv => kv.Values).Where(g => g.Length > 1).Select(g => g[1]),
 			"perfect merged gem" => MergedGemStoneSetup.mergedGems.Values.SelectMany(kv => kv.Values).Where(g => g.Length > 2).Select(g => g[2]),
 			"boss gem" => GemStoneSetup.Gems.Values.Where(g => g.Count == 1).Select(g => g[0].Prefab),
-			_ => Array.Empty<GameObject>()
+			_ => Array.Empty<GameObject>(),
 		}).ToList();
 
 		return gems.Count > 0 ? gems[Random.Range(0, gems.Count)].GetComponent<ItemDrop>() : null;

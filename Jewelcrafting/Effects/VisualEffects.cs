@@ -19,7 +19,7 @@ public static class VisualEffects
 		{ "Perfect_Yellow_Socket", VisualEffectSetup.yellowGemEffects },
 		{ "Perfect_Purple_Socket", VisualEffectSetup.purpleGemEffects },
 		{ "Perfect_Orange_Socket", VisualEffectSetup.orangeGemEffects },
-		{ "Perfect_Cyan_Socket", VisualEffectSetup.cyanGemEffects }
+		{ "Perfect_Cyan_Socket", VisualEffectSetup.cyanGemEffects },
 	};
 
 	private static readonly Dictionary<VisualEffectCondition, Dictionary<string, GameObject[]>> effectPrefabsByType = new();

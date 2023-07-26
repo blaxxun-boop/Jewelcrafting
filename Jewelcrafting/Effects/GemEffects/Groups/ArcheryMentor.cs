@@ -42,7 +42,7 @@ public static class ArcheryMentor
 			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.OnSkillLevelup)),
 			AccessTools.DeclaredMethod(typeof(Skills), nameof(Skills.ResetSkill)),
 			AccessTools.DeclaredMethod(typeof(Skills), nameof(Skills.CheatRaiseSkill)),
-			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.Load))
+			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.Load)),
 		};
 
 		private static void Postfix()

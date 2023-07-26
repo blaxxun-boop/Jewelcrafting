@@ -123,8 +123,8 @@ public static class Utils
 			Skills.SkillType.Unarmed when item.m_itemType == ItemDrop.ItemData.ItemType.TwoHandedWeapon => GemLocation.Knife,
 			Skills.SkillType.BloodMagic => GemLocation.BloodMagic,
 			Skills.SkillType.ElementalMagic => GemLocation.ElementalMagic,
-			_ => GemLocation.Sword
-		}
+			_ => GemLocation.Sword,
+		},
 	};
 
 	public static byte[] ReadEmbeddedFileBytes(string name)

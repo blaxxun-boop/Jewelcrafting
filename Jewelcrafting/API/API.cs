@@ -96,7 +96,7 @@ public static class API
 			Synergy = new Dictionary<string, SynergyDef>(),
 			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float> { { (GemType)colorName.GetStableHashCode(), 0.04f } }),
 			drops = new DropDef(),
-			Prizes = new List<Prizes>()
+			Prizes = new List<Prizes>(),
 		});
 
 		return prefab;
@@ -330,6 +330,20 @@ public static class API
 		else
 		{
 			VisualEffects.attachEffectPrefabs[prefabName] = new Dictionary<VisualEffectCondition, GameObject> { { displayCondition, effect } };
+		}
+#endif
+	}
+
+	public static void SetSocketsLock(ItemDrop.ItemData item, bool enabled)
+	{
+#if ! API
+		if (enabled)
+		{
+			item.Data()["SocketsLock"] = "";
+		}
+		else
+		{
+			item.Data().Remove("SocketsLock");
 		}
 #endif
 	}

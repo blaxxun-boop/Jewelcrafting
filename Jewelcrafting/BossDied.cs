@@ -47,7 +47,7 @@ public static class BossDied
 							__result.Add(new KeyValuePair<GameObject, int>(bossDrop, 1));
 						}
 					}
-					else if (Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f)
+					else if (Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f + CreatureLevelControl.API.GetWorldLevel() * Jewelcrafting.uniqueGemDropChanceIncreasePerWorldLevel.Value / 100f)
 					{
 						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? Player.GetPlayersInRangeXZ(__instance.m_character.transform.position, 100) : 1));
 					}

@@ -25,7 +25,7 @@ public enum GemType
 	Yagluth,
 	Queen,
 	Group,
-	Wisplight
+	Wisplight,
 }
 
 public struct GemDefinition
@@ -56,7 +56,7 @@ public static class GemStoneSetup
 		{ GemType.Yellow, Color.yellow },
 		{ GemType.Green, Color.green },
 		{ GemType.Purple, Color.magenta },
-		{ GemType.Orange, new Color(1, 0.6f, 0) }
+		{ GemType.Orange, new Color(1, 0.6f, 0) },
 	};
 
 	public static readonly GameObject[] customGemTierPrefabs = new GameObject[3];
@@ -99,13 +99,13 @@ public static class GemStoneSetup
 		colorGems.Add(new GemDefinition
 		{
 			Prefab = prefab,
-			Name = gemName
+			Name = gemName,
 		});
 
 		GemInfos[gemName] = new GemInfo
 		{
 			Type = color,
-			Tier = colorGems.Count
+			Tier = colorGems.Count,
 		};
 	}
 
@@ -158,7 +158,7 @@ public static class GemStoneSetup
 				_ = new Conversion(gemStone)
 				{
 					Input = $"Uncut_{colorName}_Stone",
-					Custom = "JC_Gemstone_Furnace"
+					Custom = "JC_Gemstone_Furnace",
 				};
 				
 				break;
@@ -175,7 +175,7 @@ public static class GemStoneSetup
 				_ = new Conversion(gemStone)
 				{
 					Input = $"Simple_{colorName}_Socket",
-					Custom = "JC_Gemstone_Furnace"
+					Custom = "JC_Gemstone_Furnace",
 				};
 				
 				break;

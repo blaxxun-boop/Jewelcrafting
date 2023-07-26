@@ -46,7 +46,7 @@ public class SynergyDef
 	{
 		{ "sum", gems => gems.Sum(kv => kv.Value) },
 		{ "min", gems => gems.Min(kv => kv.Value) },
-		{ "max", gems => gems.Max(kv => kv.Value) }
+		{ "max", gems => gems.Max(kv => kv.Value) },
 	};
 
 	private class Value : Expr
@@ -90,7 +90,7 @@ public class SynergyDef
 		Mul,
 		Add,
 		Compare,
-		Combine
+		Combine,
 	}
 
 	private class Mul : BinaryExpr
@@ -194,7 +194,7 @@ public class SynergyDef
 			expr.Left = left;
 			expr.Right = right;
 			return expr;
-		}
+		},
 	});
 
 	public string Name = "";

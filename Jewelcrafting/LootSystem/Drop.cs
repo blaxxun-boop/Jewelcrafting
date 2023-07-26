@@ -240,7 +240,7 @@ public static class Drop
 				{
 					Jewelcrafting.LootRestriction.KnownStation => recipe.m_craftingStation is null || (Player.m_localPlayer.m_knownStations.TryGetValue(recipe.m_craftingStation.m_name, out int level) && recipe.m_minStationLevel <= level),
 					Jewelcrafting.LootRestriction.KnownRecipe => Player.m_localPlayer.m_knownRecipes.Contains(recipe.m_item.m_itemData.m_shared.m_name),
-					_ => true
+					_ => true,
 				}).Select(r => r.m_item.gameObject).ToList();
 
 				if (filteredDrops.Count == 0)
@@ -257,7 +257,14 @@ public static class Drop
 				}
 				item.GetComponent<Rigidbody>()?.AddForce(insideUnitSphere * 5f, ForceMode.VelocityChange);
 
-				Sockets sockets = item.GetComponent<ItemDrop>().m_itemData.Data().GetOrCreate<Sockets>();
+				ItemInfo info = item.GetComponent<ItemDrop>().m_itemData.Data();
+
+				if (Jewelcrafting.unsocketDroppedItems.Value == Jewelcrafting.Toggle.Off)
+				{
+					info["SocketsLock"] = "";
+				}
+
+				Sockets sockets = info.GetOrCreate<Sockets>();
 
 				float manyHp = highHp[biome];
 

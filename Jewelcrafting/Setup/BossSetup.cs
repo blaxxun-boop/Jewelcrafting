@@ -59,7 +59,7 @@ public static class BossSetup
 			smashBlunt = 200f,
 			aoeFire = 190f,
 			aoeFrost = 140f,
-			aoePoison = 400f
+			aoePoison = 400f,
 		};
 
 		PrefabManager.RegisterPrefab(assets, "Crystal_Frost_Reaper_Cage").AddComponent<RemoveBossDestructible>();

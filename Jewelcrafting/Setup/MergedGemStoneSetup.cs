@@ -23,7 +23,7 @@ public static class MergedGemStoneSetup
 		{ GemType.Green, "StoneGreen" },
 		{ GemType.Purple, "StonePurple" },
 		{ GemType.Red, "StoneRed" },
-		{ GemType.Yellow, "StoneYellow" }
+		{ GemType.Yellow, "StoneYellow" },
 	};
 
 	private static readonly Dictionary<GemType, Material> colorMaterials = new();

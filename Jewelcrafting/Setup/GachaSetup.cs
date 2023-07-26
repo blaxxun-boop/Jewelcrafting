@@ -24,7 +24,7 @@ public static class GachaSetup
 	{
 		Plains,
 		Mistlands,
-		Custom
+		Custom,
 	}
 	
 	public static void initializeGacha(AssetBundle assets)
@@ -98,7 +98,7 @@ public static class GachaSetup
 			SpawnAltitude = new Range(10, 200),
 			Count = 5,
 			Unique = true,
-			Prioritize = true
+			Prioritize = true,
 		};
 	}
 

@@ -726,6 +726,10 @@ public static class GemStones
 						__result += sb.ToString();
 					}
 				}
+				if (prefab.name == "CapeFeather" && Jewelcrafting.featherGliding.Value == Jewelcrafting.Toggle.Off)
+				{
+					__result += Localization.instance.Localize("\n\n$jc_feather_cape_gliding_buff_description", Jewelcrafting.featherGlidingBuff.Value.ToString());
+				}
 			}
 		}
 	}
@@ -755,7 +759,7 @@ public static class GemStones
 		{
 			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.OnTakeAll)),
 			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.OnSelectedItem)),
-			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.IsContainerOpen))
+			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.IsContainerOpen)),
 		};
 
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsList, ILGenerator ilg)
@@ -832,14 +836,17 @@ public static class GemStones
 		private static IEnumerable<MethodInfo> TargetMethods() => new[]
 		{
 			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.Hide)),
-			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.CloseContainer))
+			AccessTools.DeclaredMethod(typeof(InventoryGui), nameof(InventoryGui.CloseContainer)),
 		};
 
 		private static void Prefix(InventoryGui __instance)
 		{
 			if (AddFakeSocketsContainer.openEquipment is not null && AddFakeSocketsContainer.openInventory is not null)
 			{
-				AddFakeSocketsContainer.SaveGems();
+				if (Player.m_localPlayer)
+				{
+					AddFakeSocketsContainer.SaveGems();
+				}
 
 				RectTransform takeAllButton = (RectTransform)__instance.m_takeAllButton.transform;
 				Vector2 anchoredPosition = takeAllButton.anchoredPosition;
@@ -984,6 +991,11 @@ public static class GemStones
 
 	private static bool AllowsUnsocketing(ItemDrop.ItemData item)
 	{
+		if (AddFakeSocketsContainer.openEquipment?["SocketsLock"] is not null)
+		{
+			return false;
+		}
+
 		if (Jewelcrafting.allowUnsocketing.Value == Jewelcrafting.Unsocketing.All)
 		{
 			return true;
@@ -1504,7 +1516,7 @@ public static class GemStones
 					1 => Jewelcrafting.breakChanceUnsocketSimple,
 					2 => Jewelcrafting.breakChanceUnsocketAdvanced,
 					3 => Jewelcrafting.breakChanceUnsocketPerfect,
-					_ => throw new IndexOutOfRangeException($"Found unexpected tier {info.Tier}")
+					_ => throw new IndexOutOfRangeException($"Found unexpected tier {info.Tier}"),
 				}).Value / 100f;
 			}
 			else

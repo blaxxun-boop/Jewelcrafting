@@ -160,7 +160,7 @@ public static class CompendiumDisplay
 								GemLocation.BloodMagic => "StaffSkeleton",
 								GemLocation.Magic => "YagluthDrop",
 								GemLocation.All => "QueenDrop",
-								_ => throw new ArgumentOutOfRangeException()
+								_ => throw new ArgumentOutOfRangeException(),
 							};
 
 							Sprite spr = ZNetScene.instance.GetPrefab(prefab).GetComponent<ItemDrop>().m_itemData.GetIcon();

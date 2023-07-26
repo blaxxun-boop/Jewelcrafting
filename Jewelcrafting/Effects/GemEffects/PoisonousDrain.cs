@@ -82,7 +82,7 @@ public static class PoisonousDrain
 				aoe.GetComponent<Aoe>().Setup(player, Vector3.zero, 30, new HitData
 				{
 					m_damage = new HitData.DamageTypes { m_poison = config.PoisonDamage },
-					m_statusEffectHash = AddPoisonCloudStatusEffect.StatusEffect.NameHash()
+					m_statusEffectHash = AddPoisonCloudStatusEffect.StatusEffect.NameHash(),
 				}, null, null);
 				se.m_startEffectInstances = se.m_startEffectInstances.Concat(new[] { aoe }).ToArray();
 			}

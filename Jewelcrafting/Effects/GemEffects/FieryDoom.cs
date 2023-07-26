@@ -51,7 +51,7 @@ public static class FieryDoom
 				GameObject aoe = Object.Instantiate(GemEffectSetup.fieryDoomExplosion, player.transform);
 				aoe.GetComponent<Aoe>().Setup(player, Vector3.zero, 50, new HitData
 				{
-					m_damage = new HitData.DamageTypes { m_fire = config.FireDamage }
+					m_damage = new HitData.DamageTypes { m_fire = config.FireDamage },
 				}, null, null);
 				se.m_startEffectInstances = se.m_startEffectInstances.Concat(new[] { aoe }).ToArray();
 			}

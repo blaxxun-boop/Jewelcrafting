@@ -60,7 +60,7 @@ public static class BuildingPiecesSetup
 				__result = new Smelter.ItemConversion
 				{
 					m_from = __result.m_from,
-					m_to = GemStones.gemToShard[__result.m_to.name].GetComponent<ItemDrop>()
+					m_to = GemStones.gemToShard[__result.m_to.name].GetComponent<ItemDrop>(),
 				};
 			}
 		}

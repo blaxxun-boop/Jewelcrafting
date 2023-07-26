@@ -252,7 +252,7 @@ public static class BossSpawn
 			{
 				m_iconAlways = true,
 				m_prefabName = locations[boss].name,
-				m_location = locations[boss]
+				m_location = locations[boss],
 			}, pos with { y = despawnTime }, true);
 
 			ZDO zdo = ZDOMan.instance.CreateNewZDO(pos, boss.GetStableHashCode());

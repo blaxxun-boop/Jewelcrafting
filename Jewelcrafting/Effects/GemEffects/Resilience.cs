@@ -25,7 +25,7 @@ public static class Resilience
 		private static IEnumerable<MethodInfo> TargetMethods() => new[]
 		{
 			AccessTools.DeclaredMethod(typeof(Player), nameof(Player.DamageArmorDurability)),
-			AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.DrainEquipedItemDurability))
+			AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.DrainEquipedItemDurability)),
 		};
 
 		private static bool Prefix(Player __instance)

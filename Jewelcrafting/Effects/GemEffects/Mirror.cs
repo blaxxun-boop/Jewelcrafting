@@ -35,7 +35,7 @@ public static class Mirror
 						m_attacker = __instance.GetZDOID(),
 						m_dir = hit.m_dir * -1,
 						m_point = attacker.transform.localPosition,
-						m_damage = hit.m_damage
+						m_damage = hit.m_damage,
 					};
 					try
 					{

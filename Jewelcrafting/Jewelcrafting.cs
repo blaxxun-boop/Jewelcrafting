@@ -23,10 +23,11 @@ namespace Jewelcrafting;
 [BepInIncompatibility("randyknapp.mods.epicloot")]
 [BepInIncompatibility("org.bepinex.plugins.valheim_plus")]
 [BepInDependency("org.bepinex.plugins.groups", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("org.bepinex.plugins.creaturelevelcontrol", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.11";
+	private const string ModVersion = "1.4.12";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -48,6 +49,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<UniqueDrop> uniqueGemDropSystem = null!;
 	public static ConfigEntry<int> uniqueGemDropChance = null!;
 	public static ConfigEntry<Toggle> uniqueGemDropOnePerPlayer = null!;
+	public static ConfigEntry<int> uniqueGemDropChanceIncreasePerWorldLevel = null!;
 	public static ConfigEntry<int> resourceReturnRate = null!;
 	public static ConfigEntry<int> resourceReturnRateUpgrade = null!;
 	public static ConfigEntry<int> resourceReturnRateDistance = null!;
@@ -103,8 +105,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<float> lootLowHpChance = null!;
 	public static ConfigEntry<float> lootDefaultChance = null!;
 	public static ConfigEntry<LootRestriction> lootRestriction = null!;
+	public static ConfigEntry<Toggle> unsocketDroppedItems = null!;
 	public static ConfigEntry<Toggle> gemstoneFormations = null!;
 	public static ConfigEntry<float> gemstoneFormationHealth = null!;
+	public static ConfigEntry<Toggle> featherGliding = null!;
+	public static ConfigEntry<int> featherGlidingBuff = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -114,7 +119,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	{
 		{ "$jc_common_gembox", new[] { 90, 40, 10 } },
 		{ "$jc_epic_gembox", new[] { 100, 70, 35 } },
-		{ "$jc_legendary_gembox", new[] { 100, 90, 65 } }
+		{ "$jc_legendary_gembox", new[] { 100, 90, 65 } },
 	};
 
 	private readonly Dictionary<string, float[]> defaultBoxBossProgress = new()
@@ -127,7 +132,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{ "$jc_crystal_frost_reaper", new[] { 47f, 25f, 8f } },
 		{ "$jc_crystal_flame_reaper", new[] { 47f, 25f, 8f } },
 		{ "$jc_crystal_soul_reaper", new[] { 47f, 25f, 8f } },
-		{ "$enemy_seekerqueen", new[] { 55f, 30f, 9f } }
+		{ "$enemy_seekerqueen", new[] { 55f, 30f, 9f } },
 	};
 
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
@@ -161,34 +166,34 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public enum Toggle
 	{
 		On = 1,
-		Off = 0
+		Off = 0,
 	}
 
 	public enum UniqueDrop
 	{
 		Disabled = 0,
 		TrulyUnique = 1,
-		Custom = 2
+		Custom = 2,
 	}
 
 	public enum Unsocketing
 	{
 		Disabled = 0,
 		UniquesOnly = 1,
-		All = 2
+		All = 2,
 	}
 
 	public enum InteractBehaviour
 	{
 		Disabled = 0,
 		Hovering = 1,
-		Enabled = 2
+		Enabled = 2,
 	}
 
 	public enum AdvancedTooltipMode
 	{
 		General = 0,
-		Detailed = 1
+		Detailed = 1,
 	}
 
 	[Flags]
@@ -204,7 +209,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	{
 		None = 0,
 		KnownStation = 1,
-		KnownRecipe = 2
+		KnownRecipe = 2,
 	}
 
 	[PublicAPI]
@@ -236,6 +241,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	internal static Localization english = null!;
 
+	private AssetBundle assets = null!;
+
 	public void Awake()
 	{
 		self = this;
@@ -248,7 +255,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		english = new Localization();
 		english.SetupLanguage("English");
 
-		AssetBundle assets = PrefabManager.RegisterAssetBundle("jewelcrafting");
+		assets = PrefabManager.RegisterAssetBundle("jewelcrafting");
 		AssetBundle compendiumAssets = PrefabManager.RegisterAssetBundle("jc_ui_additions");
 		CompendiumDisplay.initializeCompendiumDisplay(compendiumAssets);
 
@@ -289,6 +296,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		badLuckRecipes = config("2 - Socket System", "Bad Luck Recipes", Toggle.On, new ConfigDescription("Enables or disables the bad luck recipes of all gems.", null, new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropSystem = config("2 - Socket System", "Drop System for Unique Gems", UniqueDrop.TrulyUnique, new ConfigDescription("Disabled: Unique Gems do not drop.\nTruly Unique: The first kill of each boss grants one Unique Gem.\nCustom: Lets you configure a drop chance and rate.", null, new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropChance = config("2 - Socket System", "Drop Chance for Unique Gems", 30, new ConfigDescription("Drop chance for Unique Gems. Has no effect, if the drop system is not set to custom.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		uniqueGemDropChanceIncreasePerWorldLevel = config("2 - Socket System", "Drop Chance Increase per World Level", 0, new ConfigDescription("If you have Creature Level & Loot Control installed, you can use this setting to increase the drop chance of Unique Gems per World Level. Additive, not multiplicative.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropOnePerPlayer = config("2 - Socket System", "Drop one Gem per Player", Toggle.On, new ConfigDescription("If bosses should drop one Unique Gem per player. Has no effect, if the drop system is not set to custom.", null, new ConfigurationManagerAttributes { Order = --order }));
 		allowUnsocketing = config("2 - Socket System", "Gems can be removed from items", Unsocketing.All, new ConfigDescription("All: All gems can be removed from items.\nUnique Only: Only unique gems can be removed from items.\nDisabled: No gems can be removed from items.\nDoes not affect gems without an effect.", null, new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketSimple = config("2 - Socket System", "Simple Gem Break Chance", 0f, new ConfigDescription("Chance to break a simple gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
@@ -336,7 +344,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 						smashBlunt = worldBossSmashDamage.Value,
 						aoeFire = worldBossFireDamage.Value,
 						aoeFrost = worldBossFrostDamage.Value,
-						aoePoison = worldBossPoisonDamage.Value
+						aoePoison = worldBossPoisonDamage.Value,
 					});
 					break;
 			}
@@ -394,6 +402,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		lootDefaultChance = config("5 - Loot System", "Drop Chance", 20f, new ConfigDescription("Chance for loot to be dropped.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		lootLowHpChance = config("5 - Loot System", "Drop Low HP Chance", 7f, new ConfigDescription("Chance for loot to be dropped from low HP creatures.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		lootRestriction = config("5 - Loot System", "Loot Restriction", LootRestriction.KnownRecipe, new ConfigDescription("None: No restrictions for item drops.\nKnown Station: You can only drop items that can be crafted on crafting stations that you know.\nKnown Recipe: You can only drop items that you know the recipe of.", null, new ConfigurationManagerAttributes { Order = --order }));
+		unsocketDroppedItems = config("5 - Loot System", "Unsocket Dropped Items", Toggle.Off, new ConfigDescription("If on, gems can be removed from dropped equipment items.", null, new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("6 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor = config("6 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
@@ -482,6 +491,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				}
 			}
 		};
+		featherGliding = config("6 - Other", "Feather Fall", Toggle.On, new ConfigDescription("Can be used to disable Feather Fall on the Feather Cape and replace it with a buff for Gliding instead.", null, new ConfigurationManagerAttributes { Order = --order }));
+		featherGliding.SettingChanged += ToggleFeatherFall;
+		featherGlidingBuff = config("6 - Other", "Feather Fall Buff", 20, new ConfigDescription("Increases the duration of Gliding. Percentage. Only active, when Feather Fall is disabled.", null, new ConfigurationManagerAttributes { Order = --order }));
+
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
 		headhunterDuration = config("Emerald Headhunter Ring", "Effect Duration", 20U, new ConfigDescription("Effect duration for the Emerald Headhunter Ring."));
@@ -504,7 +517,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		DestructibleSetup.initializeDestructibles(assets);
 		JewelrySetup.initializeJewelry(assets);
 		VisualEffectSetup.initializeVisualEffects(assets);
-		MergedGemStoneSetup.initializeMergedGemStones(assets);
 		FusionBoxSetup.initializeFusionBoxes(assets);
 		Synergy.initializeSynergy(assets);
 		ConfigLoader.LoadBuiltinConfig();
@@ -531,7 +543,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 					{
 						GachaSetup.BalanceToggle.Mistlands => balanceConfig.mistlands,
 						GachaSetup.BalanceToggle.Plains => balanceConfig.plains,
-						_ => throw new ArgumentOutOfRangeException()
+						_ => throw new ArgumentOutOfRangeException(),
 					};
 					balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared = Utils.Clone(sharedData);
 					balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_attack = Utils.Clone(sharedData.m_attack);
@@ -678,6 +690,32 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		BossSpawn.SetupBossSpawn();
 	}
 
+	private static void ToggleFeatherFall(object sender, EventArgs e)
+	{
+		if (ObjectDB.instance && ObjectDB.instance.GetItemPrefab("CapeFeather") is { } cape && ObjectDB.instance.GetStatusEffect("SlowFall") is { } statusEffect)
+		{
+			StatusEffect? value = featherGliding.Value == Toggle.Off ? null : statusEffect;
+			Item.ApplyToAllInstances(cape, data => data.m_shared.m_equipStatusEffect = value);
+
+			if (Player.m_localPlayer is { } player && player.m_shoulderItem?.m_shared.m_name == "$item_cape_feather")
+			{
+				if (featherGliding.Value == Toggle.On)
+				{
+					player.GetSEMan().AddStatusEffect(statusEffect);
+				}
+				else
+				{
+					player.GetSEMan().RemoveStatusEffect(statusEffect);
+				}
+			}
+		}
+	}
+
+	public void Start()
+	{
+		MergedGemStoneSetup.initializeMergedGemStones(assets);
+	}
+
 	private static void AddBossBoxProgressConfig(string name, float[] progress)
 	{
 		Regex regex = new("['[\"\\]]");
@@ -719,6 +757,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		private static void Prefix(ObjectDB __instance)
 		{
 			__instance.m_StatusEffects.Add(GemEffectSetup.headhunter);
+		}
+
+		private static void Postfix()
+		{
+			ToggleFeatherFall(null!, null!);
 		}
 	}
 }

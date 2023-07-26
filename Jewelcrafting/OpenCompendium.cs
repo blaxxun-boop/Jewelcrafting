@@ -12,6 +12,7 @@ public class OpenCompendium : StationExtension, Interactable, Hoverable
 		}
 		
 		InventoryGui.instance.Show(null);
+		InventoryGui.instance.m_inventoryRoot.gameObject.SetActive(true);
 		InventoryGui.instance.OnOpenTexts();
 		InventoryGui.instance.m_textsDialog.ShowText(CompendiumDisplay.compendiumPage);
 		CompendiumDisplay.DisplayGemEffectOverview.Render(InventoryGui.instance.m_textsDialog);

@@ -34,8 +34,8 @@ public static class DestructibleSetup
 				m_item = GemStoneSetup.uncutGems[type],
 				m_weight = 1,
 				m_stackMin = 1,
-				m_stackMax = 1
-			}
+				m_stackMax = 1,
+			},
 		};
 
 		if (prefab.transform.Find("Orbs") is { } orbs)
@@ -220,7 +220,7 @@ public static class DestructibleSetup
 				m_minAltitude = 0,
 				m_forcePlacement = true,
 				m_max = 2,
-				m_prefab = gemSpawner
+				m_prefab = gemSpawner,
 			});
 		}
 	}

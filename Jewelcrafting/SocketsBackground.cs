@@ -19,7 +19,7 @@ public static class SocketsBackground
 		Color.green,
 		Color.cyan,
 		Color.magenta,
-		new(1, 0.6f, 0)
+		new(1, 0.6f, 0),
 	};
 	private static Color[] colors = null!;
 	private static int maxWorth;

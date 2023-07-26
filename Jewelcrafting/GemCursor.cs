@@ -18,7 +18,7 @@ public static class GemCursor
 	{
 		None = 0,
 		Socketing = 1,
-		Crafting = 2
+		Crafting = 2,
 	}
 
 	private static CursorInfo lastCursor;

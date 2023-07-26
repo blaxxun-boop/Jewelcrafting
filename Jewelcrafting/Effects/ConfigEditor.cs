@@ -187,7 +187,7 @@ public partial class Jewelcrafting
 					    alignment = TextAnchor.UpperCenter,
 					    wordWrap = true,
 					    stretchWidth = true,
-					    fontSize = 15
+					    fontSize = 15,
 				    }, GUILayout.ExpandWidth(true)))
 				{
 					collapsed[file] = !collapsed[file];
@@ -237,8 +237,8 @@ public partial class Jewelcrafting
 			{
 				normal =
 				{
-					textColor = new Color(200, 50, 50)
-				}
+					textColor = new Color(200, 50, 50),
+				},
 			};
 			Color oldColor = GUI.contentColor;
 			GUI.contentColor = new Color(200, 50, 50);

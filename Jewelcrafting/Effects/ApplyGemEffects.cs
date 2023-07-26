@@ -17,7 +17,7 @@ public class TrackEquipmentChanges
 	private static IEnumerable<MethodInfo> TargetMethods() => new[]
 	{
 		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.SetupEquipment)),
-		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.ShowHandItems))
+		AccessTools.DeclaredMethod(typeof(Humanoid), nameof(Humanoid.ShowHandItems)),
 	};
 
 	[HarmonyPriority(Priority.Low)]
