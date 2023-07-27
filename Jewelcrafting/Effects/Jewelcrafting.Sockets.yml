@@ -223,6 +223,16 @@ necromancer:
   gem: green
   power: [3, 5, 7]
 
+ricochet:
+  slot: [bow, crossbow]
+  gem: orange
+  power: [3, 5, 7]
+
+elemental chaos:
+  slot: [bow, crossbow]
+  gem: blue
+  power: [10, 15, 20]
+
 # Cloak
 
 glider:

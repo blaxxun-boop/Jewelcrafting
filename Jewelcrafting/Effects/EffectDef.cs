@@ -75,6 +75,8 @@ public enum Effect
 	Nimble,
 	Mirror,
 	Echo,
+	Ricochet,
+	Elementalchaos,
 	Resonatingechoes,
 	Resilience,
 	Gourmet,

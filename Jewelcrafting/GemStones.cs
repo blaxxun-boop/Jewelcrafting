@@ -31,7 +31,7 @@ public static class GemStones
 	{
 		private static bool Prefix(InventoryGui __instance, Player player, ref Tuple<int, Recipe>? __state)
 		{
-			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && __instance.m_craftRecipe.m_resources[0].m_amount == __instance.m_craftRecipe.m_amount)
+			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && __instance.m_craftRecipe.m_resources.Length > 0 && __instance.m_craftRecipe.m_resources[0].m_amount == __instance.m_craftRecipe.m_amount)
 			{
 				player.RaiseSkill("Jewelcrafting", __instance.m_craftRecipe.m_amount);
 
@@ -265,7 +265,7 @@ public static class GemStones
 
 				__instance.m_recipeRequirementList[0].transform.parent.gameObject.SetActive(true);
 
-				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources[0].m_amount == recipe.m_amount)
+				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources.Length > 0 && recipe.m_resources[0].m_amount == recipe.m_amount)
 				{
 					__instance.m_itemCraftType.horizontalOverflow = HorizontalWrapMode.Wrap;
 					__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_gem_cutting_warning", Math.Min(Mathf.RoundToInt(chance.Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + Player.m_localPlayer.GetEffect(Effect.Carefulcutting)), 100).ToString());

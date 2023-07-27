@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.12";
+	private const string ModVersion = "1.4.13";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -515,6 +515,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		BuildingPiecesSetup.initializeBuildingPieces(assets);
 		GemStoneSetup.initializeGemStones(assets);
 		DestructibleSetup.initializeDestructibles(assets);
+		MergedGemStoneSetup.initializeMergedGemStones(assets);
 		JewelrySetup.initializeJewelry(assets);
 		VisualEffectSetup.initializeVisualEffects(assets);
 		FusionBoxSetup.initializeFusionBoxes(assets);
@@ -709,11 +710,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				}
 			}
 		}
-	}
-
-	public void Start()
-	{
-		MergedGemStoneSetup.initializeMergedGemStones(assets);
 	}
 
 	private static void AddBossBoxProgressConfig(string name, float[] progress)

@@ -11,7 +11,7 @@ public static class Necromancer
 	{
 		EffectDef.ConfigTypes.Add(Effect.Necromancer, typeof(Config));
 	}
-	
+
 	[PublicAPI]
 	private struct Config
 	{
@@ -19,13 +19,13 @@ public static class Necromancer
 	}
 
 	public static GameObject skeleton = null!;
-	
+
 	[HarmonyPatch(typeof(Projectile), nameof(Projectile.OnHit))]
 	private class SpawnSkeletonArcher
 	{
 		private static void Postfix(Projectile __instance, Collider? collider)
 		{
-			if (__instance.m_didHit && __instance.m_owner is Player player && collider is not null && Projectile.FindHitObject(collider)?.GetComponent<Character>())
+			if (__instance is { m_didHit: true, m_owner: Player player } && collider is not null && Projectile.FindHitObject(collider)?.GetComponent<Character>())
 			{
 				if (Random.value < player.GetEffect(Effect.Necromancer) / 100f)
 				{
