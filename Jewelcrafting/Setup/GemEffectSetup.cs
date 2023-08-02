@@ -23,6 +23,7 @@ public static class GemEffectSetup
 	public static SE_Stats awareness = null!;
 	public static GameObject heardIcon = null!;
 	public static GameObject attackedIcon = null!;
+	public static SE_Stats warmth = null!;
 	public static SE_Stats headhunter = null!;
 	public static SE_Stats rigidFinger = null!;
 	public static GameObject magicRepair = null!;
@@ -67,6 +68,7 @@ public static class GemEffectSetup
 		awareness = assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Red");
 		heardIcon = assets.LoadAsset<GameObject>("JC_Eyeball_Obj");
 		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
+		warmth = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Red");
 		headhunter = assets.LoadAsset<SE_Stats>("JC_Se_Ring_Green");
 		headhunter.m_modifyAttackSkill = Skills.SkillType.All;
 		assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Yellow");

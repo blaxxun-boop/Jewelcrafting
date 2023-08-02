@@ -150,6 +150,11 @@ wisplight:
   gem: wisplight
   power: 10
 
+daring:
+  slot: utility
+  gem: orange
+  power: [10, 20, 30]
+
 # Head
 
 explorer:

@@ -76,6 +76,24 @@ public static class GachaSetup
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_attack = Utils.Clone(celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_attack);
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_attack.m_attackStamina = 14;
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_blockPower = 48;
+		RegisterWorldBossBonusItem("JC_Reaper_Battleaxe");
+		celestialItemsConfigs["JC_Reaper_Battleaxe"].mistlands.m_damages.m_slash = 130;
+		celestialItemsConfigs["JC_Reaper_Battleaxe"].mistlands.m_movementModifier = -0.1f;
+		celestialItemsConfigs["JC_Reaper_Battleaxe"].plains.m_movementModifier = -0.1f;
+		RegisterWorldBossBonusItem("JC_Reaper_TH_Mace");
+		celestialItemsConfigs["JC_Reaper_TH_Mace"].mistlands.m_damages.m_blunt = 145;
+		celestialItemsConfigs["JC_Reaper_TH_Mace"].mistlands.m_blockPower = 52;
+		celestialItemsConfigs["JC_Reaper_TH_Mace"].mistlands.m_attackForce = 230;
+		celestialItemsConfigs["JC_Reaper_TH_Mace"].plains.m_attackForce = 230;
+		RegisterWorldBossBonusItem("JC_Reaper_TH_Sword");
+		celestialItemsConfigs["JC_Reaper_TH_Sword"].mistlands.m_damages.m_slash = 150;
+		RegisterWorldBossBonusItem("JC_Reaper_Spear");
+		celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_damages.m_pierce = 115;
+		celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_blockPower = 48;
+		celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_attack = Utils.Clone(celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_attack);
+		celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_attack.m_attackStamina = 16;
+		celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_backstabBonus = 3.5f;
+		celestialItemsConfigs["JC_Reaper_Spear"].plains.m_backstabBonus = 3.5f;
 
 		skeletonWindow = assets.LoadAsset<GameObject>("JC_Gacha_Window");
 

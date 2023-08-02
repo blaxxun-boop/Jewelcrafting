@@ -78,6 +78,7 @@ public enum Effect
 	Ricochet,
 	Elementalchaos,
 	Resonatingechoes,
+	Daring,
 	Resilience,
 	Gourmet,
 	Leadingwolf,

@@ -53,7 +53,6 @@ public static class JewelrySetup
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
-		greenNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<MagicRepair>(greenNecklaceShared.m_equipStatusEffect);
 
 		item = new Item(assets, "JC_Necklace_Yellow");
 		item.Crafting.Add("op_transmution_table", 3);
@@ -96,6 +95,9 @@ public static class JewelrySetup
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		redRingName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		ItemDrop.ItemData.SharedData redRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		redRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<NightWarmth>(redRingShared.m_equipStatusEffect);
+		GemEffectSetup.warmth = (SE_Stats)redRingShared.m_equipStatusEffect;
 		upgradeableJewelry.Add(redRingName);
 
 		item = new Item(assets, "JC_Ring_Blue");

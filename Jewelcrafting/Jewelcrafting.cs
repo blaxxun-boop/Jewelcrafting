@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.13";
+	private const string ModVersion = "1.4.14";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -65,6 +65,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<int> headhunterDamage = null!;
 	private static ConfigEntry<float> experienceGainedFactor = null!;
 	private static ConfigEntry<int> experienceLoss = null!;
+	private static ConfigEntry<int> warmthStaminaRegen = null!;
 	public static ConfigEntry<int> magicRepairAmount = null!;
 	private static ConfigEntry<int> aquaticDamageIncrease = null!;
 	public static ConfigEntry<int> modersBlessingDuration = null!;
@@ -93,6 +94,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<float> worldBossPoisonDamage = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
 	public static ConfigEntry<int> worldBossCountdownDisplayOffset = null!;
+	public static ConfigEntry<Toggle> worldBossExploitProtectionHeal = null!;
+	public static ConfigEntry<Toggle> worldBossExploitProtectionRangedShield = null!;
 	public static ConfigEntry<float> defaultEventDuration = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
 	public static ConfigEntry<string> socketBlacklist = null!;
@@ -381,6 +384,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
 		worldBossCountdownDisplayOffset = config("4 - World Boss", "Countdown Display Offset", 0, new ConfigDescription("Offset for the world boss countdown display on the world map. Increase this, to move the display down, to prevent overlapping with other mods.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		worldBossCountdownDisplayOffset.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerPosition();
+		worldBossExploitProtectionHeal = config("4 - World Boss", "Range Check Healing", Toggle.Off, new ConfigDescription("If on and no player has been in melee range of the world boss for more than 10 seconds, it will start to heal.", null, new ConfigurationManagerAttributes { Order = --order }));
+		worldBossExploitProtectionRangedShield = config("4 - World Boss", "Ranged Shield", Toggle.Off, new ConfigDescription("If on each consecutive ranged attack against the world boss will cause it to take 10% less damage, up to 90% reduced damage taken. Melee attacks remove one stack.", null, new ConfigurationManagerAttributes { Order = --order }));
 		defaultEventDuration = config("4 - World Boss", "Default Event Duration", 2f, new ConfigDescription("Default duration for each event in days.", null, new ConfigurationManagerAttributes { Order = --order }));
 		lootSystem = config("5 - Loot System", "Loot System", LootSystem.GemDrops, new ConfigDescription("Loot system to be used for Jewelcrafting.\nGem Drops: Creatures have a chance to drop uncut gems.\nEquipment Drops: Creatures have a chance to drop Equipment items with sockets and gems.\nGem Chests: Creatures have a chance to drop a chest with some gems, so you can choose one.\nEquipment Chests: Creatures have a chance to drop a chest with some equipment, so you can choose one piece.", null, new ConfigurationManagerAttributes { Order = --order }));
 		lootBeams = config("5 - Loot System", "Loot Beams", Toggle.On, new ConfigDescription("Loot beams for dropped items.", null, new ConfigurationManagerAttributes { Order = --order }), false);
@@ -495,6 +500,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		featherGliding.SettingChanged += ToggleFeatherFall;
 		featherGlidingBuff = config("6 - Other", "Feather Fall Buff", 20, new ConfigDescription("Increases the duration of Gliding. Percentage. Only active, when Feather Fall is disabled.", null, new ConfigurationManagerAttributes { Order = --order }));
 
+		warmthStaminaRegen = config("Ruby Ring of Warmth", "Stamina Regen", 10, new ConfigDescription("Stamina regen increase for the Ruby Ring of Warmth effect.", new AcceptableValueRange<int>(0, 100)));
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));
 		headhunterDuration = config("Emerald Headhunter Ring", "Effect Duration", 20U, new ConfigDescription("Effect duration for the Emerald Headhunter Ring."));
@@ -600,6 +606,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		SetCfgValue(value => GemEffectSetup.headhunter.m_damageModifier = 1 + value / 100f, headhunterDamage);
 		SetCfgValue(value => GemEffectSetup.headhunter.m_ttl = value, headhunterDuration);
 		SetCfgValue(value => GemEffectSetup.aquatic.m_damageModifier = 1 + value / 100f, aquaticDamageIncrease);
+		SetCfgValue(value => GemEffectSetup.warmth.m_staminaRegenMultiplier = 1 + value / 100f, warmthStaminaRegen);
 
 		Necromancer.skeleton = PrefabManager.RegisterPrefab(assets, "JC_Skeleton");
 
@@ -669,7 +676,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Marked_Explode");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Fade");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Fade_End");
+		PrefabManager.RegisterPrefab(assets, "JC_Reaper_Spear_Pro");
 
+		Localizer.AddPlaceholder("jc_ring_red_description", "regen", warmthStaminaRegen);
+		Localizer.AddPlaceholder("jc_se_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_se_ring_purple_description", "power", rigidDamageReduction);
 		Localizer.AddPlaceholder("jc_ring_green_description", "power", headhunterDamage);
@@ -684,6 +694,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_reaper_axe_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_bow_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_pickaxe_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_battleaxe_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_th_mace_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_th_sword_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_spear_description", "power", worldBossBonusWeaponDamage);
 
 		Config.SaveOnConfigSet = true;
 		Config.Save();

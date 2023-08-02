@@ -1,3 +1,5 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using ItemManager;
@@ -123,13 +125,60 @@ public static class BossSetup
 
 	public class BossCharacter : Humanoid, IDestructible
 	{
+		public int tickCounter = 0;
+
+		public override void Start()
+		{
+			base.Start();
+			IEnumerator checkPlayerInRange()
+			{
+				while (true)
+				{
+					if (Player.GetPlayersInRangeXZ(transform.position, 3f) == 0)
+					{
+						++tickCounter;
+					}
+					else
+					{
+						tickCounter = 0;
+					}
+
+					if (tickCounter >= 10 && Jewelcrafting.worldBossExploitProtectionHeal.Value == Jewelcrafting.Toggle.On && m_nview.IsOwner())
+					{
+						Heal(GetMaxHealth() / 10f);
+					}
+
+					yield return new WaitForSeconds(1);
+				}
+				// ReSharper disable once IteratorNeverReturns
+			}
+			StartCoroutine(checkPlayerInRange());
+		}
+
 		public new void Damage(HitData hit)
 		{
+			int stackCounter = m_nview.GetZDO().GetInt("WorldBoss ranged stacks");
+			if (Jewelcrafting.worldBossExploitProtectionRangedShield.Value == Jewelcrafting.Toggle.On)
+			{
+				hit.m_damage.Modify(1 - stackCounter / 10f);
+			}
 			if (hit.GetAttacker() is Humanoid attacker && attacker.GetCurrentWeapon()?.m_dropPrefab is { } weaponPrefab && GachaSetup.worldBossBonusItems.Contains(weaponPrefab.name))
 			{
 				hit.m_damage.Modify(1 + Jewelcrafting.worldBossBonusWeaponDamage.Value / 100f);
 			}
 			base.Damage(hit);
+		}
+
+		public override void OnDamaged(HitData hit)
+		{
+			base.OnDamaged(hit);
+
+			if (hit.GetAttacker() is Player attacker)
+			{
+				int stackCounter = m_nview.GetZDO().GetInt("WorldBoss ranged stacks");
+				stackCounter = Vector3.Distance(attacker.transform.position, transform.position) < 3f ? Math.Max(stackCounter - 1, 0) : Math.Min(stackCounter + 1, 9);
+				m_nview.GetZDO().Set("WorldBoss ranged stacks", stackCounter);
+			}
 		}
 	}
 }

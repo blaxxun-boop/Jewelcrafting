@@ -9,6 +9,21 @@ Celestial Blessing:
         - perfect onyx
     frame of chaos:
       chance: 0.05
+Astral Serenity:
+  duration: default
+  prizes:
+    celestial bone battleaxe:
+      chance: 0.02
+      sockets:
+        - perfect onyx
+        - perfect sulfur
+        - perfect ruby
+    celestial bone hammer:
+      chance: 0.02
+      sockets:
+        - perfect ruby
+        - perfect sapphire
+        - perfect spinel
 Divine Intervention:
   duration: default
   prizes:
@@ -31,6 +46,21 @@ Heavenly Dominance:
         - perfect emerald
     frame of chance:
       chance: 0.05
+Luminescent Ascendancy:
+  duration: default
+  prizes:
+    celestial bone great sword:
+      chance: 0.02
+      sockets:
+        - perfect sapphire
+        - perfect emerald
+        - perfect ruby
+    celestial bone spear:
+      chance: 0.02
+      sockets:
+        - perfect onyx
+        - perfect spinel
+        - perfect sulfur
 Stellar Impact:
   duration: default
   prizes:
@@ -42,7 +72,7 @@ Stellar Impact:
         - perfect sulfur
     celestial crystal mirror:
       chance: 0.02
-      
+
 # You can create a global blacklist. Gems on the global blacklist cannot be obtained from any event.
 #global blacklist:
 #  - Shattered_Black_Crystal      
