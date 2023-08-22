@@ -123,14 +123,14 @@ public static class JewelrySetup
 		}
 	}
 
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
 	private static class DisplayUtilityArmor
 	{
-		private static void Postfix(ItemDrop.ItemData item, int qualityLevel, ref string __result)
+		private static void Postfix(ItemDrop.ItemData item, int qualityLevel, float worldLevel, ref string __result)
 		{
 			if (upgradeableJewelry.Contains(item.m_shared.m_name))
 			{
-				__result += $"\n$item_armor: <color=orange>{item.GetArmor(qualityLevel)}</color>";
+				__result += $"\n$item_armor: <color=orange>{item.GetArmor(qualityLevel, worldLevel)}</color>";
 			}
 		}
 	}

@@ -191,7 +191,7 @@ public static class DestructibleSetup
 				}
 			}
 
-			if (Physics.SphereCast(transform.position + Vector3.down * 10, 1.5f, Vector3.up, out _, 12f, ZoneSystem.instance.m_blockRayMask))
+			if (Physics.SphereCast(transform.position + Vector3.down * 10, 1.5f, Vector3.up, out _, 12f, ZoneSystem.instance.m_blockRayMask) || EffectArea.IsPointInsideArea(transform.position, EffectArea.Type.PlayerBase, 30f))
 			{
 				return;
 			}

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using ItemManager;
@@ -94,16 +95,26 @@ public static class GachaSetup
 		celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_attack.m_attackStamina = 16;
 		celestialItemsConfigs["JC_Reaper_Spear"].mistlands.m_backstabBonus = 3.5f;
 		celestialItemsConfigs["JC_Reaper_Spear"].plains.m_backstabBonus = 3.5f;
+		RegisterWorldBossBonusItem("JC_Reaper_Shield");
+		celestialItemsConfigs["JC_Reaper_Shield"].plains.m_blockPower = 80;
+		RegisterWorldBossBonusItem("JC_Reaper_Knife");
+		celestialItemsConfigs["JC_Reaper_Knife"].plains.m_backstabBonus = 6.5f;
+		celestialItemsConfigs["JC_Reaper_Knife"].mistlands.m_backstabBonus = 6.5f;
+		celestialItemsConfigs["JC_Reaper_Knife"].mistlands.m_damages.m_pierce = 41;
+		celestialItemsConfigs["JC_Reaper_Knife"].mistlands.m_damages.m_slash = 41;
 
 		skeletonWindow = assets.LoadAsset<GameObject>("JC_Gacha_Window");
 
 		GameObject location = assets.LoadAsset<GameObject>("JC_Gacha_Location");
+		location.AddComponent<LocationHider>();
 		foreach (Container container in location.transform.GetComponentsInChildren<Container>())
 		{
 			Utils.ConvertComponent<GachaChest, Container>(container.gameObject);
+			container.gameObject.AddComponent<LocationHider>();
 		}
 		GameObject containerPrefab = PrefabManager.RegisterPrefab(assets, "Jewelcrafting_Chest");
 		Utils.ConvertComponent<GachaChest, Container>(containerPrefab);
+		containerPrefab.AddComponent<LocationHider>();
 
 		location.transform.Find("GemStone").gameObject.AddComponent<GemStoneInteract>();
 
@@ -128,6 +139,17 @@ public static class GachaSetup
 			if (__instance.GetItemPrefab("PickaxeIron") is { } vanillaPickaxe && __instance.GetItemPrefab("JC_Reaper_Pickaxe") is { } jewelcraftingPickaxe)
 			{
 				jewelcraftingPickaxe.GetComponent<ItemDrop>().m_itemData.m_shared.m_spawnOnHitTerrain = vanillaPickaxe.GetComponent<ItemDrop>().m_itemData.m_shared.m_spawnOnHitTerrain;
+			}
+		}
+	}
+	
+	public class LocationHider: MonoBehaviour
+	{
+		private void Start()
+		{
+			if (Jewelcrafting.gachaLocationActive.Value == Jewelcrafting.Toggle.Off)
+			{
+				gameObject.SetActive(false);
 			}
 		}
 	}

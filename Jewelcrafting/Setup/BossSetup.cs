@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 using ItemManager;
 using Jewelcrafting.WorldBosses;
 using UnityEngine;
@@ -178,6 +179,30 @@ public static class BossSetup
 				int stackCounter = m_nview.GetZDO().GetInt("WorldBoss ranged stacks");
 				stackCounter = Vector3.Distance(attacker.transform.position, transform.position) < 3f ? Math.Max(stackCounter - 1, 0) : Math.Min(stackCounter + 1, 9);
 				m_nview.GetZDO().Set("WorldBoss ranged stacks", stackCounter);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.BlockAttack))]
+	private static class IncreaseShieldBlockPower
+	{
+		private static float original = 0;
+		
+		private static void Prefix(Humanoid __instance, Character? attacker)
+		{
+			if (attacker?.GetComponent<BossCharacter>() is not null && __instance.GetCurrentBlocker()?.m_shared.m_name == "$jc_reaper_shield")
+			{
+				original = __instance.GetCurrentBlocker().m_shared.m_blockPower;
+				__instance.GetCurrentBlocker().m_shared.m_blockPower *= 1 + Jewelcrafting.worldBossBonusBlockPower.Value / 100f;
+			}
+		}
+
+		private static void Finalizer(Humanoid __instance)
+		{
+			if (original > 0)
+			{
+				__instance.GetCurrentBlocker().m_shared.m_blockPower = original;
+				original = 0;
 			}
 		}
 	}

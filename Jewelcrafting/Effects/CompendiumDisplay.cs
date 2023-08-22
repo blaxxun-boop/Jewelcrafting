@@ -47,29 +47,41 @@ public static class CompendiumDisplay
 				if (item?.Data().Get<Sockets>() is { } itemSockets)
 				{
 					GemLocation location = Utils.GetGemLocation(item.m_shared, player);
+					GemLocation itemLocation = Utils.GetItemGemLocation(item);
 					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != ""))
 					{
-						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
+						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 						{
-							foreach (EffectPower effectPower in effectPowers)
+							void handleEffectPowers(List<EffectPower> effectPowers)
 							{
-								float[] powers;
-								FieldInfo[] powerFields = effectPower.Config.GetType().GetFields();
-								if (gems.TryGetValue(effectPower.Effect, out KeyValuePair<float[], GemLocation> power))
+								foreach (EffectPower effectPower in effectPowers)
 								{
-									int i = 0;
-									powers = power.Key;
-									foreach (FieldInfo powerField in powerFields)
+									float[] powers;
+									FieldInfo[] powerFields = effectPower.Config.GetType().GetFields();
+									if (gems.TryGetValue(effectPower.Effect, out KeyValuePair<float[], GemLocation> power))
 									{
-										powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], (float)powerField.GetValue(effectPower.Config));
-										++i;
+										int i = 0;
+										powers = power.Key;
+										foreach (FieldInfo powerField in powerFields)
+										{
+											powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], (float)powerField.GetValue(effectPower.Config));
+											++i;
+										}
 									}
+									else
+									{
+										powers = powerFields.Select(p => (float)p.GetValue(effectPower.Config)).ToArray();
+									}
+									gems[effectPower.Effect] = new KeyValuePair<float[], GemLocation>(powers, power.Value | location);
 								}
-								else
-								{
-									powers = powerFields.Select(p => (float)p.GetValue(effectPower.Config)).ToArray();
-								}
-								gems[effectPower.Effect] = new KeyValuePair<float[], GemLocation>(powers, power.Value | location);
+							}
+							if (locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
+							{
+								handleEffectPowers(effectPowers);
+							}
+							if (locationPowers.TryGetValue(itemLocation, out effectPowers))
+							{
+								handleEffectPowers(effectPowers);
 							}
 						}
 					}
@@ -116,6 +128,17 @@ public static class CompendiumDisplay
 			Transform content = compendium.m_textArea.transform.parent;
 			content.GetComponent<VerticalLayoutGroup>().spacing = 3;
 
+			if (!iconElement.GetComponent<UITooltip>())
+			{
+				void ApplyTooltip(GameObject go)
+				{
+					UITooltip tooltip = go.AddComponent<UITooltip>();
+					tooltip.m_tooltipPrefab = InventoryGui.instance.m_craftButton.GetComponent<UITooltip>().m_tooltipPrefab;
+				}
+				ApplyTooltip(iconElement);
+				ApplyTooltip(textWithIcon.transform.Find("Icon").gameObject);
+			}
+
 			foreach (KeyValuePair<GemType, List<GemDefinition>> kv in GemStoneSetup.Gems)
 			{
 				JC_UI_Elements.Add(Object.Instantiate(emptyElement, content));
@@ -138,44 +161,66 @@ public static class CompendiumDisplay
 						bool firstMatch = true;
 						foreach (GemLocation location in effect.Value)
 						{
-							string prefab = location switch
+							Sprite spr;
+							string name;
+							if ((ulong)location >> 32 != 0)
 							{
-								GemLocation.Head => "HelmetBronze",
-								GemLocation.Cloak => "CapeWolf",
-								GemLocation.Legs => "ArmorWolfLegs",
-								GemLocation.Chest => "ArmorWolfChest",
-								GemLocation.Sword => "SwordIron",
-								GemLocation.Knife => "KnifeBlackMetal",
-								GemLocation.Club => "MaceSilver",
-								GemLocation.Polearm => "AtgeirIron",
-								GemLocation.Spear => "SpearBronze",
-								GemLocation.Axe => "AxeBlackMetal",
-								GemLocation.Bow => "BowFineWood",
-								GemLocation.Crossbow => "CrossbowArbalest",
-								GemLocation.Weapon => "SwordIron",
-								GemLocation.Tool => "Hammer",
-								GemLocation.Shield => "ShieldBlackmetal",
-								GemLocation.Utility => "JC_Necklace_Red",
-								GemLocation.ElementalMagic => "StaffFireball",
-								GemLocation.BloodMagic => "StaffSkeleton",
-								GemLocation.Magic => "YagluthDrop",
-								GemLocation.All => "QueenDrop",
-								_ => throw new ArgumentOutOfRangeException(),
-							};
+								if (Utils.GetGemLocationItem(location) is { } item)
+								{
+									spr = item.m_itemData.GetIcon();
+									name = item.m_itemData.m_shared.m_name;
+								}
+								else
+								{
+									continue;
+								}
+							}
+							else
+							{
+								string prefab = location switch
+								{
+									GemLocation.Head => "HelmetBronze",
+									GemLocation.Cloak => "CapeWolf",
+									GemLocation.Legs => "ArmorWolfLegs",
+									GemLocation.Chest => "ArmorWolfChest",
+									GemLocation.Sword => "SwordIron",
+									GemLocation.Knife => "KnifeBlackMetal",
+									GemLocation.Club => "MaceSilver",
+									GemLocation.Polearm => "AtgeirIron",
+									GemLocation.Spear => "SpearBronze",
+									GemLocation.Axe => "AxeBlackMetal",
+									GemLocation.Bow => "BowFineWood",
+									GemLocation.Crossbow => "CrossbowArbalest",
+									GemLocation.Weapon => "SwordIron",
+									GemLocation.Tool => "Hammer",
+									GemLocation.Shield => "ShieldBlackmetal",
+									GemLocation.Utility => "JC_Necklace_Red",
+									GemLocation.ElementalMagic => "StaffFireball",
+									GemLocation.BloodMagic => "StaffSkeleton",
+									GemLocation.Magic => "YagluthDrop",
+									GemLocation.All => "QueenDrop",
+									_ => throw new ArgumentOutOfRangeException(),
+								};
 
-							Sprite spr = ZNetScene.instance.GetPrefab(prefab).GetComponent<ItemDrop>().m_itemData.GetIcon();
+								spr = ZNetScene.instance.GetPrefab(prefab).GetComponent<ItemDrop>().m_itemData.GetIcon();
+								name = $"$jc_socket_slot_{location.ToString().ToLower()}";
+							}
+
+							Transform icon;
 							if (firstMatch)
 							{
-								elementIcon.transform.Find("Icon").GetComponent<Image>().sprite = spr;
+								icon = elementIcon.transform.Find("Icon");
 
 								firstMatch = false;
 							}
 							else
 							{
-								GameObject newIcon = Object.Instantiate(iconElement, elementIcon.transform);
-								newIcon.transform.SetAsFirstSibling();
-								newIcon.GetComponent<Image>().sprite = spr;
+								icon = Object.Instantiate(iconElement, elementIcon.transform).transform;
+								icon.SetAsFirstSibling();
 							}
+							
+							icon.GetComponent<Image>().sprite = spr;
+							icon.GetComponent<UITooltip>().m_text = Localization.instance.Localize(name);
 						}
 					}
 				}

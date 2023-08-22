@@ -26,6 +26,7 @@ public enum GemType
 	Queen,
 	Group,
 	Wisplight,
+	Wishbone,
 }
 
 public struct GemDefinition

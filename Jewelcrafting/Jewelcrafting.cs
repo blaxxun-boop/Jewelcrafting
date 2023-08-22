@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.15";
+	private const string ModVersion = "1.4.16";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -79,6 +79,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<AdvancedTooltipMode> advancedTooltipMode = null!;
 	public static ConfigEntry<Toggle> advancedTooltipAlwaysOn = null!;
 	public static ConfigEntry<Toggle> gachaLocationIcon = null!;
+	public static ConfigEntry<Toggle> gachaLocationActive = null!;
 	public static ConfigEntry<int> bossSpawnTimer = null!;
 	public static ConfigEntry<int> bossSpawnMinDistance = null!;
 	public static ConfigEntry<int> bossSpawnMaxDistance = null!;
@@ -93,6 +94,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<float> worldBossFrostDamage = null!;
 	private static ConfigEntry<float> worldBossPoisonDamage = null!;
 	public static ConfigEntry<int> worldBossBonusWeaponDamage = null!;
+	public static ConfigEntry<int> worldBossBonusBlockPower = null!;
 	public static ConfigEntry<int> worldBossCountdownDisplayOffset = null!;
 	public static ConfigEntry<Toggle> worldBossExploitProtectionHeal = null!;
 	public static ConfigEntry<Toggle> worldBossExploitProtectionRangedShield = null!;
@@ -102,6 +104,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<string> mirrorBlacklist = null!;
 	public static ConfigEntry<Toggle> gemstoneFormationParticles = null!;
 	public static ConfigEntry<Toggle> wisplightGem = null!;
+	public static ConfigEntry<Toggle> wishboneGem = null!;
 	public static ConfigEntry<LootSystem> lootSystem = null!;
 	public static ConfigEntry<Toggle> lootBeams = null!;
 	public static ConfigEntry<float> lootSkew = null!;
@@ -152,7 +155,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private static Skill jewelcrafting = null!;
 
-	private static Jewelcrafting self = null!;
+	public static Jewelcrafting self = null!;
 
 	public static ConfigEntry<T> config<T>(string group, string name, T value, ConfigDescription description, bool synchronizedSetting = true)
 	{
@@ -320,6 +323,14 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		crystalFusionBoxMergeActivityProgress[0] = config("3 - Fusion Box", "Activity reward for Fusion Box", 3f, new ConfigDescription("Progress for the Common Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[1] = config("3 - Fusion Box", "Activity reward for Blessed Fusion Box", 2f, new ConfigDescription("Progress for the Blessed Crystal Fusion Box per minute of activity", null, new ConfigurationManagerAttributes { Order = --order }));
 		crystalFusionBoxMergeActivityProgress[2] = config("3 - Fusion Box", "Activity reward for Celestial Fusion Box", 1f, new ConfigDescription("Progress for the Celestial Crystal Fusion Box per minute of activity.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gachaLocationActive = config("4 - World Boss", "Gacha Location", Toggle.On, new ConfigDescription("Can be used to disable the mystical gemstone location. Be aware that this means you can no longer turn in your gacha coins for rewards.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gachaLocationActive.SettingChanged += (_, _) =>
+		{
+			foreach (GachaSetup.LocationHider hider in FindObjectsOfType<GachaSetup.LocationHider>(true))
+			{
+				hider.gameObject.SetActive(gachaLocationActive.Value == Toggle.On);
+			}
+		};
 		gachaLocationIcon = config("4 - World Boss", "Location Icon", Toggle.On, new ConfigDescription("Display the map icon of the mystical gemstone.", null, new ConfigurationManagerAttributes { Order = --order }));
 		gachaLocationIcon.SettingChanged += (_, _) => ZoneSystem.instance.GetLocation("JC_Gacha_Location").m_iconPlaced = gachaLocationIcon.Value == Toggle.On;
 		bossSpawnTimer = config("4 - World Boss", "Time between Boss Spawns", 120, new ConfigDescription("Time in minutes between boss spawns. Set this to 0, to disable boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -382,11 +393,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		worldBossPoisonDamage = config("4 - World Boss", "Poison Damage", BossSetup.mistlandsConfigs.aoePoison, new ConfigDescription("Poison damage dealt by world bosses.", null, WorldBossAttribute()));
 		worldBossPoisonDamage.SettingChanged += WorldBossCustomChanged;
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
+		worldBossBonusBlockPower = config("4 - World Boss", "Celestial Shield Bonus Power", 10, new ConfigDescription("Additional damage blocked by a celestial shield when hit by a world boss..", null, new ConfigurationManagerAttributes { Order = --order }));
 		worldBossCountdownDisplayOffset = config("4 - World Boss", "Countdown Display Offset", 0, new ConfigDescription("Offset for the world boss countdown display on the world map. Increase this, to move the display down, to prevent overlapping with other mods.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		worldBossCountdownDisplayOffset.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerPosition();
 		worldBossExploitProtectionHeal = config("4 - World Boss", "Range Check Healing", Toggle.Off, new ConfigDescription("If on and no player has been in melee range of the world boss for more than 10 seconds, it will start to heal.", null, new ConfigurationManagerAttributes { Order = --order }));
 		worldBossExploitProtectionRangedShield = config("4 - World Boss", "Ranged Shield", Toggle.Off, new ConfigDescription("If on each consecutive ranged attack against the world boss will cause it to take 10% less damage, up to 90% reduced damage taken. Melee attacks remove one stack.", null, new ConfigurationManagerAttributes { Order = --order }));
-		defaultEventDuration = config("4 - World Boss", "Default Event Duration", 2f, new ConfigDescription("Default duration for each event in days.", null, new ConfigurationManagerAttributes { Order = --order }));
+		defaultEventDuration = config("4 - World Boss", "Default Event Duration", 1f, new ConfigDescription("Default duration for each event in days.", null, new ConfigurationManagerAttributes { Order = --order }));
 		lootSystem = config("5 - Loot System", "Loot System", LootSystem.GemDrops, new ConfigDescription("Loot system to be used for Jewelcrafting.\nGem Drops: Creatures have a chance to drop uncut gems.\nEquipment Drops: Creatures have a chance to drop Equipment items with sockets and gems.\nGem Chests: Creatures have a chance to drop a chest with some gems, so you can choose one.\nEquipment Chests: Creatures have a chance to drop a chest with some equipment, so you can choose one piece.", null, new ConfigurationManagerAttributes { Order = --order }));
 		lootBeams = config("5 - Loot System", "Loot Beams", Toggle.On, new ConfigDescription("Loot beams for dropped items.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		lootBeams.SettingChanged += (_, _) =>
@@ -469,6 +481,35 @@ public partial class Jewelcrafting : BaseUnityPlugin
 					if (itemdata.m_shared.m_name == "$item_demister")
 					{
 						itemdata.m_shared.m_itemType = wisplightGem.Value == Toggle.On ? ItemDrop.ItemData.ItemType.Material : ItemDrop.ItemData.ItemType.Utility;
+					}
+				}
+			}
+			if (Player.m_localPlayer)
+			{
+				API.InvokeEffectRecalc();
+			}
+		};
+		wishboneGem = config("6 - Other", "Wishbone Gem", Toggle.On, new ConfigDescription("If on, the Wishbone is a gem for utility items, instead of a utility item itself.", null, new ConfigurationManagerAttributes { Order = --order }));
+		wishboneGem.SettingChanged += (_, _) =>
+		{
+			GemStones.ApplyWishboneGem();
+			ConfigLoader.TryReapplyConfig();
+			if (wishboneGem.Value == Toggle.Off)
+			{
+				Player.m_localPlayer?.m_seman?.RemoveStatusEffect("Wishbone".GetStableHashCode());
+			}
+			if (ObjectDB.instance)
+			{
+				if (Player.m_localPlayer is { } player && player && player.m_utilityItem.m_shared.m_name == "$item_wishbone")
+				{
+					player.UnequipItem(player.m_utilityItem);
+				}
+				Inventory[] inventories = Player.s_players.Select(p => p.GetInventory()).Concat(FindObjectsOfType<Container>().Select(c => c.GetInventory())).Where(c => c is not null).ToArray();
+				foreach (ItemDrop.ItemData itemdata in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c && c.GetComponent<ZNetView>()).Concat(ItemDrop.s_instances).Select(i => i.m_itemData).Concat(inventories.SelectMany(i => i.GetAllItems())))
+				{
+					if (itemdata.m_shared.m_name == "$item_wishbone")
+					{
+						itemdata.m_shared.m_itemType = wishboneGem.Value == Toggle.On ? ItemDrop.ItemData.ItemType.Material : ItemDrop.ItemData.ItemType.Utility;
 					}
 				}
 			}
@@ -698,6 +739,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_reaper_th_mace_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_th_sword_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_spear_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_knife_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_shield_description", "power", worldBossBonusBlockPower);
 
 		Config.SaveOnConfigSet = true;
 		Config.Save();
@@ -707,7 +750,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private static void ToggleFeatherFall(object sender, EventArgs e)
 	{
-		if (ObjectDB.instance && ObjectDB.instance.GetItemPrefab("CapeFeather") is { } cape && ObjectDB.instance.GetStatusEffect("SlowFall") is { } statusEffect)
+		if (ObjectDB.instance && ObjectDB.instance.GetItemPrefab("CapeFeather") is { } cape && ObjectDB.instance.GetStatusEffect("SlowFall".GetStableHashCode()) is { } statusEffect)
 		{
 			StatusEffect? value = featherGliding.Value == Toggle.Off ? null : statusEffect;
 			Item.ApplyToAllInstances(cape, data => data.m_shared.m_equipStatusEffect = value);
@@ -728,7 +771,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	private static void AddBossBoxProgressConfig(string name, float[] progress)
 	{
-		Regex regex = new("['[\"\\]]");
+		Regex regex = new("""['\["\]]""");
 
 		boxBossProgress.Add(name, progress.Select((chance, i) => config("3 - Fusion Box", $"Boss Progress {regex.Replace(english.Localize(name), "")} {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)}", chance, new ConfigDescription($"Progress applied to {english.Localize(FusionBoxSetup.Boxes[i].GetComponent<ItemDrop>().m_itemData.m_shared.m_name)} when killing {regex.Replace(english.Localize(name), "")}", null, new ConfigurationManagerAttributes { Order = -boxBossProgress.Count * 3 - i - 1000 }))).ToArray());
 	}

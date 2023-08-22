@@ -1,9 +1,13 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using CreatureLevelControl;
 using HarmonyLib;
 using UnityEngine;
+using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -32,7 +36,7 @@ public static class Daring
 	private static IEnumerator CheckDaringPresent(Character character)
 	{
 		yield return null;
-		
+
 		List<Player> players = new();
 		while (!string.IsNullOrEmpty(character.m_nview.GetZDO().GetString("Jewelcrafting Daring")))
 		{
@@ -120,11 +124,16 @@ public static class Daring
 				List<Character> characters = Object.FindObjectsOfType<Character>().Where(c => !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < SpawnSystem.m_spawnDistanceMax).ToList();
 				foreach (Character character in characters)
 				{
+					if (CreatureLevelControl.API.GetExtraEffectCreature(character) == CreatureExtraEffect.Splitting)
+					{
+						continue;
+					}
+
 					if (!character.m_nview.GetZDO().GetString("Jewelcrafting Daring").Split(',').Contains(ZDOMan.instance.m_sessionID.ToString()) && (CreatureLevelControl.API.IsEnabled() || character.GetLevel() < 3))
 					{
 						Random.State state = Random.state;
 						Random.InitState((int)(player.GetZDOID().ID + character.GetZDOID().ID));
-						if (Random.value < player.GetEffect(Effect.Daring) / 100f)
+						if (Random.value < player.GetEffect(Effect.Daring) / 100f / Math.Max(Player.GetPlayersInRangeXZ(character.transform.position, SpawnSystem.m_spawnDistanceMax), 1))
 						{
 							// Ensure owner is in proximity of Character
 							if (!character.m_nview.IsOwner() && (Player.s_players.FirstOrDefault(player => player.GetZDOID().UserID == character.m_nview.GetZDO().GetOwner()) is not { } owner || Vector3.Distance(character.transform.position, owner.transform.position) > SpawnSystem.m_spawnDistanceMax + 20))

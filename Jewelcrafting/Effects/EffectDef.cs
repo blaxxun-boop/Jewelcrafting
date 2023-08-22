@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Jewelcrafting.GemEffects;
 
 [Flags]
-public enum GemLocation
+public enum GemLocation: ulong
 {
 	Head = 1 << 0,
 	Cloak = 1 << 1,
@@ -75,6 +75,7 @@ public enum Effect
 	Nimble,
 	Mirror,
 	Echo,
+	Momentum,
 	Ricochet,
 	Elementalchaos,
 	Resonatingechoes,
@@ -119,6 +120,7 @@ public enum Effect
 	Thunderclap,
 	Fade,
 	Wisplight,
+	Wishbone,
 }
 
 public enum Uniqueness
@@ -149,7 +151,7 @@ public class EffectDef
 {
 	static EffectDef()
 	{
-		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace) || (t.Namespace ?? "").StartsWith("Jewelcrafting.SynergyEffects")))
+		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace!) || (t.Namespace ?? "").StartsWith("Jewelcrafting.SynergyEffects")))
 		{
 			RuntimeHelpers.RunClassConstructor(t.TypeHandle);
 		}
@@ -157,6 +159,7 @@ public class EffectDef
 
 	public GemType Type;
 	public GemLocation Slots;
+	public List<string> Items = new();
 	public Uniqueness Unique = Uniqueness.None;
 	public object[] Power = Array.Empty<object>();
 
@@ -408,9 +411,40 @@ public class EffectDef
 						}
 					}
 				}
+				else if (HasKey("item"))
+				{
+					List<string> items = new();
+					if (effectDict["item"] is string singleItem)
+					{
+						if (!string.Equals(singleItem, "none", StringComparison.InvariantCultureIgnoreCase))
+						{
+							items.Add(singleItem);
+						}
+					}
+					else if (effectDict["item"] is List<object?> itemList)
+					{
+						foreach (object? itemObj in itemList)
+						{
+							if (itemObj is string item)
+							{
+								items.Add(item);
+							}
+							else
+							{
+								errorList.Add($"The item list must contain only strings. Got unexpected {itemObj?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+							}
+						}
+					}
+					else
+					{
+						errorList.Add($"Item must be a list of items or a string. Got unexpected {effectDict["item"]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+						return;
+					}
+					effectDef.Items = items;
+				}
 				else
 				{
-					errorList.Add($"An effect definition must contain a key 'slot' for determining which slots the gem may be assigned to. {errorLocation}");
+					errorList.Add($"An effect definition must contain a key 'slot' or 'item' for determining which slots or items the gem may be assigned to. {errorLocation}");
 					return;
 				}
 
@@ -422,7 +456,7 @@ public class EffectDef
 					configType = typeof(DefaultPower);
 				}
 				Dictionary<string, FieldInfo> configFields = new(configType.GetFields().ToDictionary(f => Regex.Replace(f.Name, "(?!^)([A-Z])", " $1"), f => f), StringComparer.InvariantCultureIgnoreCase);
-				if (effectDef.Slots != 0 && configFields.Count > 0)
+				if ((effectDef.Slots != 0 || effectDef.Items.Count != 0) && configFields.Count > 0)
 				{
 					if (HasKey("power"))
 					{
@@ -570,7 +604,7 @@ public class EffectDef
 					break;
 				case List<object?> effectList:
 				{
-					for (int i = 0; i < effectList.Count; i++)
+					for (int i = 0; i < effectList.Count; ++i)
 					{
 						if (effectList[i] is Dictionary<object, object?> effectDict)
 						{
@@ -609,7 +643,12 @@ public class EffectDef
 
 		public List<string> ErrorCheck(object? yaml)
 		{
-			Parse(yaml, out List<string> errors);
+			ParseResult result = Parse(yaml, out List<string> errors);
+			if (ObjectDB.instance)
+			{
+				Utils.ReloadItemNameMap();
+				ValidateRuntime(result, errors);
+			}
 			return errors;
 		}
 
@@ -659,6 +698,35 @@ public class EffectDef
 			}
 		}
 
+		public void ValidateRuntime(List<string> warnings)
+		{
+			Utils.ReloadItemNameMap();
+			
+			foreach (ParseResult result in parsed.Values)
+			{
+				ValidateRuntime(result, warnings);
+			}
+		}
+		
+		private void ValidateRuntime(ParseResult result, List<string> warnings)
+		{
+			foreach (KeyValuePair<Effect, List<EffectDef>> effectKv in result.effects)
+			{
+				foreach (EffectDef def in effectKv.Value)
+				{
+					foreach (string item in def.Items)
+					{
+						if (Utils.GetItem(item) is null)
+						{
+							warnings.Add($"Tried to apply effect {effectKv.Key.ToString()} to an item {item} which does not exist. Skipping.");
+						}
+					}
+				}
+			}
+
+			GachaDef.ValidatePrizes(result.Prizes, warnings);
+		}
+
 		public void ApplyConfig()
 		{
 			Dictionary<Effect, List<EffectDef>> socketEffects = new();
@@ -680,7 +748,7 @@ public class EffectDef
 						foreach (EffectDef def in effectKv.Value)
 						{
 							gems.RemoveAll(g => def.Type == g.Type);
-							if (def.Slots != 0)
+							if (def.Slots != 0 || def.Items.Count > 0)
 							{
 								gems.Add(def);
 							}
@@ -757,7 +825,7 @@ public class EffectDef
 			{
 				foreach (EffectDef def in kv.Value)
 				{
-					if (def.Type == GemType.Wisplight && Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.Off)
+					if ((def.Type == GemType.Wisplight && Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.Off) || (def.Type == GemType.Wishbone && Jewelcrafting.wishboneGem.Value == Jewelcrafting.Toggle.Off))
 					{
 						continue;
 					}
@@ -781,6 +849,18 @@ public class EffectDef
 							{
 								if ((def.Slots & location) == location)
 								{
+									if (!power.TryGetValue(location, out List<EffectPower> effectPowers))
+									{
+										effectPowers = power[location] = new List<EffectPower>();
+									}
+									effectPowers.Add(effectPower);
+								}
+							}
+							foreach (string item in def.Items)
+							{
+								if (Utils.GetItem(item) is {} itemdrop)
+								{
+									GemLocation location = Utils.GetItemGemLocation(itemdrop.m_itemData);
 									if (!power.TryGetValue(location, out List<EffectPower> effectPowers))
 									{
 										effectPowers = power[location] = new List<EffectPower>();

@@ -36,7 +36,6 @@ public class Prizes
 public static class GachaDef
 {
 	private static List<Prizes> prizesList = new();
-	private static readonly Dictionary<string, ItemDrop> items = new(StringComparer.InvariantCultureIgnoreCase);
 
 	public static Prizes? Parse(string name, Dictionary<string, object?> prizesConfig, List<string> errorList)
 	{
@@ -337,17 +336,8 @@ public static class GachaDef
 		return blacklist;
 	}
 
-	public static void Apply(List<Prizes> prizeLists, List<string> blacklist)
+	private static void RemoveInvalidPrizes(List<Prizes> prizeLists, List<string> warnings)
 	{
-		items.Clear();
-		foreach (ItemDrop item in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c != null))
-		{
-			foreach (string name in prefabLocalizations(item))
-			{
-				items[name] = item;
-			}
-		}
-
 		foreach (Prizes prizes in prizeLists)
 		{
 			List<Prize> invalidPrizes = new();
@@ -357,7 +347,7 @@ public static class GachaDef
 				{
 					if (prize.Sockets.Count > 0 && !Utils.IsSocketableItem(item))
 					{
-						Debug.LogWarning($"Prize item {prize.Item} for prize definition '{prizes.Name}' has a Sockets list despite not being socketable. Ignoring.");
+						warnings.Add($"Prize item {prize.Item} for prize definition '{prizes.Name}' has a Sockets list despite not being socketable. Ignoring.");
 						invalidPrizes.Add(prize);
 						continue;
 					}
@@ -366,38 +356,42 @@ public static class GachaDef
 					{
 						if (socket != "empty" && (getItem(socket) is not { } socketItem || !GemStones.socketableGemStones.Contains(socketItem.m_itemData.m_shared.m_name)))
 						{
-							Debug.LogWarning($"Socket {socket} for prize item {prize.Item} for prize definition '{prizes.Name}' does not exist. Ignoring.");
+							warnings.Add($"Socket {socket} for prize item {prize.Item} for prize definition '{prizes.Name}' does not exist. Ignoring.");
 							invalidPrizes.Add(prize);
 						}
 					}
 				}
 				else
 				{
-					Debug.LogWarning($"Prize item {prize.Item} for prize definition '{prizes.Name}' does not exist. Ignoring.");
+					warnings.Add($"Prize item {prize.Item} for prize definition '{prizes.Name}' does not exist. Ignoring.");
 					invalidPrizes.Add(prize);
 				}
 			}
+			prizes.prizes.RemoveAll(p => invalidPrizes.Contains(p));
+		}
+	}
+
+	public static void Apply(List<Prizes> prizeLists, List<string> blacklist)
+	{
+		RemoveInvalidPrizes(prizesList, new List<string>());
+		foreach (Prizes prizes in prizeLists)
+		{
 			foreach (string blacklistedSocket in blacklist)
 			{
 				prizes.blackList.Add(blacklistedSocket);
 			}
-			prizes.prizes.RemoveAll(p => invalidPrizes.Contains(p));
 		}
-
 		prizesList = prizeLists;
 	}
 
-	private static List<string> prefabLocalizations(ItemDrop prefab) => new()
+	public static void ValidatePrizes(List<Prizes> prizes, List<string> warnings)
 	{
-		prefab.name.ToLower(),
-		prefab.m_itemData.m_shared.m_name.ToLower(),
-		Localization.instance.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
-		Jewelcrafting.english.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
-	};
+		RemoveInvalidPrizes(prizes, warnings);
+	}
 
 	public static ItemDrop? getItem(string name)
 	{
-		if (items.TryGetValue(name, out ItemDrop? item))
+		if (Utils.GetItem(name) is {} item)
 		{
 			return item;
 		}

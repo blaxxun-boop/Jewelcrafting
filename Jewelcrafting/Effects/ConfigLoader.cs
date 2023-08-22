@@ -22,6 +22,7 @@ public static class ConfigLoader
 	{
 		List<string> ErrorCheck(object? yaml);
 		void ApplyConfig();
+		void ValidateRuntime(List<string> warnings);
 		List<string> ProcessConfig(string key, object? yaml);
 		void Reset();
 		string FilePattern { get; }
@@ -41,6 +42,7 @@ public static class ConfigLoader
 			{
 				if (___m_firstSpawn && loader.Enabled)
 				{
+					validateConfig(loader);
 					loader.ApplyConfig();
 				}
 			}
@@ -81,6 +83,7 @@ public static class ConfigLoader
 
 			if (ZNetScene.instance?.GetPrefab("_ZoneCtrl") != null)
 			{
+				validateConfig(loader);
 				loader.ApplyConfig();
 			}
 		}
@@ -122,6 +125,16 @@ public static class ConfigLoader
 			{
 				Load("Effects.Jewelcrafting.Groups.yml", "Groups");
 			}
+		}
+	}
+
+	private static void validateConfig(Loader loader)
+	{
+		List<string> warnings = new();
+		loader.ValidateRuntime(warnings);
+		foreach (string warning in warnings)
+		{
+			Debug.LogWarning(warning);
 		}
 	}
 
@@ -205,6 +218,7 @@ public static class ConfigLoader
 			{
 				if (ZNetScene.instance?.GetPrefab("_ZoneCtrl") != null && loader.Enabled)
 				{
+					validateConfig(loader);
 					loader.ApplyConfig();
 				}
 
@@ -244,6 +258,7 @@ public static class ConfigLoader
 		{
 			if (ZNetScene.instance?.GetPrefab("_ZoneCtrl") != null && loader.Enabled)
 			{
+				validateConfig(loader);
 				loader.ApplyConfig();
 			}
 		}

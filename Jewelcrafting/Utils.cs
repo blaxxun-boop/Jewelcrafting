@@ -127,6 +127,8 @@ public static class Utils
 		},
 	};
 
+	public static GemLocation GetItemGemLocation(ItemDrop.ItemData item) => (GemLocation)((ulong)(uint)item.m_shared.m_name.GetStableHashCode() << 32);
+
 	public static byte[] ReadEmbeddedFileBytes(string name)
 	{
 		using MemoryStream stream = new();
@@ -266,4 +268,40 @@ public static class Utils
 	}
 
 	public static bool SkipBossPower() => Player.m_localPlayer.m_rightItem?.m_shared.m_buildPieces is not null;
+
+	private static readonly Dictionary<string, ItemDrop> items = new(StringComparer.InvariantCultureIgnoreCase);
+	private static readonly Dictionary<GemLocation, ItemDrop> itemsByGemLocation = new();
+	private static List<string> prefabLocalizations(ItemDrop prefab) => new()
+	{
+		prefab.name.ToLower(),
+		prefab.m_itemData.m_shared.m_name.ToLower(),
+		Localization.instance.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
+		Jewelcrafting.english.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
+	};
+	
+	public static void ReloadItemNameMap()
+	{
+		items.Clear();
+		itemsByGemLocation.Clear();
+		foreach (ItemDrop item in ObjectDB.instance.m_items.Select(p => p.GetComponent<ItemDrop>()).Where(c => c != null))
+		{
+			foreach (string name in prefabLocalizations(item))
+			{
+				items[name] = item;
+			}
+			itemsByGemLocation[GetItemGemLocation(item.m_itemData)] = item;
+		}
+	}
+
+	public static ItemDrop? GetItem(string name)
+	{
+		items.TryGetValue(name, out ItemDrop? item);
+		return item;
+	}
+
+	public static ItemDrop? GetGemLocationItem(GemLocation location)
+	{
+		itemsByGemLocation.TryGetValue(location, out ItemDrop? item);
+		return item;
+	}
 }

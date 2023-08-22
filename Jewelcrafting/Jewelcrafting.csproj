@@ -359,7 +359,9 @@
     <ItemGroup>
         <Compile Include="Effects\GemEffects\Daring.cs"/>
         <Compile Include="Effects\GemEffects\ElementalChaos.cs"/>
+        <Compile Include="Effects\GemEffects\Momentum.cs" />
         <Compile Include="Effects\GemEffects\Ricochet.cs"/>
+        <Compile Include="Effects\GemEffects\Wishbone.cs" />
         <Compile Include="Effects\JewelryEffects\NightWarmth.cs"/>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>

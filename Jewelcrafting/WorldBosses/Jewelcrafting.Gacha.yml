@@ -35,6 +35,21 @@ Divine Intervention:
         - perfect sapphire
     blessed crystal mirror:
       chance: 0.05
+Radiant Echoes:
+  duration: default
+  prizes:
+    celestial bone shield:
+      chance: 0.02
+      sockets:
+        - perfect sapphire
+        - perfect sulfur
+        - perfect spinel
+    celestial bone dagger:
+      chance: 0.02
+      sockets:
+        - perfect onyx
+        - perfect sulfur
+        - perfect humite
 Heavenly Dominance:
   duration: default
   prizes:

@@ -78,13 +78,21 @@ public class TrackEquipmentChanges
 			if (item?.Data().Get<Sockets>() is { } itemSockets)
 			{
 				GemLocation location = Utils.GetGemLocation(item.m_shared, player);
+				GemLocation itemLocation = Utils.GetItemGemLocation(item);
+				float multiplier = item == player.m_rightItem || item == player.m_leftItem || item == player.m_hiddenRightItem || item == player.m_hiddenRightItem ? weaponMultiplier : 1;
 
 				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name))
 				{
-					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
+					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 					{
-						float multiplier = item == player.m_rightItem || item == player.m_leftItem || item == player.m_hiddenRightItem || item == player.m_hiddenRightItem ? weaponMultiplier : 1;
-						ApplyEffectPowers(effectPowers, multiplier);
+						if (locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
+						{
+							ApplyEffectPowers(effectPowers, multiplier);
+						}
+						if (locationPowers.TryGetValue(itemLocation, out effectPowers))
+						{
+							ApplyEffectPowers(effectPowers, multiplier);
+						}
 					}
 				}
 			}

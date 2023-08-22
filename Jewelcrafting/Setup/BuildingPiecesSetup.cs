@@ -1,6 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
 using PieceManager;
+using SkillManager;
 using UnityEngine;
 
 namespace Jewelcrafting;
@@ -51,11 +52,11 @@ public static class BuildingPiecesSetup
 	}
 
 	[HarmonyPatch(typeof(Smelter), nameof(Smelter.GetItemConversion))]
-	private static class AddChanceToBreak
+	private static class AddChanceToBreakOrUpgrade
 	{
-		private static void Postfix(ref Smelter.ItemConversion? __result)
+		private static void Postfix(Smelter __instance, ref Smelter.ItemConversion? __result)
 		{
-			if (__result is not null && Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && Random.value > upgradeChance.Value / 100f)
+			if (__result is not null && Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && Random.value > upgradeChance.Value / 100f * (1 + Jewelcrafting.upgradeChanceIncrease.Value / 100f * __instance.m_nview.GetZDO().GetFloat("Jewelcrafting SkillLevel")))
 			{
 				__result = new Smelter.ItemConversion
 				{
@@ -63,6 +64,33 @@ public static class BuildingPiecesSetup
 					m_to = GemStones.gemToShard[__result.m_to.name].GetComponent<ItemDrop>(),
 				};
 			}
+		}
+	}
+	
+	[HarmonyPatch(typeof(Smelter), nameof(Smelter.OnAddOre))]
+	private static class StoreSkillLevel
+	{
+		private static void Postfix(Smelter __instance, bool __result)
+		{
+			if (__result)
+			{
+				__instance.m_nview.InvokeRPC("Jewelcrafting SkillLevel", Player.m_localPlayer.GetSkillFactor("Jewelcrafting"));
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Smelter), nameof(Smelter.Awake))]
+	private static class AddRPCs
+	{
+		private static void Postfix(Smelter __instance)
+		{
+			__instance.m_nview.Register<float>("Jewelcrafting SkillLevel", (_, skill) =>
+			{
+				if (__instance.m_nview.IsOwner())
+				{
+					__instance.m_nview.GetZDO().Set("Jewelcrafting SkillLevel", skill);
+				}
+			});
 		}
 	}
 	

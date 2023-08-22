@@ -366,6 +366,7 @@ public static class GemStones
 				}
 			}
 			ApplyWisplightGem();
+			ApplyWishboneGem();
 		}
 	}
 
@@ -378,6 +379,21 @@ public static class GemStones
 			ItemDrop.ItemData.SharedData sharedData = wisplight.GetComponent<ItemDrop>().m_itemData.m_shared;
 			sharedData.m_itemType = Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.On ? ItemDrop.ItemData.ItemType.Material : ItemDrop.ItemData.ItemType.Utility;
 			if (Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.Off)
+			{
+				socketableGemStones.Remove(sharedData.m_name);
+			}
+		}
+	}
+	
+	public static void ApplyWishboneGem()
+	{
+		GemStoneSetup.DisableGemColor(GemType.Wishbone);
+		if (ObjectDB.instance?.GetItemPrefab("Wishbone") is { } wishbone)
+		{
+			GemStoneSetup.RegisterGem(wishbone, GemType.Wishbone);
+			ItemDrop.ItemData.SharedData sharedData = wishbone.GetComponent<ItemDrop>().m_itemData.m_shared;
+			sharedData.m_itemType = Jewelcrafting.wishboneGem.Value == Jewelcrafting.Toggle.On ? ItemDrop.ItemData.ItemType.Material : ItemDrop.ItemData.ItemType.Utility;
+			if (Jewelcrafting.wishboneGem.Value == Jewelcrafting.Toggle.Off)
 			{
 				socketableGemStones.Remove(sharedData.m_name);
 			}
@@ -570,18 +586,31 @@ public static class GemStones
 							{
 								if (container is not Box)
 								{
-									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(itemInfo.Item2.ItemData.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
+									IEnumerable<EffectPower> allEffectPowers = Array.Empty<EffectPower>();
+									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
+									{
+										if (locationPowers.TryGetValue(Utils.GetGemLocation(itemInfo.Item2.ItemData.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
+										{
+											allEffectPowers = effectPowers;
+										}
+										if (locationPowers.TryGetValue(Utils.GetItemGemLocation(itemInfo.Item2.ItemData), out effectPowers))
+										{
+											allEffectPowers = allEffectPowers.Concat(effectPowers);
+										}
+									}
+									allEffectPowers = allEffectPowers.ToArray();
+									if (allEffectPowers.Any())
 									{
 										ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
 										bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
 										// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
 										if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
 										{
-											text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? "_desc" : $" {gem.Power}")));
+											text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? "_desc" : $" {gem.Power}")));
 										}
 										else
 										{
-											text = string.Join("\n", effectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, gem.Effect, gem.Config.GetType().GetFields().Select(p => (float)p.GetValue(gem.Config)).ToArray()) : $" {gem.Power}")));
+											text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, gem.Effect, gem.Config.GetType().GetFields().Select(p => (float)p.GetValue(gem.Config)).ToArray()) : $" {gem.Power}")));
 										}
 									}
 									else
@@ -658,7 +687,7 @@ public static class GemStones
 		return locations;
 	}
 
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
 	private class DisplayEffectsOnGems
 	{
 		private static void Postfix(ItemDrop.ItemData item, ref string __result)
@@ -671,7 +700,20 @@ public static class GemStones
 
 					foreach (KeyValuePair<GemLocation, List<EffectPower>> kv in GroupEffectsByGemLocation(gem))
 					{
-						sb.Append($"\n<color=orange>$jc_socket_slot_{kv.Key.ToString().ToLower()}:</color> {string.Join(", ", kv.Value.Select(effectPower => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {effectPower.Power}"))}");
+						string name = $"$jc_socket_slot_{kv.Key.ToString().ToLower()}";
+						if ((ulong)kv.Key >> 32 != 0)
+						{
+							if (Utils.GetGemLocationItem(kv.Key) is { } targetItem)
+							{
+								name = targetItem.m_itemData.m_shared.m_name;
+							}
+							else
+							{
+								continue;
+							}
+						}
+
+						sb.Append($"\n<color=orange>{name}:</color> {string.Join(", ", kv.Value.Select(effectPower => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {effectPower.Power}"))}");
 					}
 
 					string flavorText = $"{item.m_shared.m_description.Substring(1)}_flavor";
@@ -853,6 +895,7 @@ public static class GemStones
 				anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
 				takeAllButton.anchoredPosition = anchoredPosition;
 				takeAllButton.gameObject.SetActive(true);
+				__instance.m_stackAllButton.gameObject.SetActive(true);
 
 				FusionBoxSetup.AddSealButton.SealButton.SetActive(false);
 
@@ -910,6 +953,7 @@ public static class GemStones
 					return true;
 				}
 
+				invGui.m_stackAllButton.gameObject.SetActive(false);
 				invGui.m_container.gameObject.SetActive(true);
 				invGui.m_containerGrid.UpdateInventory(inventory, null, invGui.m_dragItem);
 				invGui.m_containerName.text = weapon.Get<SocketBag>() is null && weapon.Get<InventoryBag>() is null ? Localization.instance.Localize(weapon.Get<Frame>() is not null ? "$jc_frame_container_title" : "$jc_socket_container_title", Localization.instance.Localize(weapon.ItemData.m_shared.m_name)) : Localization.instance.Localize(weapon.ItemData.m_shared.m_name);
@@ -926,6 +970,11 @@ public static class GemStones
 
 		private static bool Prefix(InventoryGui __instance)
 		{
+			if (AddFakeSocketsContainer.openInventory is not null)
+			{
+				__instance.m_containerHoldTime = 0;
+			}
+			
 			ItemDrop.ItemData? item = null;
 			if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (ZInput.GetButton("Use") || ZInput.GetButton("JoyUse")))
 			{
@@ -1291,7 +1340,7 @@ public static class GemStones
 
 		foreach (GameObject individualSocket in MergedGemStoneSetup.mergedGemContents.TryGetValue(socket.name, out List<GemInfo> gemInfos) ? gemInfos.Select(g => GemStoneSetup.Gems[g.Type][g.Tier - 1].Prefab) : new[] { socket })
 		{
-			if (Jewelcrafting.EffectPowers.TryGetValue(individualSocket.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(targetItem.ItemData.m_shared), out List<EffectPower> effectPowers))
+			string? Check(List<EffectPower> effectPowers)
 			{
 				string socketName = individualSocket.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 				HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
@@ -1324,6 +1373,25 @@ public static class GemStones
 						{
 							return FormatUniqueSocketError(errorType, targetItem.ItemData.m_shared.m_name);
 						}
+					}
+				}
+
+				return null;
+			}
+			if (Jewelcrafting.EffectPowers.TryGetValue(individualSocket.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
+			{
+				if (locationPowers.TryGetValue(Utils.GetGemLocation(targetItem.ItemData.m_shared), out List<EffectPower> effectPowers))
+				{
+					if (Check(effectPowers) is { } error)
+					{
+						return error;
+					}
+				}
+				if (locationPowers.TryGetValue(Utils.GetItemGemLocation(targetItem.ItemData), out effectPowers))
+				{
+					if (Check(effectPowers) is { } error)
+					{
+						return error;
 					}
 				}
 			}
@@ -1464,15 +1532,24 @@ public static class GemStones
 			}
 
 			GemLocation location = Utils.GetGemLocation(item.m_shared);
+			GemLocation itemLocation = Utils.GetItemGemLocation(item);
 			foreach (string gem in itemSockets.socketedGems.Select(s => s.Name))
 			{
-				if (Jewelcrafting.EffectPowers.TryGetValue(gem.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
+				bool IsValid(List<EffectPower> effectPowers)
 				{
 					HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
 					List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, uniquePowers, out List<string> errorType);
 					if (HasEquippedAnyUniqueGem(checkAgainst) is { } equippedUnique)
 					{
 						Player.m_localPlayer.Message(MessageHud.MessageType.Center, FormatUniqueSocketError(errorType, equippedUnique));
+						return false;
+					}
+					return true;
+				}
+				if (Jewelcrafting.EffectPowers.TryGetValue(gem.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
+				{
+					if ((locationPowers.TryGetValue(location, out List<EffectPower> effectPowers) && !IsValid(effectPowers)) || (locationPowers.TryGetValue(itemLocation, out effectPowers) && !IsValid(effectPowers)))
+					{
 						__result = false;
 						return false;
 					}
@@ -1483,7 +1560,7 @@ public static class GemStones
 		}
 	}
 
-	private static bool GemHasEffectInOpenEquipment(ItemDrop.ItemData item) => AddFakeSocketsContainer.openEquipment is null || (Jewelcrafting.EffectPowers.TryGetValue(item.m_dropPrefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(Utils.GetGemLocation(AddFakeSocketsContainer.openEquipment.ItemData.m_shared), out List<EffectPower> powers) && powers.Count != 0);
+	private static bool GemHasEffectInOpenEquipment(ItemDrop.ItemData item) => AddFakeSocketsContainer.openEquipment is null || (Jewelcrafting.EffectPowers.TryGetValue(item.m_dropPrefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && ((locationPowers.TryGetValue(Utils.GetGemLocation(AddFakeSocketsContainer.openEquipment.ItemData.m_shared), out List<EffectPower> powers) && powers.Count != 0) || (locationPowers.TryGetValue(Utils.GetItemGemLocation(AddFakeSocketsContainer.openEquipment.ItemData), out powers) && powers.Count != 0)));
 
 	private static bool ShallDestroyGem(ItemDrop.ItemData item, Inventory inventory)
 	{
