@@ -15,6 +15,7 @@ public static class Vampire
 	private struct Config
 	{
 		[InverseMultiplicativePercentagePower] public float Power;
+		[MaxPower] [OptionalPower(6f)] public float MaxHeal;
 	}
 
 	[HarmonyPatch(typeof(Character), nameof(Character.Damage))]
@@ -24,7 +25,7 @@ public static class Vampire
 		{
 			if (hit.GetAttacker() is Player attacker && Random.value < attacker.GetEffect(Effect.Vampire) / 100f)
 			{
-				attacker.Heal(Random.value * 6 * (1 + attacker.GetEffect(Effect.Bloodthirsty) / 100f));
+				attacker.Heal(Random.value * attacker.GetEffect<Config>(Effect.Vampire).MaxHeal * (1 + attacker.GetEffect(Effect.Bloodthirsty) / 100f));
 			}
 		}
 	}

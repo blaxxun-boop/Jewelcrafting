@@ -42,13 +42,14 @@ public static class CompendiumDisplay
 
 			Dictionary<Effect, KeyValuePair<float[], GemLocation>> gems = new();
 
+			Utils.ActiveSockets active = new(player);
 			Utils.ApplyToAllPlayerItems(player, item =>
 			{
-				if (item?.Data().Get<Sockets>() is { } itemSockets)
+				if (item.Data().Get<Sockets>() is { } itemSockets)
 				{
 					GemLocation location = Utils.GetGemLocation(item.m_shared, player);
 					GemLocation itemLocation = Utils.GetItemGemLocation(item);
-					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != ""))
+					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != "").Take(active.Sockets(item)))
 					{
 						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 						{

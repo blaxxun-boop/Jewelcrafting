@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.16";
+	private const string ModVersion = "1.4.17";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -116,6 +116,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<float> gemstoneFormationHealth = null!;
 	public static ConfigEntry<Toggle> featherGliding = null!;
 	public static ConfigEntry<int> featherGlidingBuff = null!;
+	public static ConfigEntry<Toggle> ringSlot = null!;
+	public static ConfigEntry<Toggle> necklaceSlot = null!;
+	public static ConfigEntry<Toggle> splitSockets = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -340,29 +343,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		bossSpawnBaseDistance = config("4 - World Boss", "Base Distance Boss Spawns", 50, new ConfigDescription("Minimum distance to player build structures for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossTimeLimit = config("4 - World Boss", "Time Limit", 60, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossCoinDrop = config("4 - World Boss", "Coins per Boss Kill", 5, new ConfigDescription("Number of Celestial Coins dropped by bosses per player.", new AcceptableValueRange<int>(0, 20), new ConfigurationManagerAttributes { Order = --order }));
-		void WorldBossCustomChanged(object? o, EventArgs? e)
-		{
-			switch (worldBossBalance.Value)
-			{
-				case GachaSetup.BalanceToggle.Plains:
-					BossSetup.ApplyBalanceConfig(BossSetup.plainsConfigs);
-					break;
-				case GachaSetup.BalanceToggle.Mistlands:
-					BossSetup.ApplyBalanceConfig(BossSetup.mistlandsConfigs);
-					break;
-				case GachaSetup.BalanceToggle.Custom:
-					BossSetup.ApplyBalanceConfig(new BossSetup.BalanceConfig
-					{
-						health = worldBossHealth.Value,
-						punchBlunt = worldBossPunchDamage.Value,
-						smashBlunt = worldBossSmashDamage.Value,
-						aoeFire = worldBossFireDamage.Value,
-						aoeFrost = worldBossFrostDamage.Value,
-						aoePoison = worldBossPoisonDamage.Value,
-					});
-					break;
-			}
-		}
 		worldBossBalance = config("4 - World Boss", "Balance", GachaSetup.BalanceToggle.Mistlands, new ConfigDescription("Balancing to use for the world bosses.", null, new ConfigurationManagerAttributes { Order = --order }));
 		List<ConfigurationManagerAttributes> worldBossCustomAttributes = new();
 		worldBossBalance.SettingChanged += (o, e) =>
@@ -374,12 +354,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			reloadConfigDisplay();
 			WorldBossCustomChanged(o, e);
 		};
-		ConfigurationManagerAttributes WorldBossAttribute()
-		{
-			ConfigurationManagerAttributes attributes = new() { Order = --order, Browsable = worldBossBalance.Value == GachaSetup.BalanceToggle.Custom };
-			worldBossCustomAttributes.Add(attributes);
-			return attributes;
-		}
 		worldBossHealth = config("4 - World Boss", "Boss Health", BossSetup.mistlandsConfigs.health, new ConfigDescription("Balancing to use for the world bosses.", null, WorldBossAttribute()));
 		worldBossHealth.SettingChanged += WorldBossCustomChanged;
 		worldBossPunchDamage = config("4 - World Boss", "Punch Damage", BossSetup.mistlandsConfigs.punchBlunt, new ConfigDescription("Basic attack damage dealt by world bosses.", null, WorldBossAttribute()));
@@ -440,13 +414,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		gemstoneFormationParticles = config("6 - Other", "Gemstone Formation Particles", Toggle.On, new ConfigDescription("You can use this to disable the particles around gemstone formations in the world. If you think this will improve your performance, you will be disappointed. Let me tell you a thing or two about performance. If you are one of those people that still look at their instance count and worry about it being too high, please stop doing that. There are 'good' instances and 'bad' instances. You can have a million good instances and still get 100 FPS and you can have a single bad instance and your FPS drop to 5. So, if you want to improve your performance, get rid of the bad instances in your base. Creatures? Bad instances. Crops? Bad instances. Building pieces? Okayish instances. Gemstone formation particles? Good instances.\n\nIf you need an indicator for the performance of an area, how about looking at your FPS, instead of some arbitrary instance count?", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		gemstoneFormationParticles.SettingChanged += (_, _) =>
 		{
-			void SetActive(GameObject destructible)
-			{
-				if (destructible.transform.Find("Orbs") is { } orbs)
-				{
-					orbs.gameObject.SetActive(gemstoneFormationParticles.Value == Toggle.On);
-				}
-			}
 			foreach (GameObject destructible in DestructibleSetup.destructibles.Values)
 			{
 				SetActive(destructible);
@@ -457,6 +424,16 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				if (gemId != ZDOID.None && ZNetScene.instance.FindInstance(gemId) is { } existingDestructible)
 				{
 					SetActive(existingDestructible);
+				}
+			}
+			
+			return;
+			
+			void SetActive(GameObject destructible)
+			{
+				if (destructible.transform.Find("Orbs") is { } orbs)
+				{
+					orbs.gameObject.SetActive(gemstoneFormationParticles.Value == Toggle.On);
 				}
 			}
 		};
@@ -540,6 +517,16 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		featherGliding = config("6 - Other", "Feather Fall", Toggle.On, new ConfigDescription("Can be used to disable Feather Fall on the Feather Cape and replace it with a buff for Gliding instead.", null, new ConfigurationManagerAttributes { Order = --order }));
 		featherGliding.SettingChanged += ToggleFeatherFall;
 		featherGlidingBuff = config("6 - Other", "Feather Fall Buff", 20, new ConfigDescription("Increases the duration of Gliding. Percentage. Only active, when Feather Fall is disabled.", null, new ConfigurationManagerAttributes { Order = --order }));
+		ringSlot = config("6 - Other", "Ring Slot", Toggle.On, new ConfigDescription("If on, the Jewelcrafting rings do not go into the utility slot, but get a special dedicated ring slot.", null, new ConfigurationManagerAttributes { Order = --order }));
+		necklaceSlot = config("6 - Other", "Necklace Slot", Toggle.On, new ConfigDescription("If on, the Jewelcrafting necklaces do not go into the utility slot, but get a special dedicated necklace slot.", null, new ConfigurationManagerAttributes { Order = --order }));
+		splitSockets = config("6 - Other", "Split Sockets", Toggle.On, new ConfigDescription("If on, the sockets in utility, necklace and ring slots are split, if multiple items are equipped.", null, new ConfigurationManagerAttributes { Order = --order }));
+		splitSockets.SettingChanged += (_, _) =>
+		{
+			if (Player.m_localPlayer)
+			{
+				TrackEquipmentChanges.CalculateEffects(Player.m_localPlayer);
+			}
+		};
 
 		warmthStaminaRegen = config("Ruby Ring of Warmth", "Stamina Regen", 10, new ConfigDescription("Stamina regen increase for the Ruby Ring of Warmth effect.", new AcceptableValueRange<int>(0, 100)));
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
@@ -550,12 +537,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		aquaticDamageIncrease = config("Aquatic Sapphire Necklace", "Damage Increase", 10, new ConfigDescription("Damage increase while wearing the Aquatic Sapphire Necklace and being wet.", new AcceptableValueRange<int>(0, 100)));
 		modersBlessingDuration = config("Ring of Moders Sapphire Blessing", "Effect Duration", 15, new ConfigDescription("Effect duration in seconds for the Ring of Moder's Sapphire Blessing."));
 		modersBlessingCooldown = config("Ring of Moders Sapphire Blessing", "Effect Cooldown", 60, new ConfigDescription("Effect cooldown in seconds for the Ring of Moder's Sapphire Blessing."));
-
-		void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
-		{
-			setter(config.Value);
-			config.SettingChanged += (_, _) => setter(config.Value);
-		}
 
 		GemEffectSetup.initializeGemEffect(assets);
 		MiscSetup.initializeMisc(assets);
@@ -746,6 +727,45 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Config.Save();
 
 		BossSpawn.SetupBossSpawn();
+
+		return;
+
+		ConfigurationManagerAttributes WorldBossAttribute()
+		{
+			ConfigurationManagerAttributes attributes = new() { Order = --order, Browsable = worldBossBalance.Value == GachaSetup.BalanceToggle.Custom };
+			worldBossCustomAttributes.Add(attributes);
+			return attributes;
+		}
+		
+		void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
+		{
+			setter(config.Value);
+			config.SettingChanged += (_, _) => setter(config.Value);
+		}
+
+		void WorldBossCustomChanged(object? o, EventArgs? e)
+		{
+			switch (worldBossBalance.Value)
+			{
+				case GachaSetup.BalanceToggle.Plains:
+					BossSetup.ApplyBalanceConfig(BossSetup.plainsConfigs);
+					break;
+				case GachaSetup.BalanceToggle.Mistlands:
+					BossSetup.ApplyBalanceConfig(BossSetup.mistlandsConfigs);
+					break;
+				case GachaSetup.BalanceToggle.Custom:
+					BossSetup.ApplyBalanceConfig(new BossSetup.BalanceConfig
+					{
+						health = worldBossHealth.Value,
+						punchBlunt = worldBossPunchDamage.Value,
+						smashBlunt = worldBossSmashDamage.Value,
+						aoeFire = worldBossFireDamage.Value,
+						aoeFrost = worldBossFrostDamage.Value,
+						aoePoison = worldBossPoisonDamage.Value,
+					});
+					break;
+			}
+		}
 	}
 
 	private static void ToggleFeatherFall(object sender, EventArgs e)

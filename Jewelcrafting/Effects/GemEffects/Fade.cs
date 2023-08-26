@@ -7,6 +7,18 @@ namespace Jewelcrafting.GemEffects;
 
 public static class Fade
 {
+	static Fade()
+	{
+		EffectDef.ConfigTypes.Add(Effect.Fade, typeof(Config));
+	}
+	
+	[PublicAPI]
+	private struct Config
+	{
+		[AdditivePower] public float Power;
+		[MinPower] [OptionalPower(30f)] public float DamageThreshold;
+	}
+	
 	[HarmonyPatch(typeof(Player), nameof(Player.Awake))]
 	private static class TogglePlayerShaderRPC
 	{
@@ -17,11 +29,11 @@ public static class Fade
 			__instance.m_nview.Register<bool>("Jewelcrafting Fade Shader", (_, hide) =>
 			{
 				bodyRenderer.material = hide ? GemEffectSetup.fadingMaterial : defaultPlayerMaterial;
-                ToggleEquipment(__instance, !hide);
+				ToggleEquipment(__instance, !hide);
 			});
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(Player), nameof(Player.OnDamaged))]
 	public static class ReduceDamageTaken
 	{
@@ -30,7 +42,7 @@ public static class Fade
 		{
 			if (hit.GetAttacker() is { } attacker && attacker != __instance && __instance.GetEffect(Effect.Fade) > 0)
 			{
-				if (hit.GetTotalDamage() > __instance.GetMaxHealth() * 0.3f && !__instance.IsDead())
+				if (hit.GetTotalDamage() > __instance.GetMaxHealth() * (__instance.GetEffect<Config>(Effect.Fade).DamageThreshold / 100f) && !__instance.IsDead())
 				{
 					GemEffectSetup.fading.m_ttl = __instance.GetEffect(Effect.Fade);
 					__instance.m_seman.AddStatusEffect(GemEffectSetup.fading);

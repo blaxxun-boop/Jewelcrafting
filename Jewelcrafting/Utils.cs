@@ -47,16 +47,12 @@ public static class Utils
 		       (item.m_shared.m_itemType is ItemDrop.ItemData.ItemType.OneHandedWeapon && !item.m_shared.m_attack.m_consumeItem);
 	}
 
-	public static void ApplyToAllPlayerItems(Player player, Action<ItemDrop.ItemData?> callback)
+	public static void ApplyToAllPlayerItems(Player player, Action<ItemDrop.ItemData> callback)
 	{
-		callback(player.m_rightItem);
-		callback(player.m_leftItem);
-		callback(player.m_chestItem);
-		callback(player.m_legItem);
-		callback(player.m_ammoItem);
-		callback(player.m_helmetItem);
-		callback(player.m_shoulderItem);
-		callback(player.m_utilityItem);
+		foreach (ItemDrop.ItemData item in player.GetInventory().GetEquippedItems())
+		{
+			callback(item);
+		}
 	}
 
 	public static readonly Dictionary<Effect, string> zdoNames = ((Effect[])Enum.GetValues(typeof(Effect))).ToDictionary(e => e, e => "Jewelcrafting Socket " + e);
@@ -116,7 +112,7 @@ public static class Utils
 			Skills.SkillType.Polearms => GemLocation.Polearm,
 			Skills.SkillType.Spears => GemLocation.Spear,
 			Skills.SkillType.Blocking => GemLocation.Shield,
-			Skills.SkillType.Axes => (player is not null && player == Player.m_localPlayer ? player.m_utilityItem?.m_shared.m_name == JewelrySetup.yellowNecklaceName : player?.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.yellowNecklaceHash) ? GemLocation.Tool : GemLocation.Axe,
+			Skills.SkillType.Axes => player is not null && IsJewelryEquipped(player, "JC_Necklace_Yellow") ? GemLocation.Tool : GemLocation.Axe,
 			Skills.SkillType.Bows => GemLocation.Bow,
 			Skills.SkillType.Crossbows => GemLocation.Crossbow,
 			Skills.SkillType.Pickaxes => GemLocation.Tool,
@@ -303,5 +299,40 @@ public static class Utils
 	{
 		itemsByGemLocation.TryGetValue(location, out ItemDrop? item);
 		return item;
+	}
+
+	public static bool IsJewelryEquipped(Player player, string prefabName)
+	{
+		int hash = prefabName.GetStableHashCode();
+		if (player.m_visEquipment.m_currentUtilityItemHash == hash)
+		{
+			return true;
+		}
+
+		Visual visual = Visual.visuals[player.m_visEquipment];
+		return visual.currentFingerItemHash == hash || visual.currentNeckItemHash == hash;
+	}
+
+	public class ActiveSockets
+	{
+		private readonly int activeUtilityItems;
+		private readonly ItemDrop.ItemData? primaryUtilityItem;
+		private readonly int availableUtilitySlots;
+		
+		public ActiveSockets(Player player)
+		{
+			activeUtilityItems = player.GetInventory().GetEquippedItems().Count(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+			primaryUtilityItem = player.m_utilityItem ?? player.GetInventory().GetEquippedItems().FirstOrDefault(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+			availableUtilitySlots = activeUtilityItems == 0 ? 0 : Jewelcrafting.maximumNumberSockets.Value / activeUtilityItems;
+		}
+
+		public int Sockets(ItemDrop.ItemData item)
+		{
+			if (Jewelcrafting.splitSockets.Value == Jewelcrafting.Toggle.On && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility)
+			{
+				return item == primaryUtilityItem ? item.Data().Get<Sockets>()!.socketedGems.Count - (activeUtilityItems - 1) * availableUtilitySlots : availableUtilitySlots;
+			}
+			return int.MaxValue;
+		}
 	}
 }

@@ -568,9 +568,14 @@ public static class GemStones
 				}
 
 				int numSockets = 0;
+				int activeSockets = int.MaxValue;
 				if (container is Socketable sockets and not Box { progress: >= 100 } and not SocketBag and not Frame)
 				{
 					numSockets = sockets.socketedGems.Count;
+					if (Player.m_localPlayer is not null)
+					{
+						activeSockets = new Utils.ActiveSockets(Player.m_localPlayer).Sockets(itemInfo.Item2.ItemData);
+					}
 				}
 				for (int i = 1; i <= 5; ++i)
 				{
@@ -580,42 +585,54 @@ public static class GemStones
 						if (i <= numSockets)
 						{
 							string socket = ((Socketable)container).socketedGems[i - 1].Name;
+							if (socket == "")
+							{
+								++activeSockets;
+							}
+							
 							string text = "$jc_empty_socket_text";
 							Sprite? sprite = null;
 							if (ObjectDB.instance.GetItemPrefab(socket) is { } gameObject)
 							{
 								if (container is not Box)
 								{
-									IEnumerable<EffectPower> allEffectPowers = Array.Empty<EffectPower>();
-									if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
+									if (i <= activeSockets)
 									{
-										if (locationPowers.TryGetValue(Utils.GetGemLocation(itemInfo.Item2.ItemData.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
+										IEnumerable<EffectPower> allEffectPowers = Array.Empty<EffectPower>();
+										if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 										{
-											allEffectPowers = effectPowers;
+											if (locationPowers.TryGetValue(Utils.GetGemLocation(itemInfo.Item2.ItemData.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
+											{
+												allEffectPowers = effectPowers;
+											}
+											if (locationPowers.TryGetValue(Utils.GetItemGemLocation(itemInfo.Item2.ItemData), out effectPowers))
+											{
+												allEffectPowers = allEffectPowers.Concat(effectPowers);
+											}
 										}
-										if (locationPowers.TryGetValue(Utils.GetItemGemLocation(itemInfo.Item2.ItemData), out effectPowers))
+										allEffectPowers = allEffectPowers.ToArray();
+										if (allEffectPowers.Any())
 										{
-											allEffectPowers = allEffectPowers.Concat(effectPowers);
-										}
-									}
-									allEffectPowers = allEffectPowers.ToArray();
-									if (allEffectPowers.Any())
-									{
-										ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
-										bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
-										// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
-										if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
-										{
-											text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? "_desc" : $" {gem.Power}")));
+											ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
+											bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
+											// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+											if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
+											{
+												text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? "_desc" : $" {gem.Power}")));
+											}
+											else
+											{
+												text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, gem.Effect, gem.Config.GetType().GetFields().Select(p => (float)p.GetValue(gem.Config)).ToArray()) : $" {gem.Power}")));
+											}
 										}
 										else
 										{
-											text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, gem.Effect, gem.Config.GetType().GetFields().Select(p => (float)p.GetValue(gem.Config)).ToArray()) : $" {gem.Power}")));
+											text = "$jc_effect_no_effect";
 										}
 									}
 									else
 									{
-										text = "$jc_effect_no_effect";
+										text = "$jc_effect_disabled_other_utility_item_equipped";
 									}
 								}
 								else
@@ -1440,7 +1457,7 @@ public static class GemStones
 		string?[] alreadyEquipped = new string[1];
 		Utils.ApplyToAllPlayerItems(Player.m_localPlayer, slot =>
 		{
-			if (slot?.Data() != ignoreContainer && slot?.Data().Get<Sockets>() is { } itemSockets)
+			if (slot.Data() != ignoreContainer && slot?.Data().Get<Sockets>() is { } itemSockets)
 			{
 				if (itemSockets.socketedGems.Contains(new SocketItem(gem)))
 				{

@@ -29,7 +29,7 @@ public static class Synergy
 		List<GemType> gemTypes = new();
 		Utils.ApplyToAllPlayerItems(player, item =>
 		{
-			if (item?.Data().Get<Sockets>() is { } itemSockets)
+			if (item.Data().Get<Sockets>() is { } itemSockets)
 			{
 				foreach (SocketItem socket in itemSockets.socketedGems)
 				{

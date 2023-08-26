@@ -16,6 +16,7 @@ public static class Necromancer
 	private struct Config
 	{
 		[InverseMultiplicativePercentagePower] public float Power;
+		[MaxPower] [OptionalPower(10f)] public float Duration;
 	}
 
 	public static GameObject skeleton = null!;
@@ -31,6 +32,8 @@ public static class Necromancer
 				{
 					Transform transform = player.transform;
 					float rand = Random.Range(-0.2f, 0.2f);
+					skeleton.GetComponent<CharacterTimedDestruction>().m_timeoutMin = player.GetEffect<Config>(Effect.Necromancer).Duration + 3f;
+					skeleton.GetComponent<CharacterTimedDestruction>().m_timeoutMax = player.GetEffect<Config>(Effect.Necromancer).Duration + 3f;
 					Humanoid pet = Object.Instantiate(skeleton, transform.position + transform.right * (rand + Mathf.Sign(rand) * 0.9f) + Vector3.up * 0.5f, transform.rotation).GetComponent<Humanoid>();
 					pet.m_tamed = true;
 					pet.m_nview.m_zdo.Set("tamed", true);

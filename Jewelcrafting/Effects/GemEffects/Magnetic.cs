@@ -13,7 +13,7 @@ public static class Magnetic
 	{
 		EffectDef.ConfigTypes.Add(Effect.Magnetic, typeof(Config));
 	}
-	
+
 	[PublicAPI]
 	private struct Config
 	{
@@ -25,7 +25,7 @@ public static class Magnetic
 	{
 		private static void Postfix(Projectile __instance)
 		{
-			if (__instance.m_skill == Skills.SkillType.Spears && __instance.m_owner is Player player && Random.value < player.GetEffect(Effect.Magnetic) / 100f)
+			if (__instance is { m_skill: Skills.SkillType.Spears, m_owner: Player player } && Random.value < player.GetEffect(Effect.Magnetic) / 100f)
 			{
 				__instance.m_nview.GetZDO().Set("Jewelcrafting Magnet", true);
 			}
@@ -47,7 +47,7 @@ public static class Magnetic
 
 		private static readonly MethodInfo ItemDropper = AccessTools.DeclaredMethod(typeof(ItemDrop), nameof(ItemDrop.DropItem));
 		private static readonly MethodInfo ItemRecaller = AccessTools.DeclaredMethod(typeof(ReturnWeapon), nameof(IssueItemMagnet));
-		
+
 		[UsedImplicitly]
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
 		{

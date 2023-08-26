@@ -10,17 +10,12 @@ namespace Jewelcrafting;
 public static class JewelrySetup
 {
 	public static readonly HashSet<string> upgradeableJewelry = new();
-
-	public static int greenRingHash;
-	public static string redRingName = null!;
-	public static int yellowNecklaceHash;
-	public static string yellowNecklaceName = null!;
-
+	
 	private static GameObject customNecklacePrefab = null!;
 	private static GameObject customRingPrefab = null!;
 
-	public static GameObject CreateRingFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customRingPrefab, colorName, $"jc_{colorName.Replace(" ", "_").ToLower()}_ring", color);
-	public static GameObject CreateNecklaceFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customNecklacePrefab, colorName, $"jc_{colorName.Replace(" ", "_").ToLower()}_necklace", color);
+	public static GameObject CreateRingFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customRingPrefab, colorName, $"jc_ring_{colorName.Replace(" ", "_").ToLower()}", color);
+	public static GameObject CreateNecklaceFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customNecklacePrefab, colorName, $"jc_necklace_{colorName.Replace(" ", "_").ToLower()}", color);
 	public static void MarkJewelry(GameObject jewelry) => upgradeableJewelry.Add(jewelry.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 
 	public static void initializeJewelry(AssetBundle assets)
@@ -61,8 +56,6 @@ public static class JewelrySetup
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
-		yellowNecklaceHash = item.Prefab.name.GetStableHashCode();
-		yellowNecklaceName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
@@ -86,7 +79,6 @@ public static class JewelrySetup
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
-		greenRingHash = item.Prefab.name.GetStableHashCode();
 
 		item = new Item(assets, "JC_Ring_Red");
 		item.Crafting.Add("op_transmution_table", 2);
@@ -94,11 +86,10 @@ public static class JewelrySetup
 		item.RequiredItems.Add("Chain", 1);
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
-		redRingName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 		ItemDrop.ItemData.SharedData redRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
 		redRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<NightWarmth>(redRingShared.m_equipStatusEffect);
 		GemEffectSetup.warmth = (SE_Stats)redRingShared.m_equipStatusEffect;
-		upgradeableJewelry.Add(redRingName);
 
 		item = new Item(assets, "JC_Ring_Blue");
 		item.Crafting.Add("op_transmution_table", 2);
@@ -119,6 +110,15 @@ public static class JewelrySetup
 			if (__instance.m_utilityItem is { } jewelry && upgradeableJewelry.Contains(jewelry.m_shared.m_name))
 			{
 				__result += jewelry.GetArmor();
+			}
+			Visual visual = Visual.visuals[__instance.m_visEquipment];
+			if (visual.equippedFingerItem is { } finger && upgradeableJewelry.Contains(finger.m_shared.m_name))
+			{
+				__result += finger.GetArmor();
+			}
+			if (visual.equippedNeckItem is { } neck && upgradeableJewelry.Contains(neck.m_shared.m_name))
+			{
+				__result += neck.GetArmor();
 			}
 		}
 	}

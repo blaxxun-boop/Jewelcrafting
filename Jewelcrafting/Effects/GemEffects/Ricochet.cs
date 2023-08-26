@@ -17,6 +17,7 @@ public static class Ricochet
 	private struct Config
 	{
 		[InverseMultiplicativePercentagePower] public float Power;
+		[MaxPower] [OptionalPower(15f)] public float Range;
 	}
 
 	[HarmonyPatch(typeof(Projectile), nameof(Projectile.OnHit))]
@@ -38,7 +39,7 @@ public static class Ricochet
 						{
 							Vector3 characterCenter = character.transform.position + character.m_body.centerOfMass;
 							
-							if (Physics.Raycast(characterCenter, hitCharacterCenter - characterCenter, out RaycastHit hitInfo, 15f, Projectile.s_rayMaskSolids) && Projectile.FindHitObject(hitInfo.collider) == hitCharacter.gameObject)
+							if (Physics.Raycast(characterCenter, hitCharacterCenter - characterCenter, out RaycastHit hitInfo, player.GetEffect<Config>(Effect.Ricochet).Range, Projectile.s_rayMaskSolids) && Projectile.FindHitObject(hitInfo.collider) == hitCharacter.gameObject)
 							{
 								Vector3 direction = characterCenter - hitInfo.point;
 								GameObject newArrow = Object.Instantiate(__instance.gameObject, hitInfo.point, Quaternion.LookRotation(direction));

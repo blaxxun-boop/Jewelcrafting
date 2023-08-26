@@ -9,7 +9,7 @@ public static class Lumberjacking
 	{
 		private static void Prefix(HitData hit)
 		{
-			if (hit.GetAttacker() is Player player && player.m_visEquipment.m_currentUtilityItemHash == JewelrySetup.yellowNecklaceHash && hit.m_skill == Skills.SkillType.Axes)
+			if (hit.GetAttacker() is Player player && Utils.IsJewelryEquipped(player, "JC_Necklace_Yellow") && hit.m_skill == Skills.SkillType.Axes)
 			{
 				hit.ApplyModifier(0.5f);
 			}

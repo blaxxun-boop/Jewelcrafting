@@ -8,7 +8,7 @@ public static class Aquatic
 	{
 		API.OnEffectRecalc += () =>
 		{
-			if (Player.m_localPlayer.m_utilityItem?.m_shared.m_name != "$jc_necklace_blue")
+			if (!Utils.IsJewelryEquipped(Player.m_localPlayer, "JC_Necklace_Blue"))
 			{
 				Player.m_localPlayer.m_seman.RemoveStatusEffect(GemEffectSetup.aquatic);
 			}
@@ -20,14 +20,14 @@ public static class Aquatic
 	{
 		private static void Postfix(SE_Wet __instance)
 		{
-			if (__instance.m_character is not Humanoid humanoid || humanoid.m_utilityItem?.m_shared.m_name != "$jc_necklace_blue")
+			if (__instance.m_character != Player.m_localPlayer || !Utils.IsJewelryEquipped(Player.m_localPlayer, "JC_Necklace_Blue"))
 			{
 				return;
 			}
 			
-			if (humanoid.GetSEMan().GetStatusEffect(GemEffectSetup.aquatic.name.GetStableHashCode()) is not { } aquatic)
+			if (Player.m_localPlayer.GetSEMan().GetStatusEffect(GemEffectSetup.aquatic.name.GetStableHashCode()) is not { } aquatic)
 			{
-				aquatic = humanoid.GetSEMan().AddStatusEffect(GemEffectSetup.aquatic);
+				aquatic = Player.m_localPlayer.GetSEMan().AddStatusEffect(GemEffectSetup.aquatic);
 			}
 			aquatic.m_ttl = __instance.m_ttl;
 			aquatic.m_time = __instance.m_time;

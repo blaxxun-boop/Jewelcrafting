@@ -15,6 +15,8 @@ public static class Mirror
 	private struct Config
 	{
 		[InverseMultiplicativePercentagePower] public float Power;
+		[MaxPower] [OptionalPower(100f)] public float DamageReflected;
+
 	}
 
 	[HarmonyPatch(typeof(Character), nameof(Character.Damage))]
@@ -37,6 +39,9 @@ public static class Mirror
 						m_point = attacker.transform.localPosition,
 						m_damage = hit.m_damage,
 					};
+					
+					hitData.ApplyModifier(player.GetEffect<Config>(Effect.Mirror).DamageReflected / 100f);
+					
 					try
 					{
 						isApplyingReflectiveDmg = true;

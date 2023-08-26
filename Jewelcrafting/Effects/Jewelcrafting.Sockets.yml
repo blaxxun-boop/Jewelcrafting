@@ -4,27 +4,37 @@ fire starter:
   slot: [weapon, elementalmagic]
   gem: red
   power: [5, 10, 15]
+  # Optional Configs:
+  # - chance (default: 20)
 
 ice heart:
   slot: [weapon, elementalmagic]
   gem: blue
   power: [5, 10, 15]
+  # Optional Configs:
+  # - chance (default: 20)
 
 snake bite:
   slot: [weapon, elementalmagic]
   gem: green
   power: [5, 10, 15]
+  # Optional Configs:
+  # - chance (default: 20)
 
 shadow hit:
   slot: weapon
   gem: black
   power: [2, 3, 4]
-
+  # Optional Configs:
+  # - range (default: 5)
+  
 vampire:
   slot: [weapon, elementalmagic]
   gem: yellow
   power: [6, 8, 10]
-
+  # Optional Configs:
+  # - max heal (default: 6)
+  
 berserk:
   slot: [weapon, magic]
   gem: purple
@@ -36,22 +46,22 @@ magnetic:
   slot: spear
   gem: black
   power: [20, 30, 40]
-  
+
 opportunity:
   slot: axe
   gem: red
   power: [5, 7, 9]
-  
+
 perforation:
   slot: knife
   gem: orange
   power: [2, 4, 6]
-  
+
 thunderclap:
   slot: polearm
   gem: orange
   power: [3, 5, 7]
-  
+
 # Magic Weapons
 
 magical bargain:
@@ -85,11 +95,15 @@ mirror:
   slot: chest
   gem: black
   power: [2, 4, 6]
-
+  # Optional Configs:
+  # - damage reflected (default: 100)
+  
 fade:
   slot: chest
   gem: orange
   power: [1, 2, 3]
+  # Optional Configs:
+  # - damage threshold (default: 30)
   
 # Legs
 
@@ -117,7 +131,7 @@ mountain goat:
   slot: legs
   gem: purple
   power: [10, 15, 20]
-  
+
 lifeguard:
   slot: legs
   gem: orange
@@ -127,7 +141,7 @@ momentum:
   slot: legs
   gem: green
   power: [5, 10, 15]
-  
+
 # Utility
 
 power recovery:
@@ -154,12 +168,12 @@ daring:
   slot: utility
   gem: orange
   power: [10, 20, 30]
-  
+
 wisplight:
   slot: utility
   gem: wisplight
   power: 10
-  
+
 wishbone:
   slot: utility
   gem: wishbone
@@ -191,7 +205,7 @@ merciful death:
   slot: head
   gem: blue
   power: [10, 15, 20]
-  
+
 eitr surge:
   slot: head
   gem: orange
@@ -232,29 +246,39 @@ echo:
   slot: [bow, crossbow]
   gem: yellow
   power: [2, 3, 4]
-
+  # Optional Configs:
+  # - bonus projectiles (default: 1)
+  
 necromancer:
   slot: [bow, crossbow]
   gem: green
   power: [3, 5, 7]
-
+  # Optional Configs:
+  # - duration (default: 10)
+  
 ricochet:
   slot: [bow, crossbow]
   gem: orange
   power: [3, 5, 7]
-
+  # Optional Configs:
+  # - range (default: 15)
+  
 elemental chaos:
   slot: [bow, crossbow]
   gem: blue
   power: [10, 15, 20]
-
+  # Optional Configs:
+  # - chance (default: 20)
+  
 # Cloak
 
 glider:
   slot: cloak
   gem: green
   power: [3, 5, 7]
-
+  # Optional Configs:
+  # - required height (default: 3.5)
+  
 inconspicuous:
   slot: cloak
   gem: black
@@ -281,6 +305,8 @@ avoidance:
   slot: shield
   gem: yellow
   power: [1, 2, 3]
+  # Optional Configs:
+  # - damage reduction (default 100)
 
 tank:
   slot: shield
@@ -303,7 +329,7 @@ energetic:
   slot: tool
   gem: yellow
   power: [15, 25, 30]
-  
+
 frenzy:
   slot: tool
   gem: black
@@ -380,7 +406,7 @@ apotheosis:
     magic damage increase: 15
     attack speed: 20
   unique: all
-  
+
 # Gem Spawn
 
 gems:
