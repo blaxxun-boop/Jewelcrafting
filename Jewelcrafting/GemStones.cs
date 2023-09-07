@@ -568,7 +568,7 @@ public static class GemStones
 				}
 
 				int numSockets = 0;
-				int activeSockets = int.MaxValue;
+				int activeSockets = int.MaxValue / 2;
 				if (container is Socketable sockets and not Box { progress: >= 100 } and not SocketBag and not Frame)
 				{
 					numSockets = sockets.socketedGems.Count;
@@ -1556,7 +1556,7 @@ public static class GemStones
 				{
 					HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
 					List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, uniquePowers, out List<string> errorType);
-					if (HasEquippedAnyUniqueGem(checkAgainst) is { } equippedUnique)
+					if (HasEquippedAnyUniqueGem(checkAgainst, item.Data()) is { } equippedUnique)
 					{
 						Player.m_localPlayer.Message(MessageHud.MessageType.Center, FormatUniqueSocketError(errorType, equippedUnique));
 						return false;

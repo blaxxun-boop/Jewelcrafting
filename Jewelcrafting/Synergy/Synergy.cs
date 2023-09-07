@@ -230,12 +230,19 @@ public static class Synergy
 			if (!synergyView.activeSelf)
 			{
 				RedrawSynergyCircle();
-				synergyView.SetActive(true);
+				StartCoroutine(nameof(StartDisplaying));
 			}
 		}
 
+		private IEnumerator StartDisplaying()
+		{
+			yield return new WaitForSeconds(0.2f);
+			synergyView.SetActive(true);
+		}
+		
 		public void OnPointerExit(PointerEventData eventData)
 		{
+			StopCoroutine(nameof(StartDisplaying));
 			synergyView.SetActive(false);
 		}
 	}

@@ -27,7 +27,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.17";
+	private const string ModVersion = "1.4.18";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -426,9 +426,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 					SetActive(existingDestructible);
 				}
 			}
-			
+
 			return;
-			
+
 			void SetActive(GameObject destructible)
 			{
 				if (destructible.transform.Find("Orbs") is { } orbs)
@@ -736,7 +736,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			worldBossCustomAttributes.Add(attributes);
 			return attributes;
 		}
-		
+
 		void SetCfgValue<T>(Action<T> setter, ConfigEntry<T> config)
 		{
 			setter(config.Value);

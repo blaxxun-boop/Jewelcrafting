@@ -328,11 +328,11 @@ public static class Utils
 
 		public int Sockets(ItemDrop.ItemData item)
 		{
-			if (Jewelcrafting.splitSockets.Value == Jewelcrafting.Toggle.On && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility)
+			if (Jewelcrafting.splitSockets.Value == Jewelcrafting.Toggle.On && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && item.m_equipped)
 			{
 				return item == primaryUtilityItem ? item.Data().Get<Sockets>()!.socketedGems.Count - (activeUtilityItems - 1) * availableUtilitySlots : availableUtilitySlots;
 			}
-			return int.MaxValue;
+			return int.MaxValue / 2;
 		}
 	}
 }
