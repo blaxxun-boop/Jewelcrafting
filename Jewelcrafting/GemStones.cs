@@ -153,7 +153,7 @@ public static class GemStones
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.Awake))]
 	public class AddSocketIcons
 	{
-		public static readonly GameObject[] socketIcons = new GameObject[5];
+		public static readonly GameObject[] socketIcons = new GameObject[10];
 		public static Button socketingButton = null!;
 
 		private static void Postfix(InventoryGui __instance)
@@ -161,16 +161,18 @@ public static class GemStones
 			Transform recipeName = __instance.m_recipeName.transform;
 			Transform parent = recipeName.parent;
 
-			for (int i = 0; i < 5; ++i)
+			for (int i = 0; i < 10; ++i)
 			{
 				GameObject socket = new($"Jewelcrafting Socket {i}");
 				socket.transform.SetParent(parent, false);
 				socket.AddComponent<Image>();
 				RectTransform rect = socket.GetComponent<RectTransform>();
-				rect.sizeDelta = new Vector2(32, 32);
-				rect.localPosition = new Vector3(-(5 - i) * 36 - 77, -50);
+				rect.sizeDelta = new Vector2(18, 18);
+				rect.localPosition = i < 5 ? 
+									 new Vector3(-(5 - i) * 20 - 160, -41) 
+									 :
+									 new Vector3(-(5 - (i - 5)) * 20 - 160, -61);
 				socket.SetActive(false);
-
 				socketIcons[i] = socket;
 			}
 
@@ -577,7 +579,7 @@ public static class GemStones
 						activeSockets = new Utils.ActiveSockets(Player.m_localPlayer).Sockets(itemInfo.Item2.ItemData);
 					}
 				}
-				for (int i = 1; i <= 5; ++i)
+				for (int i = 1; i <= 10; ++i)
 				{
 					if (UITooltip.m_tooltip.transform.Find($"Bkg (1)/TrannyHoles/Transmute_Text_{i}") is { } transmute)
 					{
