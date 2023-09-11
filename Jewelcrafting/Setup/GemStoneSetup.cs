@@ -41,6 +41,12 @@ public struct GemInfo
 	public int Tier;
 }
 
+public struct MaterialColor
+{
+	public Color Color;
+	public Material? Material;
+}
+
 public static class GemStoneSetup
 {
 	public static GameObject SocketTooltip = null!;
@@ -49,15 +55,25 @@ public static class GemStoneSetup
 	public static readonly Dictionary<GemType, GameObject> uncutGems = new();
 	public static readonly Dictionary<string, GemInfo> GemInfos = new();
 
-	public static readonly Dictionary<GemType, Color> Colors = new()
+	public static readonly Dictionary<GemType, MaterialColor> Colors = new()
 	{
-		{ GemType.Black, Color.black },
-		{ GemType.Blue, Color.blue },
-		{ GemType.Red, Color.red },
-		{ GemType.Yellow, Color.yellow },
-		{ GemType.Green, Color.green },
-		{ GemType.Purple, Color.magenta },
-		{ GemType.Orange, new Color(1, 0.6f, 0) },
+		{ GemType.Black, new MaterialColor { Color = Color.black } },
+		{ GemType.Blue, new MaterialColor { Color = Color.blue } },
+		{ GemType.Red, new MaterialColor { Color = Color.red } },
+		{ GemType.Yellow, new MaterialColor { Color = Color.yellow } },
+		{ GemType.Green, new MaterialColor { Color = Color.green } },
+		{ GemType.Purple, new MaterialColor { Color = Color.magenta } },
+		{ GemType.Orange, new MaterialColor { Color = new Color(1, 0.6f, 0) } },
+	};
+	
+	private static readonly Dictionary<GemType, string> materials = new()
+	{
+		{ GemType.Black, "StoneBlack" },
+		{ GemType.Blue, "StoneBlue" },
+		{ GemType.Green, "StoneGreen" },
+		{ GemType.Purple, "StonePurple" },
+		{ GemType.Red, "StoneRed" },
+		{ GemType.Yellow, "StoneYellow" },
 	};
 
 	public static readonly GameObject[] customGemTierPrefabs = new GameObject[3];
@@ -66,22 +82,30 @@ public static class GemStoneSetup
 	private static readonly int ShaderColorKey = Shader.PropertyToID("_Color");
 	private static readonly int EmissionColor = Shader.PropertyToID("_EmissionColor");
 
-	public static GameObject CreateItemFromTemplate(GameObject template, string colorName, string localizationName, Color color)
+	public static GameObject CreateItemFromTemplate(GameObject template, string colorName, string localizationName, MaterialColor materialColor)
 	{
 		GameObject prefab = Object.Instantiate(template, MergedGemStoneSetup.gemList.transform);
 		prefab.name = template.name.Replace("Custom", colorName);
 		ItemDrop.ItemData.SharedData shared = prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
 		shared.m_name = $"${localizationName}";
 		shared.m_description = $"${localizationName}_description";
-		prefab.transform.Find("attach/Custom_Color_Mesh").GetComponent<MeshRenderer>().material.SetColor(ShaderColorKey, color);
-		prefab.transform.Find("attach/Custom_Color_Mesh").GetComponent<MeshRenderer>().material.SetColor(EmissionColor, color);
+		MeshRenderer colorMesh = prefab.transform.Find("attach/Custom_Color_Mesh").GetComponent<MeshRenderer>();
+		if (materialColor.Material is { } material)
+		{
+			colorMesh.material = material;
+		}
+		else
+		{
+			colorMesh.material.SetColor(ShaderColorKey, materialColor.Color);
+			colorMesh.material.SetColor(EmissionColor, materialColor.Color);
+		}
 		ItemSnapshots.SnapshotItems(prefab.GetComponent<ItemDrop>());
 		return prefab;
 	}
 
-	public static GameObject CreateGemFromTemplate(GameObject template, string colorName, Color color, int tier) => CreateItemFromTemplate(template, colorName, $"jc_{tier switch { 1 => "adv_", 2 => "perfect_", _ => "" }}{colorName.Replace(" ", "_").ToLower()}_socket", color);
-	public static GameObject CreateShardFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_shattered_{colorName.Replace(" ", "_").ToLower()}_crystal", color);
-	public static GameObject CreateUncutFromTemplate(GameObject template, string colorName, Color color) => CreateItemFromTemplate(template, colorName, $"jc_uncut_{colorName.Replace(" ", "_").ToLower()}_stone", color);
+	public static GameObject CreateGemFromTemplate(GameObject template, string colorName, MaterialColor color, int tier) => CreateItemFromTemplate(template, colorName, $"jc_{tier switch { 1 => "adv_", 2 => "perfect_", _ => "" }}{colorName.Replace(" ", "_").ToLower()}_socket", color);
+	public static GameObject CreateShardFromTemplate(GameObject template, string colorName, MaterialColor color) => CreateItemFromTemplate(template, colorName, $"jc_shattered_{colorName.Replace(" ", "_").ToLower()}_crystal", color);
+	public static GameObject CreateUncutFromTemplate(GameObject template, string colorName, MaterialColor color) => CreateItemFromTemplate(template, colorName, $"jc_uncut_{colorName.Replace(" ", "_").ToLower()}_stone", color);
 
 	public static void RegisterGem(GameObject prefab, GemType color)
 	{
@@ -198,12 +222,17 @@ public static class GemStoneSetup
 		customUncutGemPrefab = assets.LoadAsset<GameObject>("Uncut_Custom_Stone");
 		customGemShardPrefab = assets.LoadAsset<GameObject>("Shattered_Custom_Crystal");
 
+		foreach (KeyValuePair<GemType, string> kv in materials)
+		{
+			Colors[kv.Key] = Colors[kv.Key] with { Material = assets.LoadAsset<Material>(kv.Value) };
+		}
+		
 		if (Groups.API.IsLoaded())
 		{
-			Colors.Add(GemType.Cyan, Color.cyan);
+			Colors.Add(GemType.Cyan, new MaterialColor { Color = Color.cyan });
 		}
 
-		foreach (KeyValuePair<GemType, Color> gemType in Colors)
+		foreach (KeyValuePair<GemType, MaterialColor> gemType in Colors)
 		{
 			string shardAssetName = customGemShardPrefab.name.Replace("Custom", gemType.Key.ToString());
 			RegisterShard(assets.Contains(shardAssetName) ? assets.LoadAsset<GameObject>(shardAssetName) : CreateShardFromTemplate(customGemShardPrefab, gemType.Key.ToString(), gemType.Value), gemType.Key);

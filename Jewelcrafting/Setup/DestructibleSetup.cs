@@ -44,14 +44,21 @@ public static class DestructibleSetup
 		}
 	}
 
-	public static GameObject CreateDestructibleFromTemplate(GameObject template, string type, Color color)
+	public static GameObject CreateDestructibleFromTemplate(GameObject template, string type, MaterialColor materialColor)
 	{
 		GameObject prefab = Object.Instantiate(template, MergedGemStoneSetup.gemList.transform);
 		prefab.name = template.name.Replace("Custom", type);
 		prefab.GetComponent<HoverText>().m_text = $"$jc_raw_{type.ToLower()}_gemstone";
 		foreach (MeshRenderer renderer in prefab.transform.Find("collider").GetComponentsInChildren<MeshRenderer>())
 		{
-			renderer.material.color = color;
+			if (materialColor.Material is { } material)
+			{
+				renderer.material = material;
+			}
+			else
+			{
+				renderer.material.color = materialColor.Color;
+			}
 		}
 		return prefab;
 	}
@@ -60,7 +67,7 @@ public static class DestructibleSetup
 	{
 		customDestructiblePrefab = assets.LoadAsset<GameObject>("Raw_Custom_Gemstone");
 
-		foreach (KeyValuePair<GemType, Color> color in GemStoneSetup.Colors)
+		foreach (KeyValuePair<GemType, MaterialColor> color in GemStoneSetup.Colors)
 		{
 			string destructibleAssetName = customDestructiblePrefab.name.Replace("Custom", color.Key.ToString());
 			AddDestructible(assets.Contains(destructibleAssetName) ? assets.LoadAsset<GameObject>(destructibleAssetName) : CreateDestructibleFromTemplate(customDestructiblePrefab, color.Key.ToString(), color.Value), color.Key);

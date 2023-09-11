@@ -33,23 +33,55 @@ public static class API
 
 	internal static void InvokeEffectRecalc() => OnEffectRecalc?.Invoke();
 
-	public static GameObject CreateNecklaceFromTemplate(string colorName, Color color)
-	{
 #if ! API
+	private static GameObject CreateNecklaceFromTemplate(string colorName, MaterialColor color)
+	{
 		GameObject necklace = JewelrySetup.CreateNecklaceFromTemplate(colorName, color);
 		MarkJewelry(necklace);
 		return necklace;
+	}
+#endif
+
+	public static GameObject CreateNecklaceFromTemplate(string colorName, Color color)
+	{
+#if ! API
+		return CreateNecklaceFromTemplate(colorName, new MaterialColor { Color = color });
 #else
 		return null!;
 #endif
 	}
 
-	public static GameObject CreateRingFromTemplate(string colorName, Color color)
+	public static GameObject CreateNecklaceFromTemplate(string colorName, Material material)
 	{
 #if ! API
+		return CreateNecklaceFromTemplate(colorName, new MaterialColor { Material = material });
+#else
+		return null!;
+#endif
+	}
+
+#if ! API
+	private static GameObject CreateRingFromTemplate(string colorName, MaterialColor color)
+	{
 		GameObject ring = JewelrySetup.CreateRingFromTemplate(colorName, color);
 		MarkJewelry(ring);
 		return ring;
+	}
+#endif
+
+	public static GameObject CreateRingFromTemplate(string colorName, Color color)
+	{
+#if ! API
+		return CreateRingFromTemplate(colorName,new MaterialColor { Color = color });
+#else
+		return null!;
+#endif
+	}
+
+	public static GameObject CreateRingFromTemplate(string colorName, Material material)
+	{
+#if ! API
+		return CreateRingFromTemplate(colorName, new MaterialColor { Material = material });
 #else
 		return null!;
 #endif
@@ -62,24 +94,43 @@ public static class API
 #endif
 	}
 
-	public static void AddGems(string type, string colorName, Color color)
-	{
 #if ! API
-		if (string.Equals(colorName, "Orange", StringComparison.InvariantCultureIgnoreCase))
+	private static List<GameObject> AddGems(string type, string colorName, MaterialColor color)
+	{
+		if (string.Equals(colorName, "White", StringComparison.InvariantCultureIgnoreCase))
 		{
 			throw new Exception($"{colorName} is a reserved color.");
 		}
-		AddShardFromTemplate(type, colorName, color);
-		GameObject uncutGem = AddUncutFromTemplate(type, colorName, color);
-		AddUncutGem(uncutGem, colorName, Jewelcrafting.config("2 - Socket System", $"Drop chance for {type} Gemstones", 1.5f, new ConfigDescription($"Chance to drop an {type.ToLower()} gemstone when killing creatures.", new AcceptableValueRange<float>(0, 100))));
-		AddDestructibleFromTemplate(type, colorName, color);
-		AddTieredGemFromTemplate(type, colorName, color);
+		List<GameObject> objects = new()
+		{
+			AddShardFromTemplate(type, colorName, color),
+			RegisterUncut(type, colorName, AddUncutFromTemplate(type, colorName, color)),
+			AddDestructibleFromTemplate(type, colorName, color),
+		};
+		objects.AddRange(AddTieredGemFromTemplate(type, colorName, color));
+		return objects;
+	}
+#endif
+
+	public static void AddGems(string type, string colorName, Color color)
+	{
+#if ! API
+		AddGems(type, colorName, new MaterialColor { Color = color });
 #endif
 	}
 
-	public static GameObject AddDestructibleFromTemplate(string type, string colorName, Color color)
+	public static List<GameObject> AddGems(string type, string colorName, Material material, Color color)
 	{
 #if ! API
+		return AddGems(type, colorName, new MaterialColor { Material = material, Color = color });
+#else
+		return null!;
+#endif
+	}
+
+#if ! API
+	private static GameObject AddDestructibleFromTemplate(string type, string colorName, MaterialColor color)
+	{
 		if (!GemStoneSetup.uncutGems.ContainsKey((GemType)colorName.GetStableHashCode()))
 		{
 			throw new Exception($"A destructible for {colorName} must be registered after the uncut gemstone");
@@ -89,7 +140,7 @@ public static class API
 		Localizer.AddText(prefab.GetComponent<HoverText>().m_text.Substring(1), type + " Formation");
 		AddDestructible(prefab, colorName);
 
-		string assemblyName = new StackTrace().GetFrame(1).GetMethod().DeclaringType.Assembly.GetName().Name;
+		string assemblyName = new StackTrace().GetFrame(1).GetMethod().DeclaringType!.Assembly.GetName().Name;
 		EffectDef.Loader.instance.parsed.Add($"/{assemblyName}/{type}.yml", new EffectDef.ParseResult
 		{
 			effects = new Dictionary<Effect, List<EffectDef>>(),
@@ -100,14 +151,30 @@ public static class API
 		});
 
 		return prefab;
+	}
+#endif
+
+	public static GameObject AddDestructibleFromTemplate(string type, string colorName, Color color)
+	{
+#if ! API
+		return AddDestructibleFromTemplate(type, colorName, new MaterialColor { Color = color });
+#else
+		return null!;
+#endif
+	}
+	
+	public static GameObject AddDestructibleFromTemplate(string type, string colorName, Material material)
+	{
+#if ! API
+		return AddDestructibleFromTemplate(type, colorName, new MaterialColor { Material = material });
 #else
 		return null!;
 #endif
 	}
 
-	public static GameObject AddUncutFromTemplate(string type, string colorName, Color color)
-	{
 #if ! API
+	private static GameObject AddUncutFromTemplate(string type, string colorName, MaterialColor color)
+	{
 		GameObject prefab = GemStoneSetup.CreateUncutFromTemplate(GemStoneSetup.customUncutGemPrefab, colorName, color);
 
 		ItemDrop.ItemData.SharedData shared = prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
@@ -115,14 +182,56 @@ public static class API
 		Localizer.AddText(shared.m_description.Substring(1), $"A {colorName} gemstone, ready to be cut at a Gemcutters Table.");
 
 		return prefab;
+	}
+#endif
+	
+	public static GameObject AddUncutFromTemplate(string type, string colorName, Color color)
+	{
+#if ! API
+		return AddUncutFromTemplate(type, colorName, new MaterialColor { Color = color });
+#else
+		return null!;
+#endif
+	}
+	
+	public static GameObject AddUncutFromTemplate(string type, string colorName, Material material)
+	{
+#if ! API
+		return AddUncutFromTemplate(type, colorName, new MaterialColor { Material = material });
 #else
 		return null!;
 #endif
 	}
 
-	public static GameObject AddShardFromTemplate(string type, string colorName, Color color)
+#if ! API
+	private static GameObject RegisterUncut(string type, string colorName, GameObject uncutGem)
+	{
+		AddUncutGem(uncutGem, colorName, Jewelcrafting.config("2 - Socket System", $"Drop chance for {type} Gemstones", 1.5f, new ConfigDescription($"Chance to drop an {type.ToLower()} gemstone when killing creatures.", new AcceptableValueRange<float>(0, 100))));
+		return uncutGem;
+	}
+#endif
+	
+	public static GameObject AddAndRegisterUncutFromTemplate(string type, string colorName, Color color)
 	{
 #if ! API
+		return RegisterUncut(type, colorName, AddUncutFromTemplate(type, colorName, color));
+#else
+		return null!;
+#endif
+	}
+
+	public static GameObject AddAndRegisterUncutFromTemplate(string type, string colorName, Material material)
+	{
+#if ! API
+		return RegisterUncut(type, colorName, AddUncutFromTemplate(type, colorName, material));
+#else
+		return null!;
+#endif
+	}
+
+#if ! API
+	private static GameObject AddShardFromTemplate(string type, string colorName, MaterialColor color)
+	{
 		GameObject prefab = GemStoneSetup.CreateShardFromTemplate(GemStoneSetup.customGemShardPrefab, colorName, color);
 		AddShard(prefab, colorName);
 
@@ -131,38 +240,71 @@ public static class API
 		Localizer.AddText(shared.m_description.Substring(1), $"A {colorName} gemstone, which can be socketed into an equipment piece, to unlock the power within.");
 
 		return prefab;
+	}
+#endif
+		
+	public static GameObject AddShardFromTemplate(string type, string colorName, Color color)
+	{
+#if ! API
+		return AddShardFromTemplate(type, colorName, new MaterialColor { Color = color });
+#else
+		return null!;
+#endif
+	}
+	
+	public static GameObject AddShardFromTemplate(string type, string colorName, Material material)
+	{
+#if ! API
+		return AddShardFromTemplate(type, colorName, new MaterialColor { Material = material });
+#else
+		return null!;
+#endif
+	}
+	
+#if ! API
+	private static GameObject[] AddTieredGemFromTemplate(string type, string colorName, MaterialColor color)
+	{
+			GameObject[] prefabs = new GameObject[GemStoneSetup.customGemTierPrefabs.Length];
+        	Localizer.AddText($"jc_merged_gemstone_{colorName.Replace(" ", "_").ToLower()}", type);
+        	for (int tier = 0; tier < prefabs.Length; ++tier)
+        	{
+        		GameObject prefab = GemStoneSetup.CreateGemFromTemplate(GemStoneSetup.customGemTierPrefabs[tier], colorName, color, tier);
+    
+        		ItemDrop.ItemData.SharedData shared = prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+        		Localizer.AddText(shared.m_name.Substring(1), tier switch { 0 => "Simple", 1 => "Advanced", _ => "Perfect" } + " " + type);
+        		Localizer.AddText(shared.m_description.Substring(1), $"A {colorName} gemstone, which can be socketed into an equipment piece, to unlock the power within.");
+    
+        		GemStoneSetup.RegisterTieredGemItem(prefab, colorName, tier);
+        		AddGem(prefab, colorName);
+        		prefabs[tier] = prefab;
+        	}
+    
+        	GemType gemType = (GemType)colorName.GetStableHashCode();
+        	MergedGemStoneSetup.mergedGems[gemType] = new Dictionary<GemType, GameObject[]>();
+        	foreach (KeyValuePair<GemType, MaterialColor> other in GemStoneSetup.Colors)
+        	{
+        		MergedGemStoneSetup.CreateMergedGemStone(new KeyValuePair<GemType, MaterialColor>(gemType, color), other);
+        		MergedGemStoneSetup.CreateMergedGemStone(other, new KeyValuePair<GemType, MaterialColor>(gemType, color));
+        	}
+        	GemStoneSetup.Colors.Add(gemType, color);
+    
+        	return prefabs;
+	}
+#endif
+
+	public static GameObject[] AddTieredGemFromTemplate(string type, string colorName, Color color)
+	{
+#if ! API
+		return AddTieredGemFromTemplate(type, colorName, new MaterialColor { Color = color });
 #else
 		return null!;
 #endif
 	}
 
-	public static GameObject[] AddTieredGemFromTemplate(string type, string colorName, Color color)
+	public static GameObject[] AddTieredGemFromTemplate(string type, string colorName, Material material, Color color)
 	{
 #if ! API
-		GameObject[] prefabs = new GameObject[GemStoneSetup.customGemTierPrefabs.Length];
-		Localizer.AddText($"jc_merged_gemstone_{colorName.Replace(" ", "_").ToLower()}", type);
-		for (int tier = 0; tier < prefabs.Length; ++tier)
-		{
-			GameObject prefab = GemStoneSetup.CreateGemFromTemplate(GemStoneSetup.customGemTierPrefabs[tier], colorName, color, tier);
-
-			ItemDrop.ItemData.SharedData shared = prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
-			Localizer.AddText(shared.m_name.Substring(1), tier switch { 0 => "Simple", 1 => "Advanced", _ => "Perfect" } + " " + type);
-			Localizer.AddText(shared.m_description.Substring(1), $"A {colorName} gemstone, which can be socketed into an equipment piece, to unlock the power within.");
-
-			GemStoneSetup.RegisterTieredGemItem(prefab, colorName, tier);
-			AddGem(prefab, colorName);
-		}
-
-		GemType gemType = (GemType)colorName.GetStableHashCode();
-		MergedGemStoneSetup.mergedGems[gemType] = new Dictionary<GemType, GameObject[]>();
-		foreach (KeyValuePair<GemType, Color> other in GemStoneSetup.Colors)
-		{
-			MergedGemStoneSetup.CreateMergedGemStone(new KeyValuePair<GemType, Color>(gemType, color), other);
-			MergedGemStoneSetup.CreateMergedGemStone(other, new KeyValuePair<GemType, Color>(gemType, color));
-		}
-		GemStoneSetup.Colors.Add(gemType, color);
-
-		return prefabs;
+		return AddTieredGemFromTemplate(type, colorName, new MaterialColor { Material = material, Color = color });
 #else
 		return null!;
 #endif
@@ -225,7 +367,7 @@ public static class API
 	public static void AddGemConfig(string yaml)
 	{
 #if ! API
-		string assemblyName = new StackTrace().GetFrame(1).GetMethod().DeclaringType.Assembly.GetName().Name;
+		string assemblyName = new StackTrace().GetFrame(1).GetMethod().DeclaringType!.Assembly.GetName().Name;
 		List<string> errors = ConfigLoader.loaders.Single(l => l.GetType() == typeof(EffectDef.Loader)).ProcessConfig($"/{assemblyName}.yml", new DeserializerBuilder().Build().Deserialize<Dictionary<object, object>>(yaml));
 		foreach (string error in errors)
 		{

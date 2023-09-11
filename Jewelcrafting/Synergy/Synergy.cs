@@ -142,7 +142,7 @@ public static class Synergy
 				foreach (KeyValuePair<GemType, int> kv in distribution)
 				{
 					int endIdx = idx + kv.Value * colors.Length / total;
-					Color color = GemStoneSetup.Colors[kv.Key];
+					Color color = GemStoneSetup.Colors[kv.Key].Color;
 					while (idx < endIdx)
 					{
 						colors[idx++] = color;
@@ -202,7 +202,7 @@ public static class Synergy
 			int counter = 0;
 			foreach (KeyValuePair<GemType, int> entry in distribution)
 			{
-				Color color = GemStoneSetup.Colors[entry.Key];
+				Color color = GemStoneSetup.Colors[entry.Key].Color;
 				if (++counter > 7)
 				{
 					legend = legendOverflow;

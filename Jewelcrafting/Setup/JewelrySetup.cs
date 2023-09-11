@@ -14,8 +14,8 @@ public static class JewelrySetup
 	private static GameObject customNecklacePrefab = null!;
 	private static GameObject customRingPrefab = null!;
 
-	public static GameObject CreateRingFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customRingPrefab, colorName, $"jc_ring_{colorName.Replace(" ", "_").ToLower()}", color);
-	public static GameObject CreateNecklaceFromTemplate(string colorName, Color color) => GemStoneSetup.CreateItemFromTemplate(customNecklacePrefab, colorName, $"jc_necklace_{colorName.Replace(" ", "_").ToLower()}", color);
+	public static GameObject CreateRingFromTemplate(string colorName, MaterialColor color) => GemStoneSetup.CreateItemFromTemplate(customRingPrefab, colorName, $"jc_ring_{colorName.Replace(" ", "_").ToLower()}", color);
+	public static GameObject CreateNecklaceFromTemplate(string colorName, MaterialColor color) => GemStoneSetup.CreateItemFromTemplate(customNecklacePrefab, colorName, $"jc_necklace_{colorName.Replace(" ", "_").ToLower()}", color);
 	public static void MarkJewelry(GameObject jewelry) => upgradeableJewelry.Add(jewelry.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 
 	public static void initializeJewelry(AssetBundle assets)

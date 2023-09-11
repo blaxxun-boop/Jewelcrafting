@@ -309,8 +309,7 @@ public static class Utils
 			return true;
 		}
 
-		Visual visual = Visual.visuals[player.m_visEquipment];
-		return visual.currentFingerItemHash == hash || visual.currentNeckItemHash == hash;
+		return Visual.visuals.TryGetValue(player.m_visEquipment, out Visual visual) && (visual.currentFingerItemHash == hash || visual.currentNeckItemHash == hash);
 	}
 
 	public class ActiveSockets

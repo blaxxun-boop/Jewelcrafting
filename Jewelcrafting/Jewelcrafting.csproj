@@ -200,9 +200,11 @@
         <Compile Include="Effects\GemEffects\Apotheosis.cs"/>
         <Compile Include="Effects\GemEffects\Berserk.cs"/>
         <Compile Include="Effects\GemEffects\Comfortable.cs"/>
+        <Compile Include="Effects\GemEffects\Daring.cs"/>
         <Compile Include="Effects\GemEffects\Defender.cs"/>
         <Compile Include="Effects\GemEffects\Echo.cs"/>
         <Compile Include="Effects\GemEffects\EitrSurge.cs"/>
+        <Compile Include="Effects\GemEffects\ElementalChaos.cs"/>
         <Compile Include="Effects\GemEffects\EndlessArrows.cs"/>
         <Compile Include="Effects\GemEffects\EndlessBolts.cs"/>
         <Compile Include="Effects\GemEffects\Energetic.cs"/>
@@ -227,6 +229,7 @@
         <Compile Include="Effects\GemEffects\MasterArcher.cs"/>
         <Compile Include="Effects\GemEffects\MercifulDeath.cs"/>
         <Compile Include="Effects\GemEffects\Mirror.cs"/>
+        <Compile Include="Effects\GemEffects\Momentum.cs"/>
         <Compile Include="Effects\GemEffects\Necromancer.cs"/>
         <Compile Include="Effects\GemEffects\Nimble.cs"/>
         <Compile Include="Effects\GemEffects\Ninja.cs"/>
@@ -239,6 +242,7 @@
         <Compile Include="Effects\GemEffects\PreciousBlood.cs"/>
         <Compile Include="Effects\GemEffects\Regeneration.cs"/>
         <Compile Include="Effects\GemEffects\Resilience.cs"/>
+        <Compile Include="Effects\GemEffects\Ricochet.cs"/>
         <Compile Include="Effects\GemEffects\RootedRevenge.cs"/>
         <Compile Include="Effects\GemEffects\ShadowHit.cs"/>
         <Compile Include="Effects\GemEffects\SnakeBite.cs"/>
@@ -252,6 +256,7 @@
         <Compile Include="Effects\GemEffects\Unfazed.cs"/>
         <Compile Include="Effects\GemEffects\Vampire.cs"/>
         <Compile Include="Effects\GemEffects\Vitality.cs"/>
+        <Compile Include="Effects\GemEffects\Wishbone.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArcheryMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\Cowardice.cs"/>
@@ -263,7 +268,9 @@
         <Compile Include="Effects\GemEffects\Groups\TogetherForever.cs"/>
         <Compile Include="Effects\JewelryEffects\Lumberjacking.cs"/>
         <Compile Include="Effects\JewelryEffects\ModersBlessing.cs"/>
+        <Compile Include="Effects\JewelryEffects\NightWarmth.cs"/>
         <Compile Include="Effects\ForcePet.cs"/>
+        <Compile Include="Effects\Visual.cs"/>
         <Compile Include="Effects\VisualEffects.cs"/>
         <Compile Include="GemCursor.cs"/>
         <Compile Include="GemStones.cs"/>
@@ -344,11 +351,6 @@
         <Content Include="Libs\LocationManager.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
-    </ItemGroup>
-    <ItemGroup>
-        <None Include="packages.config"/>
-    </ItemGroup>
-    <ItemGroup>
         <Content Include="Libs\AnimationSpeedManager.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
@@ -357,13 +359,7 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="Effects\GemEffects\Daring.cs"/>
-        <Compile Include="Effects\GemEffects\ElementalChaos.cs"/>
-        <Compile Include="Effects\GemEffects\Momentum.cs" />
-        <Compile Include="Effects\GemEffects\Ricochet.cs"/>
-        <Compile Include="Effects\GemEffects\Wishbone.cs" />
-        <Compile Include="Effects\JewelryEffects\NightWarmth.cs"/>
-        <Compile Include="Effects\Visual.cs" />
+        <None Include="packages.config"/>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')"/>
