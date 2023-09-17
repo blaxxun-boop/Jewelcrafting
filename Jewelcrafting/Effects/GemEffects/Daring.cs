@@ -38,7 +38,7 @@ public static class Daring
 		yield return null;
 
 		List<Player> players = new();
-		while (!string.IsNullOrEmpty(character.m_nview.GetZDO().GetString("Jewelcrafting Daring")))
+		while (!string.IsNullOrEmpty(character.m_nview.GetZDO()?.GetString("Jewelcrafting Daring")))
 		{
 			if (character.m_nview.IsOwner())
 			{

@@ -119,7 +119,7 @@ public static class Drop
 							}
 						}
 
-						if (HasKey("resource map")) 
+						if (HasKey("resource map"))
 						{
 							if (dropDict["resource map"] is List<object?> resourceList)
 							{
@@ -141,7 +141,7 @@ public static class Drop
 								errors.Add($"The resource map must be a list of names of resources. Got unexpected {dropDict["resource map"]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
 							}
 						}
-						
+
 						errors.AddRange(from key in dropDict.Keys where !knownKeys.Contains(key) select $"A drop definition may not contain a key '{key}'. {errorLocation}");
 						dropDef.biomeConfig[biome] = dropBiome;
 					}
@@ -182,7 +182,7 @@ public static class Drop
 
 		dropCache.Clear();
 	}
-	
+
 	private static readonly Dictionary<Heightmap.Biome, List<Recipe>> dropCache = new();
 
 	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
@@ -197,17 +197,17 @@ public static class Drop
 		{
 			return;
 		}
-		
-		HashSet<Recipe> processedRecipes = new();
+
+		Dictionary<Recipe, string> processedRecipes = new();
 		foreach (KeyValuePair<Heightmap.Biome, string[]> kv in biomeResourceMap.OrderByDescending(kv => biomeOrder.TryGetValue(kv.Key, out int order) ? order : 0))
 		{
 			List<Recipe> drops = new();
 			foreach (Recipe recipe in ObjectDB.instance.m_recipes)
 			{
-				bool matchLocalized(ICollection<string> list, ItemDrop item) => list.Contains(item.name.ToLower()) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name).ToLower()); 
-				if (!processedRecipes.Contains(recipe) && recipe.m_resources.Any(r => matchLocalized(kv.Value, r.m_resItem)) && recipe.m_enabled && !matchLocalized(dropBlacklist, recipe.m_item))
+				bool matchLocalized(ICollection<string> list, ItemDrop? item) => item is not null && (list.Contains(item.name.ToLower()) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name).ToLower()));
+				if (recipe.m_resources.FirstOrDefault(r => matchLocalized(kv.Value, r.m_resItem)) is { } matchedRequirement && (!processedRecipes.TryGetValue(recipe, out string item) || matchedRequirement.m_resItem.name == item) && recipe.m_enabled && !matchLocalized(dropBlacklist, recipe.m_item))
 				{
-					processedRecipes.Add(recipe);
+					processedRecipes[recipe] = matchedRequirement.m_resItem.name;
 					if (Utils.IsSocketableItem(recipe.m_item.GetComponent<ItemDrop>()))
 					{
 						drops.Add(recipe);
@@ -247,7 +247,7 @@ public static class Drop
 				{
 					return;
 				}
-				
+
 				GameObject prefab = filteredDrops[Random.Range(0, filteredDrops.Count)];
 				GameObject item = Object.Instantiate(prefab, character.GetCenterPoint() + Random.insideUnitSphere * 0.5f, Quaternion.Euler(0, Random.Range(0, 360), 0));
 				Vector3 insideUnitSphere = Random.insideUnitSphere;
@@ -342,6 +342,7 @@ public static class Drop
 				}
 
 				sockets.Save();
+				Stats.socketedEquipmentDropped.Increment();
 			}
 		}
 	}

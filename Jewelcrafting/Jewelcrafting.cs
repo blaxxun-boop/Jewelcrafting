@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using BepInEx;
 using BepInEx.Configuration;
@@ -27,7 +28,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.19";
+	private const string ModVersion = "1.4.20";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -70,6 +71,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	private static ConfigEntry<int> aquaticDamageIncrease = null!;
 	public static ConfigEntry<int> modersBlessingDuration = null!;
 	public static ConfigEntry<int> modersBlessingCooldown = null!;
+	public static ConfigEntry<int> guidanceCooldown = null!;
 	public static ConfigEntry<int> gemBagSlotsRows = null!;
 	public static ConfigEntry<int> gemBagSlotsColumns = null!;
 	public static ConfigEntry<Toggle> gemBagAutofill = null!;
@@ -260,6 +262,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		Config.SaveOnConfigSet = false;
 
+		RuntimeHelpers.RunClassConstructor(typeof(Stats).TypeHandle);
 		Localizer.Load();
 		english = new Localization();
 		english.SetupLanguage("English");
@@ -315,8 +318,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 50, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it. This only considers the base cost of the item.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRateUpgrade = config("2 - Socket System", "Percentage Recovered Upgrades", 100, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it. This only considers the upgrade cost of the item.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRateDistance = config("2 - Socket System", "Maximum Distance for Item Recovery", 0, new ConfigDescription("Maximum distance between the position where the item has been crafted and the position where the item has been destroyed to recover non-teleportable resources. This can be used, to prevent people from crafting items from metal, taking them through a portal and destroying them on the other side, to teleport the metal. Setting this to 0 disables this.", null, new ConfigurationManagerAttributes { Order = --order }));
-		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 5), new ConfigurationManagerAttributes { Order = --order }));
-		maximumNumberSockets.SettingChanged += (_, _) => SocketsBackground.CalculateColors();
+		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 10), new ConfigurationManagerAttributes { Order = --order }));
+		maximumNumberSockets.SettingChanged += (_, _) =>
+		{
+			SocketsBackground.CalculateColors();
+			JewelrySetup.SetPurpleRingSockets();
+		};
 		gemRespawnRate = config("2 - Socket System", "Gemstone Respawn Time", 100, new ConfigDescription("Respawn time for raw gemstones in ingame days. Use 0 to disable respawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		socketingItemsExperience = config("2 - Socket System", "Adding Sockets grants Experience", Toggle.On, new ConfigDescription("If off, adding sockets to items does not grant Jewelcrafting experience anymore. This can be used, to prevent people from crafting cheap items and socketing them, to level up the skill.", null, new ConfigurationManagerAttributes { Order = --order }));
 		socketBlacklist = config("6 - Other", "Socketing Blacklist", "", new ConfigDescription("Comma separated list of prefabs that cannot be socketed.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -537,6 +544,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		aquaticDamageIncrease = config("Aquatic Sapphire Necklace", "Damage Increase", 10, new ConfigDescription("Damage increase while wearing the Aquatic Sapphire Necklace and being wet.", new AcceptableValueRange<int>(0, 100)));
 		modersBlessingDuration = config("Ring of Moders Sapphire Blessing", "Effect Duration", 15, new ConfigDescription("Effect duration in seconds for the Ring of Moder's Sapphire Blessing."));
 		modersBlessingCooldown = config("Ring of Moders Sapphire Blessing", "Effect Cooldown", 60, new ConfigDescription("Effect cooldown in seconds for the Ring of Moder's Sapphire Blessing."));
+		guidanceCooldown = config("Spinel Necklace of Guidance", "Effect Cooldown", 30, new ConfigDescription("Effect cooldown in seconds for the Spinel Necklace of Guidance."));
 
 		GemEffectSetup.initializeGemEffect(assets);
 		MiscSetup.initializeMisc(assets);
@@ -596,9 +604,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		}
 
 		int socketAddingOrder = 0;
-		for (int i = 0; i < 5; ++i)
+		for (int i = 0; i < 10; ++i)
 		{
-			socketAddingChances.Add(i, config("Socket Adding Chances", $"{i + 1}. Socket", 80 - i * 10, new ConfigDescription($"Success chance while trying to add the {i + 1}. Socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --socketAddingOrder })));
+			socketAddingChances.Add(i, config("Socket Adding Chances", $"{i + 1}. Socket", i <= 5 ? 80 - i * 10 : 55 - i * 5, new ConfigDescription($"Success chance while trying to add the {i + 1}. Socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --socketAddingOrder })));
 		}
 
 		string[] boxMergeCategory = { "simple", "advanced", "perfect" };
@@ -699,7 +707,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Fade");
 		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Fade_End");
 		PrefabManager.RegisterPrefab(assets, "JC_Reaper_Spear_Pro");
-
+		PrefabManager.RegisterPrefab(assets, "JC_Purple_Neck_Coins");
+		PrefabManager.RegisterPrefab(assets, "JC_Purple_Neck_Gems");
+		
 		Localizer.AddPlaceholder("jc_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_se_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);

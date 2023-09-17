@@ -15,6 +15,7 @@ public static class BossSpawn
 	private static readonly HashSet<int> playerBasePieces = new();
 	private static readonly Dictionary<string, Location> locations = new();
 	public static readonly Dictionary<string, Sprite> bossIcons = new();
+	public static List<Vector3> currentBossPositions = new();
 	private static Text bossTimer = null!;
 
 	public static void SetupBossSpawn()
@@ -107,7 +108,6 @@ public static class BossSpawn
 		{
 			Minimap.instance.UpdateLocationPins(10);
 		}
-
 	}
 
 	[HarmonyPatch(typeof(Character), nameof(Character.Start))]
@@ -161,6 +161,8 @@ public static class BossSpawn
 				{
 					ZNet.instance.GetServerPeer().m_rpc.Invoke("Jewelcrafting BossDied", sector.x, sector.y);
 				}
+				
+				Stats.worldBossKills.Increment();
 			}
 		}
 	}
@@ -190,6 +192,8 @@ public static class BossSpawn
 						int nextBossSpawn = Jewelcrafting.bossSpawnTimer.Value * 60 - (int)ZNet.instance.GetTimeSeconds() % (Jewelcrafting.bossSpawnTimer.Value * 60) - 1;
 						bossTimer.text = Localization.instance.Localize("$jc_gacha_world_boss_spawn", TimeSpan.FromSeconds(nextBossSpawn).ToString("c"));
 
+						currentBossPositions.Clear();
+
 						foreach (Minimap.PinData pin in __instance.m_pins.Where(p => bossIcons.ContainsValue(p.m_icon)))
 						{
 							pin.m_name = TimeSpan.FromSeconds((int)pin.m_pos.y - (int)ZNet.instance.GetTimeSeconds()).ToString("c");
@@ -205,6 +209,8 @@ public static class BossSpawn
 							{
 								pin.m_NamePinData.PinNameText.text = pin.m_name;
 							}
+
+							currentBossPositions.Add(pin.m_pos);
 						}
 					}
 

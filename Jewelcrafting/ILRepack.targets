@@ -11,6 +11,7 @@
             <InputAssemblies Include="$(OutputPath)Libs\AnimationSpeedManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\LocalizationManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\LocationManager.dll"/>
+            <InputAssemblies Include="$(OutputPath)Libs\StatManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\GroupsAPI.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\CreatureLevelControlAPI.dll"/>
             <InputAssemblies Include="$(OutputPath)YamlDotNet.dll"/>

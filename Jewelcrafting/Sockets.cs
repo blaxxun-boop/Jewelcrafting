@@ -213,11 +213,17 @@ public class Box : Socketable
 				{
 					socketedGems[0] = new SocketItem(FusionBoxSetup.Boxes[FusionBoxSetup.boxTier[Item.m_dropPrefab] + 1].name);
 					socketedGems.RemoveAt(1);
+
+					Stats.boxFusionsCompleted.Increment();
+					(socketedGems[0].Name == "JC_Common_Gembox" ? Stats.commonFusionCompletedFusion : Stats.epicFusionCompletedFusion).Increment();
 				}
 				else
 				{
 					socketedGems[0] = new SocketItem(Utils.getRandomGem(-1)!.name);
 					socketedGems[1] = new SocketItem(Utils.getRandomGem(-1)!.name);
+
+					Stats.boxFusionsFailed.Increment();
+					(socketedGems[0].Name == "JC_Common_Gembox" ? Stats.commonFusionFailedFusion : Stats.epicFusionFailedFusion).Increment();
 				}
 			}
 			else if (socketedGems[0].Name == "Boss_Crystal_7" || socketedGems[1].Name == "Boss_Crystal_7")
@@ -226,11 +232,19 @@ public class Box : Socketable
 				{
 					socketedGems[0] = new SocketItem("Friendship_Group_Gem");
 					socketedGems.RemoveAt(1);
+					
+					Stats.fusionsCompleted.Increment();
+					Stats.legendaryFusionCompleted.Increment();
+					Stats.legendaryFusionCompletedBoss.Increment();
 				}
 				else
 				{
 					socketedGems[0] = new SocketItem("Shattered_Cyan_Crystal");
 					socketedGems[1] = new SocketItem("Shattered_Cyan_Crystal");
+					
+					Stats.fusionsFailed.Increment();
+					Stats.legendaryFusionFailed.Increment();
+					Stats.legendaryFusionFailedBoss.Increment();
 				}
 			}
 			else if (Random.value <= Jewelcrafting.boxMergeChances[Item.m_shared.m_name][Tier].Value / 100f)
@@ -241,6 +255,10 @@ public class Box : Socketable
 					{
 						socketedGems[0] = new SocketItem(MergedGemStoneSetup.mergedGems[info1.Type][info2.Type][Tier].name);
 						socketedGems.RemoveAt(1);
+
+						Stats.fusionsCompleted.Increment();
+						Stats.tieredFusionCompleted[FusionBoxSetup.boxTier[Item.m_dropPrefab]].Increment();
+						Stats.tieredFusionTiersCompleted[FusionBoxSetup.boxTier[Item.m_dropPrefab]][Tier].Increment();
 					}
 				}
 			}
@@ -248,6 +266,10 @@ public class Box : Socketable
 			{
 				socketedGems[0] = new SocketItem(GemStones.gemToShard[socketedGems[0].Name].name);
 				socketedGems[1] = new SocketItem(GemStones.gemToShard[socketedGems[1].Name].name);
+
+				Stats.fusionsFailed.Increment();
+				Stats.tieredFusionFailed[FusionBoxSetup.boxTier[Item.m_dropPrefab]].Increment();
+				Stats.tieredFusionTiersFailed[FusionBoxSetup.boxTier[Item.m_dropPrefab]][Tier].Increment();
 			}
 
 			boxSealed = false;

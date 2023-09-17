@@ -37,10 +37,32 @@ public static class DestructibleSetup
 				m_stackMax = 1,
 			},
 		};
+		prefab.AddComponent<CountDestructibleDestruction>();
 
 		if (prefab.transform.Find("Orbs") is { } orbs)
 		{
 			orbs.gameObject.SetActive(Jewelcrafting.gemstoneFormationParticles.Value == Jewelcrafting.Toggle.On);
+		}
+	}
+
+	private class CountDestructibleDestruction: MonoBehaviour
+	{
+		public void Awake() => GetComponent<Destructible>().m_onDestroyed += () => Stats.destructiblesDestroyed.Increment();
+	}
+
+	[HarmonyPatch(typeof(DropTable), nameof(DropTable.GetDropList), new Type[0])]
+	private static class CountGemsDroppedFromDestructible
+	{
+		[HarmonyPriority(Priority.Last)]
+		private static void Postfix(List<GameObject> __result)
+		{
+			foreach (GameObject gameObject in __result)
+			{
+				if (GemStoneSetup.uncutGems.ContainsValue(gameObject))
+				{
+					Stats.gemsDroppedDestructible.Increment();
+				}
+			}
 		}
 	}
 

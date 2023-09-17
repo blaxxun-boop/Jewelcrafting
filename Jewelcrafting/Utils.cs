@@ -8,6 +8,7 @@ using Groups;
 using HarmonyLib;
 using ItemDataManager;
 using Jewelcrafting.GemEffects;
+using Jewelcrafting.WorldBosses;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;

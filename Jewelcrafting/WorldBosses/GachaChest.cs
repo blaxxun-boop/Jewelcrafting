@@ -60,6 +60,7 @@ public class GachaChest : Container, Hoverable
 							itemData.Data().Save();
 						}
 						Save();
+						Stats.gachaMainPrizesWon.Increment();
 						break;
 					}
 					random -= prize.Chance;

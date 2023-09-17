@@ -73,4 +73,16 @@ public static class BossMechanics
 			}
 		}
 	}
+
+	[HarmonyPatch(typeof(Player), nameof(Player.OnDeath))]
+	private static class IncrementDeathByWorldBoss
+	{
+		private static void Prefix(Player __instance)
+		{
+			if (__instance.m_lastHit.GetAttacker() is BossSetup.BossCharacter)
+			{
+				Stats.deathByWorldBoss.Increment();
+			}
+		}
+	}
 }

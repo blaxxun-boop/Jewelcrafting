@@ -162,6 +162,7 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 
 	private void AddCoins(int coins)
 	{
+		Stats.gachaCoinsUsed.Increment(coins);
 		foreach (GachaChest chest in GachaChest.NearbyGachaChests(transform))
 		{
 			chest.m_nview.GetZDO().Set("Jewelcrafting Gacha Chest", chest.m_nview.GetZDO().GetInt("Jewelcrafting Gacha Chest") + coins);

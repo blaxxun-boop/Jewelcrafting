@@ -74,7 +74,7 @@ public static class FusionBoxSetup
 		{
 			for (;;)
 			{
-				if (Player.m_localPlayer && lastPos != Player.m_localPlayer.transform.position)
+				if (Player.m_localPlayer && global::Utils.DistanceXZ(lastPos, Player.m_localPlayer.transform.position) > (Ship.GetLocalShip() ? 30f : 0.5f))
 				{
 					lastPos = Player.m_localPlayer.transform.position;
 					IncreaseBoxProgress(Jewelcrafting.crystalFusionBoxMergeActivityProgress.Select(c => c.Value));

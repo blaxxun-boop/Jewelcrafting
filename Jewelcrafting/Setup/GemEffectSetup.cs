@@ -28,6 +28,8 @@ public static class GemEffectSetup
 	public static SE_Stats rigidFinger = null!;
 	public static GameObject magicRepair = null!;
 	public static SE_Stats aquatic = null!;
+	public static GameObject guidanceNecklaceWorldBoss = null!;
+	public static GameObject guidanceNecklaceGemstone = null!;
 	public static SE_Stats lightningStart = null!;
 	public static SE_Stats rootStart = null!;
 	public static SE_Stats poisonStart = null!;
@@ -100,5 +102,7 @@ public static class GemEffectSetup
 		Object.Destroy(fusingFailSound.GetComponent<ZNetView>());
 		fusingSuccessSound = assets.LoadAsset<GameObject>("sfx_crystal_fuse");
 		Object.Destroy(fusingSuccessSound.GetComponent<ZNetView>());
+		guidanceNecklaceWorldBoss = assets.LoadAsset<GameObject>("JC_Purple_Neck_Coins");
+		guidanceNecklaceGemstone = assets.LoadAsset<GameObject>("JC_Purple_Neck_Gems");
 	}
 }

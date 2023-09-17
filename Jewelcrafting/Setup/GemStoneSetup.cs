@@ -215,7 +215,18 @@ public static class GemStoneSetup
 	{
 		SocketTooltip = assets.LoadAsset<GameObject>("CrystalText");
 		GemStones.emptySocketSprite = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_Text_1/Border/Transmute_1").GetComponent<Image>().sprite;
-
+		
+		Transform toCopy = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_Text_1");
+		Transform toParent = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles");
+		for (int i = 6; i <= 10; ++i)
+		{
+			GameObject newSlot = Object.Instantiate(toCopy.gameObject);
+			newSlot.name = $"Transmute_Text_{i}";
+			// ReSharper disable once Unity.InstantiateWithoutParent
+			newSlot.transform.SetParent(toParent, false);
+			newSlot.gameObject.SetActive(false);
+		}
+		
 		customGemTierPrefabs[0] = assets.LoadAsset<GameObject>("Simple_Custom_Socket");
 		customGemTierPrefabs[1] = assets.LoadAsset<GameObject>("Advanced_Custom_Socket");
 		customGemTierPrefabs[2] = assets.LoadAsset<GameObject>("Perfect_Custom_Socket");
@@ -283,7 +294,9 @@ public static class GemStoneSetup
 		{
 			if ((Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemDrops) != 0)
 			{
-				__result.AddRange(from gem in Jewelcrafting.gemDropChances.Keys where Random.value < Jewelcrafting.gemDropChances[gem].Value / 100f select new KeyValuePair<GameObject, int>(gem, 1));
+				List<KeyValuePair<GameObject, int>> drops = (from gem in Jewelcrafting.gemDropChances.Keys where Random.value < Jewelcrafting.gemDropChances[gem].Value / 100f select new KeyValuePair<GameObject, int>(gem, 1)).ToList();
+				Stats.gemsDroppedCreature.Increment(drops.Count);
+				__result.AddRange(drops);
 			}
 		}
 	}

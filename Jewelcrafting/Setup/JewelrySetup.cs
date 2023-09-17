@@ -13,6 +13,7 @@ public static class JewelrySetup
 	
 	private static GameObject customNecklacePrefab = null!;
 	private static GameObject customRingPrefab = null!;
+	private static Item purpleRing = null!;
 
 	public static GameObject CreateRingFromTemplate(string colorName, MaterialColor color) => GemStoneSetup.CreateItemFromTemplate(customRingPrefab, colorName, $"jc_ring_{colorName.Replace(" ", "_").ToLower()}", color);
 	public static GameObject CreateNecklaceFromTemplate(string colorName, MaterialColor color) => GemStoneSetup.CreateItemFromTemplate(customNecklacePrefab, colorName, $"jc_necklace_{colorName.Replace(" ", "_").ToLower()}", color);
@@ -57,18 +58,24 @@ public static class JewelrySetup
 		item.RequiredUpgradeItems.Add("Coins", 500);
 		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
 
+		item = new Item(assets, "JC_Necklace_Purple");
+		item.Crafting.Add("op_transmution_table", 3);
+		item.RequiredItems.Add("Perfect_Purple_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		ItemDrop.ItemData.SharedData purpleNecklaceShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		upgradeableJewelry.Add(purpleNecklaceShared.m_name);
+		purpleNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Guidance>(purpleNecklaceShared.m_equipStatusEffect);
+
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Purple_Socket", 1);
 		item.RequiredItems.Add("Chain", 1);
 		item.MaximumRequiredStationLevel = 3;
 		item.RequiredUpgradeItems.Add("Coins", 500);
-		Sockets purpleSockets = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Sockets>()!;
-		for (int i = 0; i < Jewelcrafting.maximumNumberSockets.Value - 1; ++i)
-		{
-			purpleSockets.socketedGems.Add(new SocketItem(""));
-		}
-		purpleSockets.Save();
+		purpleRing = item;
+		SetPurpleRingSockets();
 		string purpleRingName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		upgradeableJewelry.Add(purpleRingName);
 
@@ -100,6 +107,17 @@ public static class JewelrySetup
 		ItemDrop.ItemData.SharedData blueRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
 		upgradeableJewelry.Add(blueRingShared.m_name);
 		blueRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<ModersBlessing>(blueRingShared.m_equipStatusEffect);
+	}
+
+	public static void SetPurpleRingSockets()
+	{
+		Sockets purpleSockets = purpleRing.Prefab.GetComponent<ItemDrop>().m_itemData.Data().GetOrCreate<Sockets>();
+		purpleSockets.socketedGems.Clear();
+		for (int i = 0; i < Jewelcrafting.maximumNumberSockets.Value; ++i)
+		{
+			purpleSockets.socketedGems.Add(new SocketItem(""));
+		}
+		purpleSockets.Save();
 	}
 
 	[HarmonyPatch(typeof(Player), nameof(Player.GetBodyArmor))]
