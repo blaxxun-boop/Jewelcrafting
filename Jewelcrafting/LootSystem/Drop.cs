@@ -204,7 +204,7 @@ public static class Drop
 			List<Recipe> drops = new();
 			foreach (Recipe recipe in ObjectDB.instance.m_recipes)
 			{
-				bool matchLocalized(ICollection<string> list, ItemDrop? item) => item is not null && (list.Contains(item.name.ToLower()) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name).ToLower()));
+				bool matchLocalized(ICollection<string> list, ItemDrop item) => item && (list.Contains(item.name.ToLower()) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name).ToLower()));
 				if (recipe.m_resources.FirstOrDefault(r => matchLocalized(kv.Value, r.m_resItem)) is { } matchedRequirement && (!processedRecipes.TryGetValue(recipe, out string item) || matchedRequirement.m_resItem.name == item) && recipe.m_enabled && !matchLocalized(dropBlacklist, recipe.m_item))
 				{
 					processedRecipes[recipe] = matchedRequirement.m_resItem.name;
