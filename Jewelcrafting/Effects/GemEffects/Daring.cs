@@ -121,7 +121,7 @@ public static class Daring
 		{
 			if (!player.IsDead())
 			{
-				List<Character> characters = Object.FindObjectsOfType<Character>().Where(c => !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < SpawnSystem.m_spawnDistanceMax).ToList();
+				List<Character> characters = Character.s_characters.Where(c => !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < SpawnSystem.m_spawnDistanceMax).ToList();
 				foreach (Character character in characters)
 				{
 					if (CreatureLevelControl.API.GetExtraEffectCreature(character) == CreatureExtraEffect.Splitting)

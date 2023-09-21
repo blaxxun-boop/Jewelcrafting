@@ -15,7 +15,7 @@ public static class BossSpawn
 	private static readonly HashSet<int> playerBasePieces = new();
 	private static readonly Dictionary<string, Location> locations = new();
 	public static readonly Dictionary<string, Sprite> bossIcons = new();
-	public static List<Vector3> currentBossPositions = new();
+	public static readonly List<Vector3> currentBossPositions = new();
 	private static Text bossTimer = null!;
 
 	public static void SetupBossSpawn()
@@ -49,26 +49,15 @@ public static class BossSpawn
 						int remainingTime = int.MaxValue - 1;
 						while (oldRemainingTime > remainingTime || oldRemainingTime > 50)
 						{
-							List<KeyValuePair<Vector2i, ZoneSystem.LocationInstance>> locationsToRemove = new();
-
-							foreach (KeyValuePair<Vector2i, ZoneSystem.LocationInstance> location in ZoneSystem.instance.m_locationInstances)
-							{
-								if (locations.ContainsValue(location.Value.m_location.m_location))
-								{
-									if (location.Value.m_position.y <= (int)ZNet.instance.GetTimeSeconds())
-									{
-										locationsToRemove.Add(location);
-									}
-								}
-							}
+							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y <= (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.instance.GetZone).ToList();
 
 							if (locationsToRemove.Count > 0)
 							{
-								foreach (KeyValuePair<Vector2i, ZoneSystem.LocationInstance> location in locationsToRemove)
+								foreach (Vector2i location in locationsToRemove)
 								{
 									List<ZDO> zdos = new();
-									ZoneSystem.instance.m_locationInstances.Remove(location.Key);
-									ZDOMan.instance.FindObjects(location.Key, zdos);
+									ZoneSystem.instance.m_locationInstances.Remove(location);
+									ZDOMan.instance.FindObjects(location, zdos);
 
 									double currentTime = ZNet.instance.GetTimeSeconds() + 5;
 									foreach (ZDO zdo in zdos)
@@ -161,7 +150,7 @@ public static class BossSpawn
 				{
 					ZNet.instance.GetServerPeer().m_rpc.Invoke("Jewelcrafting BossDied", sector.x, sector.y);
 				}
-				
+
 				Stats.worldBossKills.Increment();
 			}
 		}
