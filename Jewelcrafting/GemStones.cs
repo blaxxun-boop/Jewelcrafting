@@ -12,6 +12,7 @@ using ItemDataManager;
 using Jewelcrafting.GemEffects;
 using Jewelcrafting.WorldBosses;
 using SkillManager;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -123,7 +124,7 @@ public static class GemStones
 		private static void Postfix(InventoryGui __instance)
 		{
 			tab = Object.Instantiate(__instance.m_tabUpgrade.gameObject, __instance.m_tabUpgrade.transform.parent).transform;
-			tab.Find("Text").GetComponent<Text>().text = Localization.instance.Localize("$jc_socket_button_text");
+			tab.Find("Text").GetComponent<TextMeshProUGUI>().text = Localization.instance.Localize("$jc_socket_button_text");
 			Transform parent = tab.parent;
 			int childCount = parent.childCount;
 			tab.SetSiblingIndex(childCount - 2);
@@ -260,7 +261,7 @@ public static class GemStones
 			if (AddSocketAddingTab.TabOpen() && __instance.m_selectedRecipe.Value is { } activeRecipe)
 			{
 				__instance.m_recipeRequirementList[0].transform.parent.gameObject.SetActive(false);
-				__instance.m_craftButton.GetComponentInChildren<Text>().text = Localization.instance.Localize("$jc_add_socket_button");
+				__instance.m_craftButton.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize("$jc_add_socket_button");
 				__instance.m_craftButton.interactable = CanAddMoreSockets(activeRecipe);
 				int socketNumber = Math.Min(activeRecipe.Data().Get<Sockets>()?.socketedGems.Count ?? 0, 4);
 				__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_socket_adding_warning", Math.Min(Mathf.RoundToInt(Jewelcrafting.socketAddingChances[socketNumber].Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f)), 100).ToString());
@@ -269,7 +270,7 @@ public static class GemStones
 					Vector2 sizeDelta = craftTypeRect.sizeDelta;
 					originalCraftSize = sizeDelta.y;
 					craftTypeRect.sizeDelta = new Vector2(sizeDelta.x, 67);
-					__instance.m_itemCraftType.horizontalOverflow = HorizontalWrapMode.Wrap;
+					__instance.m_itemCraftType.textWrappingMode = TextWrappingModes.Normal;
 					craftTypeRect.anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y - originalCraftSize / 2);
 					craftTypeRect.pivot = new Vector2(0.5f, 1);
 				}
@@ -278,7 +279,7 @@ public static class GemStones
 			{
 				if (craftTypeRect.pivot.y == 1)
 				{
-					__instance.m_itemCraftType.horizontalOverflow = HorizontalWrapMode.Overflow;
+					__instance.m_itemCraftType.textWrappingMode = TextWrappingModes.NoWrap;
 					craftTypeRect.sizeDelta = new Vector2(craftTypeRect.sizeDelta.x, originalCraftSize);
 					craftTypeRect.anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y + originalCraftSize / 2);
 					craftTypeRect.pivot = new Vector2(0.5f, 0.5f);
@@ -288,7 +289,7 @@ public static class GemStones
 
 				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources.Length > 0 && recipe.m_resources[0].m_amount == recipe.m_amount)
 				{
-					__instance.m_itemCraftType.horizontalOverflow = HorizontalWrapMode.Wrap;
+					__instance.m_itemCraftType.textWrappingMode = TextWrappingModes.Normal;
 					__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_gem_cutting_warning", Math.Min(Mathf.RoundToInt(chance.Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + Player.m_localPlayer.GetEffect(Effect.Carefulcutting)), 100).ToString());
 
 					if (!displayGemChance)
@@ -305,7 +306,7 @@ public static class GemStones
 				}
 				else if (displayGemChance)
 				{
-					__instance.m_itemCraftType.horizontalOverflow = HorizontalWrapMode.Overflow;
+					__instance.m_itemCraftType.textWrappingMode = TextWrappingModes.NoWrap;
 					displayGemChance = false;
 
 					RectTransform descriptionRect = __instance.m_recipeDecription.GetComponent<RectTransform>();
@@ -588,7 +589,7 @@ public static class GemStones
 					{
 						text += Localization.instance.Localize("$jc_hold_advanced", $"<color=yellow><b>{Jewelcrafting.advancedTooltipKey.Value.MainKey}</b></color>");
 					}
-					interact.GetComponent<Text>().text = text;
+					interact.GetComponent<TMP_Text>().text = text;
 					interact.gameObject.SetActive(!container.boxSealed);
 				}
 
@@ -667,7 +668,7 @@ public static class GemStones
 
 								sprite = gameObject.GetComponent<ItemDrop>().m_itemData.GetIcon();
 							}
-							transmute.GetComponent<Text>().text = Localization.instance.Localize(text);
+							transmute.GetComponent<TMP_Text>().text = Localization.instance.Localize(text);
 							transmute.Find("Border/Transmute_1").gameObject.SetActive(sprite is not null);
 							transmute.Find("Border/Transmute_1").GetComponent<Image>().sprite = sprite;
 						}

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using ItemDataManager;
 using ItemManager;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Object = UnityEngine.Object;
@@ -164,7 +165,7 @@ public static class FusionBoxSetup
 			Button.ButtonClickedEvent onClick = new();
 			onClick.AddListener(Seal);
 			SealButton.GetComponent<Button>().onClick = onClick;
-			SealButton.transform.Find("Text").GetComponent<Text>().text = Localization.instance.Localize("$jc_gembox_merge");
+			SealButton.transform.Find("Text").GetComponent<TextMeshProUGUI>().text = Localization.instance.Localize("$jc_gembox_merge");
 			RectTransform rect = SealButton.GetComponent<RectTransform>();
 			Vector2 anchoredPosition = rect.anchoredPosition;
 			anchoredPosition = new Vector2(-anchoredPosition.x, -anchoredPosition.y);

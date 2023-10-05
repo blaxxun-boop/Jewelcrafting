@@ -5,6 +5,7 @@ using System.Linq;
 using HarmonyLib;
 using ItemDataManager;
 using Jewelcrafting.GemEffects;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -115,12 +116,12 @@ public static class Synergy
 	public class DisplaySynergyView : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 	{
 		public GameObject synergyView = null!;
-		public Text text = null!;
+		public TextMeshProUGUI text = null!;
 		public GameObject? probablyTrash;
 
 		public void Awake()
 		{
-			text = transform.Find("ac_text").GetComponent<Text>();
+			text = transform.Find("ac_text").GetComponent<TextMeshProUGUI>();
 		}
 
 		public void RedrawSynergyCircle()

@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
@@ -16,7 +16,7 @@ public static class BossSpawn
 	private static readonly Dictionary<string, Location> locations = new();
 	public static readonly Dictionary<string, Sprite> bossIcons = new();
 	public static readonly List<Vector3> currentBossPositions = new();
-	private static Text bossTimer = null!;
+	private static TextMeshProUGUI bossTimer = null!;
 
 	public static void SetupBossSpawn()
 	{
@@ -166,7 +166,7 @@ public static class BossSpawn
 				__instance.m_locationIcons.Add(new Minimap.LocationSpriteData { m_icon = kv.Value, m_name = locations[kv.Key].name });
 			}
 
-			bossTimer = Object.Instantiate(__instance.m_largeRoot.transform.Find("KeyHints/keyboard_hints/AddPin/Label"), __instance.m_largeRoot.transform).GetComponent<Text>();
+			bossTimer = Object.Instantiate(__instance.m_largeRoot.transform.Find("KeyHints/keyboard_hints/AddPin/Label"), __instance.m_largeRoot.transform).GetComponent<TextMeshProUGUI>();
 			bossTimer.name = "Jewelcrafting Boss Timer";
 			bossTimer.GetComponent<RectTransform>().anchorMin = new Vector2(0, 1);
 			bossTimer.GetComponent<RectTransform>().anchorMax = new Vector2(0, 1);

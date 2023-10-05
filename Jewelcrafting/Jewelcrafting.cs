@@ -16,6 +16,7 @@ using Jewelcrafting.WorldBosses;
 using LocalizationManager;
 using ServerSync;
 using SkillManager;
+using TMPro;
 using UnityEngine;
 
 namespace Jewelcrafting;
@@ -28,7 +29,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.22";
+	private const string ModVersion = "1.4.23";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -262,6 +263,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		Config.SaveOnConfigSet = false;
 
+		APIManager.Patcher.Patch();
 		RuntimeHelpers.RunClassConstructor(typeof(Stats).TypeHandle);
 		Localizer.Load();
 		english = new Localization();
@@ -816,6 +818,30 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				if (prefab.GetComponent<Character>() is { } character && character.IsBoss() && !boxBossProgress.ContainsKey(character.m_name))
 				{
 					AddBossBoxProgressConfig(character.m_name, new[] { 0f, 0f, 0f });
+				}
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
+	private static class FixupSocketTooltipFont
+	{
+		private static bool initialized = false;
+
+		private static void Postfix(FejdStartup __instance)
+		{
+			if (initialized)
+			{
+				initialized = true;
+				return;
+			}
+
+			if (__instance.transform.Find("StartGame/Panel/JoinPanel/serverCount")?.GetComponent<TextMeshProUGUI>() is { } vanilla)
+			{
+				foreach (TMP_Text tmpText in GemStoneSetup.SocketTooltip.GetComponentsInChildren<TMP_Text>(true))
+				{
+					tmpText.font = vanilla.font;
+					tmpText.textWrappingMode = TextWrappingModes.Normal;
 				}
 			}
 		}
