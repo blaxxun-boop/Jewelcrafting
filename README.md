@@ -29,7 +29,7 @@ Add the NuGet package ILRepack.Lib.MSBuild.Task to your project. Add a file with
 
 ##### Reference Jewelcrafting
 
-Add a reference to the Jewelcrafting.dll in your project. Do not add a reference to the JewelcraftingAPI.dll. Then set a *soft* dependency on Jewelcrafting, to make sure your mod is loaded after Jewelcrafting, like this:
+Add a reference to the JewelcraftingAPI.dll. Then set a *soft* dependency on Jewelcrafting, to make sure your mod is loaded after Jewelcrafting, like this:
 
 `[BepInDependency("org.bepinex.plugins.jewelcrafting", BepInDependency.DependencyFlags.SoftDependency)]`
 
