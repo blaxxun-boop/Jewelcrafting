@@ -96,9 +96,8 @@ public class Visual
 	{
 		private static void Postfix(Humanoid __instance, ItemDrop.ItemData item, ref bool __result)
 		{
-			if (__instance is Player player)
+			if (__instance is Player player && visuals.TryGetValue(player.m_visEquipment, out Visual visual))
 			{
-				Visual visual = visuals[player.m_visEquipment];
 				if (visual.equippedFingerItem == item || visual.equippedNeckItem == item)
 				{
 					__result = true;

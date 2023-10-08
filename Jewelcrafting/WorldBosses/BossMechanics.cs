@@ -79,7 +79,7 @@ public static class BossMechanics
 	{
 		private static void Prefix(Player __instance)
 		{
-			if (__instance.m_lastHit.GetAttacker() is BossSetup.BossCharacter)
+			if (__instance.m_lastHit?.GetAttacker() is BossSetup.BossCharacter)
 			{
 				Stats.deathByWorldBoss.Increment();
 			}

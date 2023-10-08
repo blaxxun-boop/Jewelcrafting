@@ -103,6 +103,8 @@ public static class TerminalCommands
 								{
 									AddSocket(mergedGems, gem => gem);
 								}
+								
+								sockets.Save();
 							}
 							if (sockets.socketedGems.Count == 0)
 							{
