@@ -489,9 +489,17 @@ public static class API
 		}
 #endif
 	}
+	
+	public delegate bool GemBreakHandler(ItemDrop.ItemData? container, ItemDrop.ItemData gem, int count = 1);
+	public delegate bool ItemBreakHandler(ItemDrop.ItemData? container);
 
-	public delegate bool ItemBreakHandler(ItemDrop.ItemData? container, ItemDrop.ItemData gem);
-
+	public static void OnGemBreak(GemBreakHandler callback)
+	{
+#if ! API
+		GemStones.GemBreakHandlers.Add(callback);
+#endif
+	}
+	
 	public static void OnItemBreak(ItemBreakHandler callback)
 	{
 #if ! API

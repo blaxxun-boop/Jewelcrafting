@@ -49,7 +49,19 @@ public static class GemStones
 							--successCount;
 						}
 					}
-					
+
+					if (__instance.m_craftRecipe.m_amount > successCount)
+					{
+						foreach (API.GemBreakHandler handler in GemBreakHandlers)
+						{
+							if (!handler(null, __instance.m_craftRecipe.m_resources[0].m_resItem.m_itemData, __instance.m_craftRecipe.m_amount - successCount))
+							{
+								successCount = __instance.m_craftRecipe.m_amount;
+								break;
+							}
+						}
+					}
+
 					Stats.gemsCut.Increment(successCount);
 					Stats.cutsFailed.Increment(__instance.m_craftRecipe.m_amount - successCount);
 					if (GemStoneSetup.GemInfos.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out GemInfo info))
@@ -443,6 +455,14 @@ public static class GemStones
 
 			if (!Player.m_localPlayer.m_noPlacementCost && Random.value > Jewelcrafting.socketAddingChances[socketNumber].Value / 100f * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f))
 			{
+				foreach (API.ItemBreakHandler handler in ItemBreakHandlers)
+				{
+					if (!handler(__instance.m_craftUpgradeItem))
+					{
+						goto retain;
+					}
+				}
+				
 				if (__instance.m_craftUpgradeItem.Data().Get<Sockets>() is { } sockets)
 				{
 					Inventory itemInventory = sockets.ReadInventory();
@@ -488,28 +508,29 @@ public static class GemStones
 				Stats.socketAddFailureSlot[socketNumber].Increment();
 
 				__instance.UpdateCraftingPanel();
+
+				return false;
+			}
+			
+			retain:
+			ItemInfo itemInfo = __instance.m_craftUpgradeItem.Data();
+			if (itemInfo.Get<Sockets>() is not { } itemSockets)
+			{
+				itemInfo.Add<Sockets>();
 			}
 			else
 			{
-				ItemInfo itemInfo = __instance.m_craftUpgradeItem.Data();
-				if (itemInfo.Get<Sockets>() is not { } sockets)
-				{
-					itemInfo.Add<Sockets>();
-				}
-				else
-				{
-					sockets.socketedGems.Add(new SocketItem(""));
-				}
-				itemInfo.Save();
-
-				Player.m_localPlayer.GetCurrentCraftingStation().m_craftItemDoneEffects.Create(Player.m_localPlayer.transform.position, Quaternion.identity);
-				Stats.socketAddSuccess.Increment();
-				Stats.socketAddSuccessSlot[socketNumber].Increment();
-
-				__instance.UpdateCraftingPanel();
-
-				__instance.SetRecipe(recipeIndex, false);
+				itemSockets.socketedGems.Add(new SocketItem(""));
 			}
+			itemInfo.Save();
+
+			Player.m_localPlayer.GetCurrentCraftingStation().m_craftItemDoneEffects.Create(Player.m_localPlayer.transform.position, Quaternion.identity);
+			Stats.socketAddSuccess.Increment();
+			Stats.socketAddSuccessSlot[socketNumber].Increment();
+
+			__instance.UpdateCraftingPanel();
+
+			__instance.SetRecipe(recipeIndex, false);
 
 			return false;
 		}
@@ -1626,7 +1647,8 @@ public static class GemStones
 	}
 
 	private static bool GemHasEffectInOpenEquipment(ItemDrop.ItemData item) => AddFakeSocketsContainer.openEquipment is null || (Jewelcrafting.EffectPowers.TryGetValue(item.m_dropPrefab.name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && ((locationPowers.TryGetValue(Utils.GetGemLocation(AddFakeSocketsContainer.openEquipment.ItemData.m_shared), out List<EffectPower> powers) && powers.Count != 0) || (locationPowers.TryGetValue(Utils.GetItemGemLocation(AddFakeSocketsContainer.openEquipment.ItemData), out powers) && powers.Count != 0)));
-
+	
+	public static readonly List<API.GemBreakHandler> GemBreakHandlers = new();
 	public static readonly List<API.ItemBreakHandler> ItemBreakHandlers = new();
 	private static bool ShallDestroyGem(ItemDrop.ItemData item, Inventory inventory)
 	{
@@ -1672,7 +1694,7 @@ public static class GemStones
 			}
 			if (chance > Random.value)
 			{
-				foreach (API.ItemBreakHandler handler in ItemBreakHandlers)
+				foreach (API.GemBreakHandler handler in GemBreakHandlers)
 				{
 					if (!handler(AddFakeSocketsContainer.openInventory == inventory ? AddFakeSocketsContainer.openEquipment?.ItemData : null, item))
 					{
