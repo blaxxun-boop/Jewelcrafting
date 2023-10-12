@@ -188,7 +188,8 @@ public class EffectDef
 		public Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution;
 		public Dictionary<Effect, List<EffectDef>> effects;
 		public Dictionary<string, SynergyDef> Synergy;
-		public DropDef drops;
+		public GemDropDef gemDrops;
+		public EquipmentDropDef equipmentDrops;
 		public List<Prizes> Prizes;
 		public List<string> prizeBlacklist;
 	}
@@ -200,7 +201,7 @@ public class EffectDef
 		Dictionary<string, SynergyDef> synergies = new();
 		List<Prizes> prizes = new();
 		List<string> prizeBlacklist = new();
-		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes, drops = new DropDef(), prizeBlacklist = prizeBlacklist };
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes, gemDrops =  new GemDropDef(), equipmentDrops = new EquipmentDropDef(), prizeBlacklist = prizeBlacklist };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)
@@ -245,11 +246,20 @@ public class EffectDef
 				continue;
 			}
 						
+			if (rootDictKv.Key == "gem drops")
+			{
+				if (ChestDrops.Parse(rootDictKv.Value, errors) is { } drops)
+				{
+					configurationResult.gemDrops = drops;
+				}
+				continue;
+			}
+			
 			if (rootDictKv.Key == "equipment")
 			{
-				if (Drop.Parse(rootDictKv.Value, errors) is { } drops)
+				if (EquipmentDrops.Parse(rootDictKv.Value, errors) is { } drops)
 				{
-					configurationResult.drops = drops;
+					configurationResult.equipmentDrops = drops;
 				}
 				continue;
 			}
@@ -789,15 +799,15 @@ public class EffectDef
 				GachaDef.Apply(result.Prizes, result.prizeBlacklist);
 			}
 
-			Dictionary<Heightmap.Biome, DropBiome> dropBiomes = ValidBiomes.Values.ToDictionary(b => b, _ => new DropBiome
+			Dictionary<Heightmap.Biome, EquipmentDropBiome> equipmentDropBiomes = ValidBiomes.Values.ToDictionary(b => b, _ => new EquipmentDropBiome
 			{
 				lowHp = 0,
 				highHp = 0,
 				resourceMap = new List<string>(),
 			});
-			foreach (KeyValuePair<Heightmap.Biome, DropBiome> dropKv in parsed.Values.SelectMany(p => p.drops.biomeConfig))
+			foreach (KeyValuePair<Heightmap.Biome, EquipmentDropBiome> dropKv in parsed.Values.SelectMany(p => p.equipmentDrops.biomeConfig))
 			{
-				DropBiome dropBiome = dropBiomes[dropKv.Key];
+				EquipmentDropBiome dropBiome = equipmentDropBiomes[dropKv.Key];
 				if (dropKv.Value.lowHp is { } lowHp)
 				{
 					dropBiome.lowHp = lowHp;
@@ -811,11 +821,42 @@ public class EffectDef
 					dropBiome.resourceMap = resources;
 				}
 			}
-			Drop.Apply(new DropDef
+			EquipmentDrops.Apply(new EquipmentDropDef
 			{
-				biomeOrder = parsed.Values.Last(p => p.drops.biomeOrder.Count > 0).drops.biomeOrder,
-				biomeConfig = dropBiomes,
-				blacklist = parsed.Values.Last(p => p.drops.blacklist is not null).drops.blacklist,
+				biomeOrder = parsed.Values.Last(p => p.equipmentDrops.biomeOrder.Count > 0).equipmentDrops.biomeOrder,
+				biomeConfig = equipmentDropBiomes,
+				blacklist = parsed.Values.Last(p => p.equipmentDrops.blacklist is not null).equipmentDrops.blacklist,
+			});
+
+			Dictionary<Heightmap.Biome, GemDropBiome> gemDropBiomes = ValidBiomes.Values.ToDictionary(b => b, _ => new GemDropBiome
+			{
+				lowHp = 0,
+				highHp = 0,
+			});
+			foreach (KeyValuePair<Heightmap.Biome, GemDropBiome> dropKv in parsed.Values.SelectMany(p => p.gemDrops.biomeConfig))
+			{
+				GemDropBiome dropBiome = gemDropBiomes[dropKv.Key];
+				if (dropKv.Value.lowHp is { } lowHp)
+				{
+					dropBiome.lowHp = lowHp;
+				}
+				if (dropKv.Value.highHp is { } highHp)
+				{
+					dropBiome.highHp = highHp;
+				}
+				if (dropKv.Value.distribution is { } distribution)
+				{
+					dropBiome.distribution = distribution;
+				}
+			}
+			foreach (KeyValuePair<Heightmap.Biome, GemDropBiome> dropKv in gemDropBiomes)
+			{
+				dropKv.Value.distribution ??= gemDistribution.TryGetValue(dropKv.Key, out Dictionary<GemType, float> distribution) ? distribution : new Dictionary<GemType, float>();
+			}
+			ChestDrops.Apply(new GemDropDef
+			{
+				biomeConfig = gemDropBiomes,
+				blacklist = parsed.Values.Last(p => p.gemDrops.blacklist is not null).gemDrops.blacklist,
 			});
 
 			Jewelcrafting.SocketEffects = socketEffects;

@@ -218,7 +218,7 @@ public static class Utils
 
 	public static string FormatShortNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
 
-	public static string LocalizeDescDetail(Player player, Effect effect, float[] numbers)
+	public static string LocalizeDescDetail(Player player, int tier, Effect effect, float[] numbers)
 	{
 		if (EffectDef.DescriptionOverrides.TryGetValue(effect, out EffectDef.OverrideDescription overrideDesc))
 		{
@@ -227,7 +227,7 @@ public static class Utils
 				return desc;
 			}
 		}
-		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_detail", numbers.Select(FormatShortNumber).ToArray());
+		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_{tier}_detail") ? $"_{tier}" : "") + "_detail", numbers.Select(FormatShortNumber).ToArray());
 	}
 
 	public static ItemDrop? getRandomGem(int tier = 0, GemType? type = null, HashSet<ItemDrop>? blackList = null)
@@ -261,6 +261,18 @@ public static class Utils
 		itemDrop.OnPlayerDrop();
 		itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
 		Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
+	}
+
+	public static GameObject DropPrefabItem(GameObject prefab, Character target)
+	{
+		GameObject item = Object.Instantiate(prefab, target.GetCenterPoint() + Random.insideUnitSphere * 0.5f, Quaternion.Euler(0, Random.Range(0, 360), 0));
+		Vector3 insideUnitSphere = Random.insideUnitSphere;
+		if (insideUnitSphere.y < 0)
+		{
+			insideUnitSphere.y = -insideUnitSphere.y;
+		}
+		item.GetComponent<Rigidbody>()?.AddForce(insideUnitSphere * 5f, ForceMode.VelocityChange);
+		return item;
 	}
 
 	public static bool SkipBossPower() => Player.m_localPlayer.m_rightItem?.m_shared.m_buildPieces is not null;

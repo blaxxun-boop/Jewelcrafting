@@ -67,3 +67,39 @@ equipment:
       - iron
   blacklist:
     - jewelers bag
+      
+gem drops:
+  meadows:
+    low health: 10
+    high health: 50
+# Use this, if you want to specify the distribution. Otherwise, it uses the gemstone formation distribution of the biome.    
+#    distribution:
+#      green: 0.82
+#      black: 0.03
+#      purple: 0.03
+#      blue: 0.03
+#      yellow: 0.03
+#      red: 0.03
+#      orange: 0.03
+  black forest:
+    low health: 30
+    high health: 100
+  swamp:
+    low health: 40
+    high health: 150
+  mountain:
+    low health: 60
+    high health: 250
+  plains:
+    low health: 80
+    high health: 400
+  mistlands:
+    low health: 100
+    high health: 800
+  ocean:
+    low health: 60
+    high health: 150
+  ash lands:
+    low health: 40
+    high health: 120
+  blacklist: []

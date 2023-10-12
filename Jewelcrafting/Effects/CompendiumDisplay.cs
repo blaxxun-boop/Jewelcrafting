@@ -29,6 +29,12 @@ public static class CompendiumDisplay
 	}
 
 	private static readonly List<GameObject> JC_UI_Elements = new();
+	private struct CompendiumGem
+	{
+		public float[] Powers;
+		public GemLocation Location;
+		public int Tier;
+	}
 
 	[HarmonyPatch(typeof(TextsDialog), nameof(TextsDialog.AddActiveEffects))]
 	private class AddToCompendium
@@ -40,7 +46,7 @@ public static class CompendiumDisplay
 				return;
 			}
 
-			Dictionary<Effect, KeyValuePair<float[], GemLocation>> gems = new();
+			Dictionary<Effect, CompendiumGem> gems = new();
 
 			Utils.ActiveSockets active = new(player);
 			Utils.ApplyToAllPlayerItems(player, item =>
@@ -51,6 +57,12 @@ public static class CompendiumDisplay
 					GemLocation itemLocation = Utils.GetItemGemLocation(item);
 					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != "").Take(active.Sockets(item)))
 					{
+						int tier = 1;
+						if (ObjectDB.instance.GetItemPrefab(socket) is { } gameObject && GemStoneSetup.GemInfos.TryGetValue(gameObject.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
+						{
+							tier = info.Tier;
+						}
+
 						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 						{
 							void handleEffectPowers(List<EffectPower> effectPowers)
@@ -59,10 +71,10 @@ public static class CompendiumDisplay
 								{
 									float[] powers;
 									FieldInfo[] powerFields = effectPower.Config.GetType().GetFields();
-									if (gems.TryGetValue(effectPower.Effect, out KeyValuePair<float[], GemLocation> power))
+									if (gems.TryGetValue(effectPower.Effect, out CompendiumGem power))
 									{
 										int i = 0;
-										powers = power.Key;
+										powers = power.Powers;
 										foreach (FieldInfo powerField in powerFields)
 										{
 											powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], (float)powerField.GetValue(effectPower.Config));
@@ -73,7 +85,7 @@ public static class CompendiumDisplay
 									{
 										powers = powerFields.Select(p => (float)p.GetValue(effectPower.Config)).ToArray();
 									}
-									gems[effectPower.Effect] = new KeyValuePair<float[], GemLocation>(powers, power.Value | location);
+									gems[effectPower.Effect] = new CompendiumGem { Powers = powers, Location = power.Location | location, Tier = tier };
 								}
 							}
 							if (locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
@@ -92,10 +104,10 @@ public static class CompendiumDisplay
 			if (gems.Count > 0)
 			{
 				StringBuilder sb = new(Localization.instance.Localize("\n\n<color=yellow>$jc_gem_effects_compendium</color>"));
-				foreach (KeyValuePair<Effect, KeyValuePair<float[], GemLocation>> kv in gems)
+				foreach (KeyValuePair<Effect, CompendiumGem> kv in gems)
 				{
 					sb.Append("\n");
-					sb.Append(Utils.LocalizeDescDetail(player, kv.Key, kv.Value.Key));
+					sb.Append(Utils.LocalizeDescDetail(player, kv.Value.Tier, kv.Key, kv.Value.Powers));
 				}
 				__instance.m_texts[0].m_text += sb.ToString();
 			}

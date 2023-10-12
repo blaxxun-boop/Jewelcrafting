@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using ItemDataManager;
+using Jewelcrafting.LootSystem;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
@@ -135,12 +136,13 @@ public class SocketBag : Socketable, ItemBag
 public class InventoryBag : ItemContainer, ItemBag
 {
 	private Inventory inventory = new("Items", Player.m_localPlayer?.GetInventory().m_bkg, Jewelcrafting.gemBoxSlotsColumns.Value, Jewelcrafting.gemBoxSlotsRows.Value);
+	protected int removableItemAmount;
 
 	public override void Save()
 	{
 		ZPackage pkg = new();
 		inventory.Save(pkg);
-		Value = $"{inventory.m_width};{inventory.m_height};{Convert.ToBase64String(pkg.GetArray())}";
+		Value = $"{inventory.m_width};{inventory.m_height};{Convert.ToBase64String(pkg.GetArray())}" + (GetType() == typeof(DropChest) ? $";{removableItemAmount}" : "");
 	}
 
 	public override void Load()
@@ -150,12 +152,21 @@ public class InventoryBag : ItemContainer, ItemBag
 		{
 			inventory = new Inventory("Items", Player.m_localPlayer?.GetInventory().m_bkg, width, height);
 			inventory.Load(new ZPackage(Convert.FromBase64String(info[2])));
+			if (GetType() == typeof(DropChest) && info.Length > 3 && int.TryParse(info[3], out int allowed))
+			{
+				removableItemAmount = allowed;
+			}
 		}
 	}
 
 	public override Inventory ReadInventory() => inventory;
 
 	public override void SaveSocketsInventory(Inventory inv) => inventory = inv;
+}
+
+public class DropChest : InventoryBag
+{
+	public new int removableItemAmount { get => base.removableItemAmount; set => base.removableItemAmount = value; }
 }
 
 public class Frame : Socketable

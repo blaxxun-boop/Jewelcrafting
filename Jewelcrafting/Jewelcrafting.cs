@@ -29,7 +29,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.4.25";
+	private const string ModVersion = "1.5.0";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -115,6 +115,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<float> lootDefaultChance = null!;
 	public static ConfigEntry<LootRestriction> lootRestriction = null!;
 	public static ConfigEntry<Toggle> unsocketDroppedItems = null!;
+	public static ConfigEntry<int> gemChestMinGems = null!;
+	public static ConfigEntry<int> gemChestMaxGems = null!;
+	public static ConfigEntry<int> gemChestAllowedAmount = null!;
+	public static ConfigEntry<int> equipmentChestMinItems = null!;
+	public static ConfigEntry<int> equipmentChestMaxItems = null!;
+	public static ConfigEntry<int> equipmentChestAllowedAmount = null!;
 	public static ConfigEntry<Toggle> gemstoneFormations = null!;
 	public static ConfigEntry<float> gemstoneFormationHealth = null!;
 	public static ConfigEntry<Toggle> featherGliding = null!;
@@ -213,8 +219,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	{
 		GemDrops = 1,
 		EquipmentDrops = 2,
-		//GemChests = 4,
-		//EquipmentChests = 8
+		GemChests = 4,
+		EquipmentChests = 8,
 	}
 
 	public enum LootRestriction
@@ -403,6 +409,40 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		lootLowHpChance = config("5 - Loot System", "Drop Low HP Chance", 7f, new ConfigDescription("Chance for loot to be dropped from low HP creatures.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		lootRestriction = config("5 - Loot System", "Loot Restriction", LootRestriction.KnownRecipe, new ConfigDescription("None: No restrictions for item drops.\nKnown Station: You can only drop items that can be crafted on crafting stations that you know.\nKnown Recipe: You can only drop items that you know the recipe of.", null, new ConfigurationManagerAttributes { Order = --order }));
 		unsocketDroppedItems = config("5 - Loot System", "Unsocket Dropped Items", Toggle.Off, new ConfigDescription("If on, gems can be removed from dropped equipment items.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gemChestMinGems = config("5 - Loot System", "Minimum Gems Gem Chest", 2, new ConfigDescription("Minimum amount of gems inside a dropped gem chest. Needs to be less than the maximum.", new AcceptableValueRange<int>(2, 8), new ConfigurationManagerAttributes { Order = --order }));
+		gemChestMinGems.SettingChanged += (_, _) =>
+		{
+			if (gemChestMinGems.Value > gemChestMaxGems.Value)
+			{
+				gemChestMinGems.Value = gemChestMaxGems.Value;
+			}
+		};
+		gemChestMaxGems = config("5 - Loot System", "Maximum Gems Gem Chest", 3, new ConfigDescription("Maximum amount of gems inside a dropped gem chest. Needs to be more than the minimum.", new AcceptableValueRange<int>(2, 8), new ConfigurationManagerAttributes { Order = --order }));
+		gemChestMaxGems.SettingChanged += (_, _) =>
+		{
+			if (gemChestMaxGems.Value < gemChestMinGems.Value)
+			{
+				gemChestMaxGems.Value = gemChestMinGems.Value;
+			}
+		};
+		gemChestAllowedAmount = config("5 - Loot System", "Allowed Gems Gem Chest", 1, new ConfigDescription("Sets how many gems players may take from a single gem chest.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
+		equipmentChestMinItems = config("5 - Loot System", "Minimum Items Equipment Chest", 2, new ConfigDescription("Minimum amount of items inside a dropped equipment chest. Needs to be less than the maximum.", new AcceptableValueRange<int>(2, 8), new ConfigurationManagerAttributes { Order = --order }));
+		equipmentChestMinItems.SettingChanged += (_, _) =>
+		{
+			if (equipmentChestMinItems.Value > equipmentChestMaxItems.Value)
+			{
+				equipmentChestMinItems.Value = equipmentChestMaxItems.Value;
+			}
+		};
+		equipmentChestMaxItems = config("5 - Loot System", "Maximum Items Equipment Chest", 3, new ConfigDescription("Maximum amount of items inside a dropped equipment chest. Needs to be more than the minimum.", new AcceptableValueRange<int>(2, 8), new ConfigurationManagerAttributes { Order = --order }));
+		equipmentChestMaxItems.SettingChanged += (_, _) =>
+		{
+			if (equipmentChestMaxItems.Value < equipmentChestMinItems.Value)
+			{
+				equipmentChestMaxItems.Value = equipmentChestMinItems.Value;
+			}
+		};
+		equipmentChestAllowedAmount = config("5 - Loot System", "Allowed Items Equipment Chest", 1, new ConfigDescription("Sets how many items players may take from a single equipment chest.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("6 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor = config("6 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
@@ -734,6 +774,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_reaper_spear_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_knife_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_shield_description", "power", worldBossBonusBlockPower);
+		Localizer.AddPlaceholder("jc_blue_chest_description", "allowed", gemChestAllowedAmount);
+		Localizer.AddPlaceholder("jc_purple_chest_description", "allowed", gemChestAllowedAmount);
+		Localizer.AddPlaceholder("jc_orange_chest_description", "allowed", gemChestAllowedAmount);
+		Localizer.AddPlaceholder("jc_blue_item_chest_description", "allowed", equipmentChestAllowedAmount);
+		Localizer.AddPlaceholder("jc_purple_item_chest_description", "allowed", equipmentChestAllowedAmount);
+		Localizer.AddPlaceholder("jc_orange_item_chest_description", "allowed", equipmentChestAllowedAmount);
 
 		Config.SaveOnConfigSet = true;
 		Config.Save();
