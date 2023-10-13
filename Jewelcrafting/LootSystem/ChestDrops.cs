@@ -8,7 +8,6 @@ using ItemDataManager;
 using Jewelcrafting.GemEffects;
 using Jewelcrafting.Setup;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.LootSystem;
@@ -18,12 +17,6 @@ public class GemDropBiome
 	public float? lowHp;
 	public float? highHp;
 	public Dictionary<GemType, float>? distribution;
-
-	public GemDropBiome Clone()
-	{
-		GemDropBiome cfg = (GemDropBiome)MemberwiseClone();
-		return cfg;
-	}
 }
 
 public class GemDropDef
@@ -172,116 +165,114 @@ public static class ChestDrops
 		{
 			Character character = __instance.m_character;
 
-			if (character.m_baseAI is not MonsterAI ai || (Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemChests) == 0 || character.IsTamed())
+			if (character.m_baseAI is MonsterAI ai && (Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemChests) != 0 && !character.IsTamed())
 			{
-				return;
-			}
+				Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
+				if (config.biomeConfig.TryGetValue(biome, out GemDropBiome drops) && drops.distribution is IDictionary { Count: > 0 } && Random.value < (character.GetMaxHealth() < drops.lowHp!.Value ? Jewelcrafting.lootLowHpChance : Jewelcrafting.lootDefaultChance).Value / 100f)
+				{
+					// between 0 and 1
+					float hpFactor = (Mathf.Pow(Mathf.Clamp(character.GetMaxHealth() / drops.highHp!.Value, 0.125f, 8), 1 / 3f) - 0.5f) / 1.5f;
 
-			Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
-			if (config.biomeConfig.TryGetValue(biome, out GemDropBiome drops) && drops.distribution is IDictionary { Count: >0 } && Random.value < (character.GetMaxHealth() < drops.lowHp!.Value ? Jewelcrafting.lootLowHpChance : Jewelcrafting.lootDefaultChance).Value / 100f)
-			{
-				// between 0 and 1
-				float hpFactor = (Mathf.Pow(Mathf.Clamp(character.GetMaxHealth() / drops.highHp!.Value, 0.125f, 8), 1 / 3f) - 0.5f) / 1.5f;
-
-				// now, skew the probability distribution towards the hpFactor
-				float worthFactor = 0;
-				const int repetitions = 4;
-				for (int i = 0; i < repetitions; ++i)
-				{
-					worthFactor += (Random.value > Jewelcrafting.lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
-				}
-				worthFactor = Mathf.Clamp01(worthFactor);
-				int gemDelta = Jewelcrafting.gemChestMaxGems.Value - Jewelcrafting.gemChestMinGems.Value + 1;
-				
-				GameObject prefab;
-				int[] numTiers = new int[3];
-				if (worthFactor < 0.5)
-				{
-					prefab = LootSystemSetup.gemChests[0];
-					numTiers[0] = Jewelcrafting.gemChestMinGems.Value + Math.Max(0, Mathf.CeilToInt(worthFactor * 2 * gemDelta) - 1);
-				}
-				else if (worthFactor < 0.9)
-				{
-					prefab = LootSystemSetup.gemChests[1];
-					numTiers[1] = 1 + Math.Max(0, Mathf.CeilToInt((Jewelcrafting.gemChestMinGems.Value + gemDelta - 1) * (worthFactor - 0.75f) / 0.15f));
-					numTiers[0] = Math.Max(0, Jewelcrafting.gemChestMinGems.Value - numTiers[1] + Math.Max(0, Mathf.CeilToInt(worthFactor % 0.25f / 0.25f * gemDelta) - 1));
-				}
-				else
-				{
-					prefab = LootSystemSetup.gemChests[2];
-					numTiers[2] = 1 + Math.Max(0, Mathf.CeilToInt((Jewelcrafting.gemChestMinGems.Value + gemDelta - 1) * (worthFactor - 0.97f) / 0.03f));
-					numTiers[1] = Math.Max(0, Jewelcrafting.gemChestMinGems.Value - numTiers[2] + Math.Max(0, Mathf.CeilToInt(worthFactor % 0.07f / 0.27f * gemDelta) - 1));
-				}
-
-				GemType Select(IEnumerable<GemType> skip)
-				{
-					Dictionary<GemType, float> distribution = new(drops.distribution);
-					foreach (GemType type in skip)
+					// now, skew the probability distribution towards the hpFactor
+					float worthFactor = 0;
+					const int repetitions = 4;
+					for (int i = 0; i < repetitions; ++i)
 					{
-						distribution.Remove(type);
+						worthFactor += (Random.value > Jewelcrafting.lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
+					}
+					worthFactor = Mathf.Clamp01(worthFactor);
+					int gemDelta = Jewelcrafting.gemChestMaxGems.Value - Jewelcrafting.gemChestMinGems.Value + 1;
+
+					GameObject prefab;
+					int[] numTiers = new int[3];
+					if (worthFactor < 0.5)
+					{
+						prefab = LootSystemSetup.gemChests[0];
+						numTiers[0] = Jewelcrafting.gemChestMinGems.Value + Math.Max(0, Mathf.CeilToInt(worthFactor * 2 * gemDelta) - 1);
+					}
+					else if (worthFactor < 0.9)
+					{
+						prefab = LootSystemSetup.gemChests[1];
+						numTiers[1] = 1 + Math.Max(0, Mathf.CeilToInt((Jewelcrafting.gemChestMinGems.Value + gemDelta - 1) * (worthFactor - 0.75f) / 0.15f));
+						numTiers[0] = Math.Max(0, Jewelcrafting.gemChestMinGems.Value - numTiers[1] + Math.Max(0, Mathf.CeilToInt(worthFactor % 0.25f / 0.25f * gemDelta) - 1));
+					}
+					else
+					{
+						prefab = LootSystemSetup.gemChests[2];
+						numTiers[2] = 1 + Math.Max(0, Mathf.CeilToInt((Jewelcrafting.gemChestMinGems.Value + gemDelta - 1) * (worthFactor - 0.97f) / 0.03f));
+						numTiers[1] = Math.Max(0, Jewelcrafting.gemChestMinGems.Value - numTiers[2] + Math.Max(0, Mathf.CeilToInt(worthFactor % 0.07f / 0.27f * gemDelta) - 1));
 					}
 
-					GemType selected = GemType.Green;
-					float total = Random.Range(0, distribution.Values.Sum());
-					foreach (KeyValuePair<GemType, float> kv in distribution)
+					GemType Select(IEnumerable<GemType> skip)
 					{
-						total -= kv.Value;
-						if (total <= 0.00001f)
+						Dictionary<GemType, float> distribution = new(drops.distribution);
+						foreach (GemType type in skip)
 						{
-							selected = kv.Key;
-							break;
+							distribution.Remove(type);
+						}
+
+						GemType selected = GemType.Green;
+						float total = Random.Range(0, distribution.Values.Sum());
+						foreach (KeyValuePair<GemType, float> kv in distribution)
+						{
+							total -= kv.Value;
+							if (total <= 0.00001f)
+							{
+								selected = kv.Key;
+								break;
+							}
+						}
+						return selected;
+					}
+
+					int totalGems = numTiers.Sum();
+					GemType[] selectedGems = new GemType[totalGems];
+					List<int> preferForUpgrade = new();
+					for (int i = 0; i < totalGems; ++i)
+					{
+						GemType selected = Select(Enumerable.Empty<GemType>());
+						selectedGems[i] = selected;
+						for (int j = 0; j < i; ++j)
+						{
+							if (selectedGems[i] == selected)
+							{
+								preferForUpgrade.Add(j);
+								selectedGems[i] = Select(selectedGems.Take(i));
+								break;
+							}
 						}
 					}
-					return selected;
-				}
 
-				int totalGems = numTiers.Sum();
-				GemType[] selectedGems = new GemType[totalGems];
-				List<int> preferForUpgrade = new(); 
-				for (int i = 0; i < totalGems; ++i)
-				{
-					GemType selected = Select(Enumerable.Empty<GemType>());
-					selectedGems[i] = selected;
-					for (int j = 0; j < i; ++j)
+					List<int> indexOrder = preferForUpgrade.GroupBy(v => v).OrderByDescending(g => g.Count()).Select(g => g.Key).ToList();
+					int indexOrderIndex = 0;
+					indexOrder.AddRange(Enumerable.Range(0, totalGems).Except(indexOrder));
+					Dictionary<GemType, int> choices = new();
+					for (int i = numTiers.Length - 1; i >= 0; --i)
 					{
-						if (selectedGems[i] == selected)
+						for (int j = 0; j < numTiers[i]; ++j)
 						{
-							preferForUpgrade.Add(j);
-							selectedGems[i] = Select(selectedGems.Take(i));
-							break;
+							choices[selectedGems[indexOrder[indexOrderIndex++]]] = i;
 						}
 					}
-				}
 
-				List<int> indexOrder = preferForUpgrade.GroupBy(v => v).OrderByDescending(g => g.Count()).Select(g => g.Key).ToList();
-				int indexOrderIndex = 0;
-				indexOrder.AddRange(Enumerable.Range(0, totalGems).Except(indexOrder));
-				Dictionary<GemType, int> choices = new();
-				for (int i = numTiers.Length - 1; i >= 0; --i)
-				{
-					for (int j = 0; j < numTiers[i]; ++j)
+					ItemInfo info = Utils.DropPrefabItem(prefab, character).GetComponent<ItemDrop>().m_itemData.Data();
+					DropChest chest = info.GetOrCreate<DropChest>();
+					chest.removableItemAmount = Jewelcrafting.gemChestAllowedAmount.Value;
+					Inventory chestInventory = chest.ReadInventory();
+					chestInventory.m_height = 1;
+					chestInventory.m_width = choices.Count;
+
+					foreach (KeyValuePair<GemType, int> gem in choices)
 					{
-						choices[selectedGems[indexOrder[indexOrderIndex++]]] = i;
+						List<GemDefinition> gemstone = GemStoneSetup.Gems[gem.Key];
+						chestInventory.AddItem(gemstone[Math.Min(gem.Value, gemstone.Count - 1)].Prefab, 1);
 					}
-				}
 
-				ItemInfo info = Utils.DropPrefabItem(prefab, character).GetComponent<ItemDrop>().m_itemData.Data();
-				DropChest chest = info.GetOrCreate<DropChest>();
-				chest.removableItemAmount = Jewelcrafting.gemChestAllowedAmount.Value;
-				Inventory chestInventory = chest.ReadInventory();
-				chestInventory.m_height = 1;
-				chestInventory.m_width = choices.Count;
-
-				foreach (KeyValuePair<GemType, int> gem in choices)
-				{
-					List<GemDefinition> gemstone = GemStoneSetup.Gems[gem.Key];
-					chestInventory.AddItem(gemstone[Math.Min(gem.Value, gemstone.Count - 1)].Prefab, 1);
+					chest.Save();
 				}
-				
-				chest.Save();
 			}
-			
-			EquipmentDrops.DoDrop(__instance, Jewelcrafting.LootSystem.EquipmentDrops, (biome, character, drops) =>
+
+			EquipmentDrops.DoDrop(__instance, Jewelcrafting.LootSystem.EquipmentChests, (biome, character, drops) =>
 			{
 				List<ItemDrop.ItemData> items = new();
 				float worth = 0;

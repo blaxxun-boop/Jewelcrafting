@@ -52,7 +52,7 @@ public static class Necromancer
 			GameObject template = ZNetScene.instance.GetPrefab("Skeleton");
 			skeleton.GetComponentInChildren<Animator>().runtimeAnimatorController = template.GetComponentInChildren<Animator>().runtimeAnimatorController;
 			skeleton.GetComponentInChildren<Animator>().avatar = template.GetComponentInChildren<Animator>().avatar;
-			skeleton.GetComponent<Humanoid>().m_randomWeapon = new[] { template.GetComponent<Humanoid>().m_randomWeapon.First(w => w.name == "skeleton_bow") };
+			skeleton.GetComponent<Humanoid>().m_randomWeapon = new[] { ZNetScene.instance.GetPrefab("skeleton_bow") };
 		}
 	}
 }

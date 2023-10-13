@@ -27,11 +27,15 @@ public class PositionStorage : ItemData
 [HarmonyPatch(typeof(Inventory), nameof(Inventory.AddItem), typeof(string), typeof(int), typeof(int), typeof(int), typeof(long), typeof(string), typeof(bool))]
 public static class TagItemsWithPosition
 {
-	private static void Postfix(ItemDrop.ItemData? __result)
+	private static void Postfix(string name, ItemDrop.ItemData? __result)
 	{
-		if (__result is not null && Utils.IsSocketableItem(__result))
+		if (__result is not null)
 		{
-			__result.Data().GetOrCreate<PositionStorage>().Position = Player.m_localPlayer.transform.position;
+			__result.m_dropPrefab ??= ObjectDB.instance.GetItemPrefab(name);
+			if (Utils.IsSocketableItem(__result))
+			{
+				__result.Data().GetOrCreate<PositionStorage>().Position = Player.m_localPlayer.transform.position;
+			}
 		}
 	}
 }
