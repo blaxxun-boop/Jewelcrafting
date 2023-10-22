@@ -10,7 +10,6 @@ using BepInEx.Configuration;
 using HarmonyLib;
 using ItemDataManager;
 using Jewelcrafting.GemEffects;
-using Jewelcrafting.LootSystem;
 using Jewelcrafting.WorldBosses;
 using SkillManager;
 using TMPro;
@@ -276,7 +275,7 @@ public static class GemStones
 				__instance.m_recipeRequirementList[0].transform.parent.gameObject.SetActive(false);
 				__instance.m_craftButton.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize("$jc_add_socket_button");
 				__instance.m_craftButton.interactable = CanAddMoreSockets(activeRecipe);
-				int socketNumber = Math.Min(activeRecipe.Data().Get<Sockets>()?.socketedGems.Count ?? 0, 4);
+				int socketNumber = Math.Min(activeRecipe.Data().Get<Sockets>()?.socketedGems.Count ?? 0, 9);
 				__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_socket_adding_warning", Math.Min(Mathf.RoundToInt(Jewelcrafting.socketAddingChances[socketNumber].Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f)), 100).ToString());
 				if (craftTypeRect.pivot.y != 1)
 				{
@@ -1454,7 +1453,7 @@ public static class GemStones
 				string socketName = individualSocket.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 				HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
 				List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(socketName, uniquePowers, out List<string> errorType);
-				if (IsEquippedItem(Player.m_localPlayer, targetItem.ItemData) && HasEquippedAnyUniqueGem(checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
+				if (IsEquippedItem(Player.m_localPlayer, targetItem.ItemData) && HasEquippedAnyUniqueGem(Player.m_localPlayer, checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
 				{
 					return FormatUniqueSocketError(errorType, otherUnique);
 				}
@@ -1531,11 +1530,11 @@ public static class GemStones
 		}
 	}
 
-	private static string? HasEquippedAnyUniqueGem(IEnumerable<GemDefinition> checkAgainst, ItemInfo? ignoreContainer = null)
+	private static string? HasEquippedAnyUniqueGem(Player player, IEnumerable<GemDefinition> checkAgainst, ItemInfo? ignoreContainer = null)
 	{
 		foreach (GameObject gem in checkAgainst.SelectMany(EnumerateWithMergedGems))
 		{
-			if (HasEquippedUniqueGem(gem.name, ignoreContainer) is { } otherUnique)
+			if (HasEquippedUniqueGem(player, gem.name, ignoreContainer) is { } otherUnique)
 			{
 				return otherUnique;
 			}
@@ -1544,10 +1543,10 @@ public static class GemStones
 		return null;
 	}
 
-	private static string? HasEquippedUniqueGem(string gem, ItemInfo? ignoreContainer)
+	private static string? HasEquippedUniqueGem(Player player, string gem, ItemInfo? ignoreContainer)
 	{
 		string?[] alreadyEquipped = new string[1];
-		Utils.ApplyToAllPlayerItems(Player.m_localPlayer, slot =>
+		Utils.ApplyToAllPlayerItems(player, slot =>
 		{
 			if (slot.Data() != ignoreContainer && slot?.Data().Get<Sockets>() is { } itemSockets)
 			{
@@ -1639,7 +1638,7 @@ public static class GemStones
 	{
 		private static bool Prefix(Humanoid __instance, ItemDrop.ItemData item, ref bool __result)
 		{
-			if (IsEquippedItem(__instance, item) || item.Data().Get<Sockets>() is not { } itemSockets)
+			if (IsEquippedItem(__instance, item) || item.Data().Get<Sockets>() is not { } itemSockets || __instance is not Player player)
 			{
 				return true;
 			}
@@ -1652,9 +1651,9 @@ public static class GemStones
 				{
 					HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
 					List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, uniquePowers, out List<string> errorType);
-					if (HasEquippedAnyUniqueGem(checkAgainst, item.Data()) is { } equippedUnique)
+					if (HasEquippedAnyUniqueGem(player, checkAgainst, item.Data()) is { } equippedUnique)
 					{
-						Player.m_localPlayer.Message(MessageHud.MessageType.Center, FormatUniqueSocketError(errorType, equippedUnique));
+						player.Message(MessageHud.MessageType.Center, FormatUniqueSocketError(errorType, equippedUnique));
 						return false;
 					}
 					return true;
