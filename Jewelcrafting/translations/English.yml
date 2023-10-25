@@ -154,7 +154,7 @@ jc_stone_transmuter_description: "Gems in many different colors spinning on a pe
 jc_jewelry_box: "Ring in a Box"
 jc_jewelry_box_description: "You make a box and put a ring in it. For some reason, this will improve your Gemcutters Table."
 jc_gemstone_furnace: "Astral Gemcutter"
-jc_gemstone_furnace_description: "A device to slowly, but steadily cut your gems. This ignores your Jewelcrafting skill."
+jc_gemstone_furnace_description: "A device to slowly, but steadily cut your gems. This uses your Jewelcrafting skill and has a small chance to skip gem tiers."
 jc_gemstone_furnace_additem: "Add gemstone"
 jc_attach_jewel: "Add Ring to Activate"
 jc_socket_adding_fail: "Adding a socket failed, your item has been destroyed"
