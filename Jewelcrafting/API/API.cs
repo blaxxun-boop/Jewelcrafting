@@ -145,7 +145,8 @@ public static class API
 		{
 			effects = new Dictionary<Effect, List<EffectDef>>(),
 			Synergy = new Dictionary<string, SynergyDef>(),
-			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float> { { (GemType)colorName.GetStableHashCode(), 0.04f } }),
+			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float>
+				{ { (GemType)colorName.GetStableHashCode(), 0.04f } }),
 			equipmentDrops = new EquipmentDropDef(),
 			gemDrops = new GemDropDef(),
 			Prizes = new List<Prizes>(),
@@ -472,7 +473,8 @@ public static class API
 		}
 		else
 		{
-			VisualEffects.attachEffectPrefabs[prefabName] = new Dictionary<VisualEffectCondition, GameObject> { { displayCondition, effect } };
+			VisualEffects.attachEffectPrefabs[prefabName] = new Dictionary<VisualEffectCondition, GameObject>
+				{ { displayCondition, effect } };
 		}
 #endif
 	}
@@ -505,6 +507,30 @@ public static class API
 	{
 #if ! API
 		GemStones.ItemBreakHandlers.Add(callback);
+#endif
+	}
+
+	public delegate bool ItemMirroredHandler(ItemDrop.ItemData? item);
+	
+	public static void OnItemMirrored(ItemMirroredHandler callback)
+	{
+#if ! API
+		GemStones.ItemMirroredHandlers.Add(callback);
+#endif
+	}
+
+	public static bool IsJewelryEquipped(Player player, string prefabName)
+	{
+#if ! API
+		int hash = prefabName.GetStableHashCode();
+		if (player.m_visEquipment.m_currentUtilityItemHash == hash)
+		{
+			return true;
+		}
+
+		return Visual.visuals.TryGetValue(player.m_visEquipment, out Visual visual) && (visual.currentFingerItemHash == hash || visual.currentNeckItemHash == hash);
+#else
+		return false;
 #endif
 	}
 }

@@ -12,7 +12,7 @@ public static class Warmth
 	{
 		private static bool RemoveColdInColdNights(bool cold, Player player)
 		{
-			if (cold && EnvMan.instance.GetCurrentEnvironment().m_isColdAtNight && Utils.IsJewelryEquipped(player, "JC_Ring_Red"))
+			if (cold && EnvMan.instance.GetCurrentEnvironment().m_isColdAtNight && API.IsJewelryEquipped(player, "JC_Ring_Red"))
 			{
 				cold = false;
 			}

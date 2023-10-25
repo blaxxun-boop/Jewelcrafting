@@ -15,6 +15,7 @@
             <InputAssemblies Include="$(OutputPath)Libs\GroupsAPI.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\APIManager.dll"/>
             <InputAssemblies Include="$(OutputPath)Libs\CreatureLevelControlAPI.dll"/>
+            <InputAssemblies Include="$(OutputPath)Libs\AzuExtendedPlayerInventoryAPI.dll"/>
             <InputAssemblies Include="$(OutputPath)YamlDotNet.dll"/>
         </ItemGroup>
         <ILRepack Parallel="true" DebugInfo="true" Internalize="true" InputAssemblies="@(InputAssemblies)" OutputFile="$(TargetPath)" TargetKind="SameAsPrimaryAssembly" LibraryPath="$(OutputPath)"/>

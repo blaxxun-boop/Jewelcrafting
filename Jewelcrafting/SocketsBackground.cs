@@ -165,7 +165,7 @@ public static class SocketsBackground
 		}
 	}
 
-	[HarmonyPatch(typeof(HotkeyBar), nameof(HotkeyBar.Update))]
+	[HarmonyPatch(typeof(HotkeyBar), nameof(HotkeyBar.UpdateIcons))]
 	private static class ColorBackgroundHotkeyBar
 	{
 		private static void Postfix(HotkeyBar __instance)
@@ -173,16 +173,21 @@ public static class SocketsBackground
 			if (__instance.m_items.Count > 0 && __instance.m_elements.Count > 0)
 			{
 				int firstItemX = __instance.m_items[0].m_gridPos.x;
+				int firstItemY = __instance.m_items[0].m_gridPos.y;
 				int firstItemElement = 0;
 				while (!__instance.m_elements[firstItemElement].m_icon.gameObject.activeSelf)
 				{
 					++firstItemElement;
 				}
 				int gridPosOffset = firstItemX - firstItemElement;
-
+				
 				foreach (ItemDrop.ItemData item in __instance.m_items)
 				{
-					UpdateElement(item, __instance.m_elements[item.m_gridPos.x - gridPosOffset].m_go);
+					int index = item.m_gridPos.x - gridPosOffset + (item.m_gridPos.y - firstItemY) * 8;
+					if (index >= 0)
+					{
+						UpdateElement(item, __instance.m_elements[index].m_go);
+					}
 				}
 			}
 

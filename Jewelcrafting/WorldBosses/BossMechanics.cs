@@ -30,19 +30,19 @@ public static class BossMechanics
 			IEnumerator delayedFrostEffect(Player player)
 			{
 				yield return new WaitForSeconds(5);
-				player.m_seman.AddStatusEffect(GemEffectSetup.frostBossDebuff, true);
+				player.m_seman.AddStatusEffect(GemEffectSetup.frostBossDebuff.name.GetStableHashCode(), true);
 			}
 			Check("JC_Boss_Explosion_Frost", delayedFrostEffect);
 			IEnumerator delayedPoisonEffect(Player player)
 			{
 				yield return new WaitForSeconds(5);
-				player.m_seman.AddStatusEffect(GemEffectSetup.poisonBossDebuff, true);
+				player.m_seman.AddStatusEffect(GemEffectSetup.poisonBossDebuff.name.GetStableHashCode(), true);
 			}
 			Check("JC_Boss_Explosion_Poison", delayedPoisonEffect);
 			IEnumerator delayedFireEffect(Player player)
 			{
 				yield return new WaitForSeconds(5);
-				player.m_seman.AddStatusEffect(GemEffectSetup.fireBossDebuff, true);
+				player.m_seman.AddStatusEffect(GemEffectSetup.fireBossDebuff.name.GetStableHashCode(), true);
 			}
 			Check("JC_Boss_Explosion_Flame", delayedFireEffect);
 		}

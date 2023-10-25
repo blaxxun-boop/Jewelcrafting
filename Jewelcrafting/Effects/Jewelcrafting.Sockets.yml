@@ -341,7 +341,7 @@ lightning speed:
   slot: all
   gem: eikthyr
   power:
-    movement speed: 75
+    movement speed: 60
     min cooldown: 90
     max cooldown: 120
     duration: 8

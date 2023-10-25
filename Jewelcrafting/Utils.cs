@@ -112,7 +112,7 @@ public static class Utils
 			Skills.SkillType.Polearms => GemLocation.Polearm,
 			Skills.SkillType.Spears => GemLocation.Spear,
 			Skills.SkillType.Blocking => GemLocation.Shield,
-			Skills.SkillType.Axes => player is not null && IsJewelryEquipped(player, "JC_Necklace_Yellow") ? GemLocation.Tool : GemLocation.Axe,
+			Skills.SkillType.Axes => player is not null && API.IsJewelryEquipped(player, "JC_Necklace_Yellow") ? GemLocation.Tool : GemLocation.Axe,
 			Skills.SkillType.Bows => GemLocation.Bow,
 			Skills.SkillType.Crossbows => GemLocation.Crossbow,
 			Skills.SkillType.Pickaxes => GemLocation.Tool,
@@ -313,17 +313,6 @@ public static class Utils
 		return item;
 	}
 
-	public static bool IsJewelryEquipped(Player player, string prefabName)
-	{
-		int hash = prefabName.GetStableHashCode();
-		if (player.m_visEquipment.m_currentUtilityItemHash == hash)
-		{
-			return true;
-		}
-
-		return Visual.visuals.TryGetValue(player.m_visEquipment, out Visual visual) && (visual.currentFingerItemHash == hash || visual.currentNeckItemHash == hash);
-	}
-
 	public class ActiveSockets
 	{
 		private readonly int activeUtilityItems;
@@ -332,8 +321,9 @@ public static class Utils
 		
 		public ActiveSockets(Player player)
 		{
-			activeUtilityItems = player.GetInventory().GetEquippedItems().Count(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
-			primaryUtilityItem = player.m_utilityItem ?? player.GetInventory().GetEquippedItems().FirstOrDefault(i => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility);
+			bool isSocketedUtility(ItemDrop.ItemData i) => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i.Data().Get<Sockets>() is not null;
+			activeUtilityItems = player.GetInventory().GetEquippedItems().Count(isSocketedUtility);
+			primaryUtilityItem = player.m_utilityItem?.Data().Get<Sockets>() is not null ? player.m_utilityItem : player.GetInventory().GetEquippedItems().FirstOrDefault(isSocketedUtility);
 			availableUtilitySlots = activeUtilityItems == 0 ? 0 : Jewelcrafting.maximumNumberSockets.Value / activeUtilityItems;
 		}
 

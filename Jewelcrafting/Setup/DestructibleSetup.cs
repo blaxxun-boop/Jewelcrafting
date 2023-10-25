@@ -110,7 +110,7 @@ public static class DestructibleSetup
 			ZNetView netView = gemSpawner.AddComponent<ZNetView>();
 			netView.m_persistent = true;
 			netView.m_type = ZDO.ObjectType.Terrain;
-			gemSpawner.AddComponent<SphereCollider>().radius = 1.5f; // prevent spawning other things on top
+			gemSpawner.AddComponent<SphereCollider>().radius = 1.2f + 0.7f; // prevent spawning other things on top
 
 			__instance.m_prefabs.Add(gemSpawner);
 		}
@@ -220,7 +220,7 @@ public static class DestructibleSetup
 				}
 			}
 
-			if (Physics.SphereCast(transform.position + Vector3.down * 10, 1.5f, Vector3.up, out _, 12f, ZoneSystem.instance.m_blockRayMask) || EffectArea.IsPointInsideArea(transform.position, EffectArea.Type.PlayerBase, 30f))
+			if (Physics.SphereCast(transform.position + Vector3.down * 10, 1.2f, Vector3.up, out _, 12f, ZoneSystem.instance.m_blockRayMask) || EffectArea.IsPointInsideArea(transform.position, EffectArea.Type.PlayerBase, 30f))
 			{
 				return;
 			}

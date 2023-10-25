@@ -9,7 +9,7 @@ public static class Headhunter
 	{
 		API.OnEffectRecalc += () =>
 		{
-			if (!Utils.IsJewelryEquipped(Player.m_localPlayer, "JC_Ring_Green"))
+			if (!API.IsJewelryEquipped(Player.m_localPlayer, "JC_Ring_Green"))
 			{
 				Player.m_localPlayer.m_seman.RemoveStatusEffect(GemEffectSetup.headhunter);
 			}
@@ -26,7 +26,7 @@ public static class Headhunter
 
 			foreach (Player p in nearbyPlayers)
 			{
-				if (Utils.IsJewelryEquipped(p, "JC_Ring_Green"))
+				if (API.IsJewelryEquipped(p, "JC_Ring_Green"))
 				{
 					p.m_seman.AddStatusEffect(GemEffectSetup.headhunter.NameHash(), true);
 				}

@@ -26,10 +26,11 @@ namespace Jewelcrafting;
 [BepInIncompatibility("org.bepinex.plugins.valheim_plus")]
 [BepInDependency("org.bepinex.plugins.groups", BepInDependency.DependencyFlags.SoftDependency)]
 [BepInDependency("org.bepinex.plugins.creaturelevelcontrol", BepInDependency.DependencyFlags.SoftDependency)]
+[BepInDependency("Azumatt.AzuExtendedPlayerInventory", BepInDependency.DependencyFlags.SoftDependency)]
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.2";
+	private const string ModVersion = "1.5.3";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -59,6 +60,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly ConfigEntry<int>[] crystalFusionBoxDropRate = new ConfigEntry<int>[FusionBoxSetup.Boxes.Length];
 	public static readonly ConfigEntry<float>[] crystalFusionBoxMergeActivityProgress = new ConfigEntry<float>[FusionBoxSetup.Boxes.Length];
 	public static ConfigEntry<int> maximumNumberSockets = null!;
+	public static ConfigEntry<Toggle> limitSocketsByTableLevel = null!;
+	public static readonly ConfigEntry<int>[] maxSocketsTableLevel = new ConfigEntry<int>[3];
 	public static ConfigEntry<int> gemRespawnRate = null!;
 	public static ConfigEntry<int> upgradeChanceIncrease = null!;
 	public static ConfigEntry<int> awarenessRange = null!;
@@ -103,6 +106,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> worldBossExploitProtectionRangedShield = null!;
 	public static ConfigEntry<float> defaultEventDuration = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
+	public static ConfigEntry<Toggle> mirrorMirrorImages = null!;
 	public static ConfigEntry<string> socketBlacklist = null!;
 	public static ConfigEntry<string> mirrorBlacklist = null!;
 	public static ConfigEntry<Toggle> gemstoneFormationParticles = null!;
@@ -333,6 +337,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			SocketsBackground.CalculateColors();
 			JewelrySetup.SetPurpleRingSockets();
 		};
+		limitSocketsByTableLevel = config("2 - Socket System", "Limit number of Sockets", Toggle.Off, new ConfigDescription("If on, the number of sockets that can be added to an item by a player is limited by the level of the Gemcutters Table.", null, new ConfigurationManagerAttributes { Order = --order }));
+		for (int i = 0; i < maxSocketsTableLevel.Length; ++i)
+		{
+			maxSocketsTableLevel[i] = config("2 - Socket System", $"Socket limit table level {i + 1}", i + 1, new ConfigDescription($"Sets the maximum number of sockets that can be added to an item at a level {i + 1} Gemcutters Table, if Limit number of Sockets is on.", new AcceptableValueRange<int>(1, 10), new ConfigurationManagerAttributes { Order = --order }));
+		}
 		gemRespawnRate = config("2 - Socket System", "Gemstone Respawn Time", 100, new ConfigDescription("Respawn time for raw gemstones in ingame days. Use 0 to disable respawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		socketingItemsExperience = config("2 - Socket System", "Adding Sockets grants Experience", Toggle.On, new ConfigDescription("If off, adding sockets to items does not grant Jewelcrafting experience anymore. This can be used, to prevent people from crafting cheap items and socketing them, to level up the skill.", null, new ConfigurationManagerAttributes { Order = --order }));
 		socketBlacklist = config("6 - Other", "Socketing Blacklist", "", new ConfigDescription("Comma separated list of prefabs that cannot be socketed.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -452,12 +461,25 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		experienceLoss.SettingChanged += (_, _) => jewelcrafting.SkillLoss = experienceLoss.Value;
 		jewelcrafting.SkillLoss = experienceLoss.Value;
 		gemBagSlotsRows = config("6 - Other", "Jewelers Bag Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
+		gemBagSlotsRows.SettingChanged += (_, _) => MiscSetup.UpdateGemBagSize();
 		gemBagSlotsColumns = config("6 - Other", "Jewelers Bag Columns", 8, new ConfigDescription("Columns in a Jewelers Bag. Changing this value does not affect existing bags.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
+		gemBagSlotsColumns.SettingChanged += (_, _) => MiscSetup.UpdateGemBagSize();
 		gemBagAutofill = config("6 - Other", "Jewelers Bag Autofill", Toggle.On, new ConfigDescription("If set to on, gems will be added into a Jewelers Bag automatically on pickup.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		gemBoxSlotsRows = config("6 - Other", "Jewelers Box Slot Rows", 2, new ConfigDescription("Rows in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 4), new ConfigurationManagerAttributes { Order = --order }));
+		gemBoxSlotsRows.SettingChanged += (_, _) =>
+		{
+			MiscSetup.jewelryBag.ReadInventory().m_height = gemBoxSlotsRows.Value;
+			MiscSetup.jewelryBag.Save();
+		};
 		gemBoxSlotsColumns = config("6 - Other", "Jewelers Box Columns", 2, new ConfigDescription("Columns in a Jewelers Box. Changing this value does not affect existing boxes.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
+		gemBoxSlotsColumns.SettingChanged += (_, _) =>
+		{
+			MiscSetup.jewelryBag.ReadInventory().m_width = gemBoxSlotsColumns.Value;
+			MiscSetup.jewelryBag.Save();
+		};
 		frameOfChanceChance = config("6 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		mirrorBlacklist = config("6 - Other", "Celestial Mirror Blacklist", "", new ConfigDescription("Comma separated list of prefabs that cannot be duplicated with a celestial mirror.", null, new ConfigurationManagerAttributes { Order = --order }));
+		mirrorMirrorImages = config("6 - Other", "Mirror Mirror Images", Toggle.Off, new ConfigDescription("If on, mirror images can be mirrored again.", null, new ConfigurationManagerAttributes { Order = --order }));
 		advancedTooltipKey = config("6 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipMode = config("6 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipAlwaysOn = config("6 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);
@@ -568,7 +590,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		featherGliding.SettingChanged += ToggleFeatherFall;
 		featherGlidingBuff = config("6 - Other", "Feather Fall Buff", 20, new ConfigDescription("Increases the duration of Gliding. Percentage. Only active, when Feather Fall is disabled.", null, new ConfigurationManagerAttributes { Order = --order }));
 		ringSlot = config("6 - Other", "Ring Slot", Toggle.On, new ConfigDescription("If on, the Jewelcrafting rings do not go into the utility slot, but get a special dedicated ring slot.", null, new ConfigurationManagerAttributes { Order = --order }));
+		ringSlot.SettingChanged += (_, _) => Visual.HandleSettingChanged(ringSlot);
+		Visual.HandleSettingChanged(ringSlot);
 		necklaceSlot = config("6 - Other", "Necklace Slot", Toggle.On, new ConfigDescription("If on, the Jewelcrafting necklaces do not go into the utility slot, but get a special dedicated necklace slot.", null, new ConfigurationManagerAttributes { Order = --order }));
+		necklaceSlot.SettingChanged += (_, _) => Visual.HandleSettingChanged(necklaceSlot);
+		Visual.HandleSettingChanged(necklaceSlot);
 		splitSockets = config("6 - Other", "Split Sockets", Toggle.On, new ConfigDescription("If on, the sockets in utility, necklace and ring slots are split, if multiple items are equipped.", null, new ConfigurationManagerAttributes { Order = --order }));
 		splitSockets.SettingChanged += (_, _) =>
 		{
@@ -913,6 +939,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		private static void Prefix(ObjectDB __instance)
 		{
 			__instance.m_StatusEffects.Add(GemEffectSetup.headhunter);
+			__instance.m_StatusEffects.Add(GemEffectSetup.fireBossDebuff);
+			__instance.m_StatusEffects.Add(GemEffectSetup.frostBossDebuff);
+			__instance.m_StatusEffects.Add(GemEffectSetup.poisonBossDebuff);
 		}
 
 		private static void Postfix()

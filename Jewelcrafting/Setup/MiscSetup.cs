@@ -15,6 +15,8 @@ public static class MiscSetup
 	public static string blessedMirrorName = null!;
 	public static string celestialMirrorName = null!;
 	public static readonly List<GameObject> framePrefabs = new();
+	private static SocketBag socketBag = null!;
+	public static InventoryBag jewelryBag = null!;
 
 	public static void initializeMisc(AssetBundle assets)
 	{
@@ -24,12 +26,8 @@ public static class MiscSetup
 		item.RequiredItems.Add("LeatherScraps", 10);
 		item.RequiredItems.Add("Resin", 5);
 		item.RequiredItems.Add("GreydwarfEye", 1);
-		SocketBag socketBag = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<SocketBag>()!;
-		for (int i = 0; i < Jewelcrafting.gemBagSlotsRows.Value * Jewelcrafting.gemBagSlotsColumns.Value - 1; ++i)
-		{
-			socketBag.socketedGems.Add(new SocketItem(""));
-		}
-		socketBag.Save();
+		socketBag = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<SocketBag>()!;
+		UpdateGemBagSize();
 		gemBagName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 
 		item = new Item(assets, "JC_Gem_Box");
@@ -38,7 +36,7 @@ public static class MiscSetup
 		item.RequiredItems.Add("LeatherScraps", 10);
 		item.RequiredItems.Add("Resin", 5);
 		item.RequiredItems.Add("GreydwarfEye", 5);
-		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<InventoryBag>();
+		jewelryBag = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<InventoryBag>()!;
 		gemBoxName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 
 		item = new Item(assets, "Blue_Crystal_Frame");
@@ -182,5 +180,16 @@ public static class MiscSetup
 				__result = AddItemToBag.Do(__instance, item, true);
 			}
 		}
+	}
+
+	public static void UpdateGemBagSize()
+	{
+		socketBag.socketedGems.Clear();
+		
+		for (int i = 0; i < Jewelcrafting.gemBagSlotsRows.Value * Jewelcrafting.gemBagSlotsColumns.Value; ++i)
+		{
+			socketBag.socketedGems.Add(new SocketItem(""));
+		}
+		socketBag.Save();
 	}
 }

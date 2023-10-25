@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using BepInEx.Configuration;
 using HarmonyLib;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Jewelcrafting;
 
@@ -17,7 +20,7 @@ public class Visual
 		{
 			return false;
 		}
-		
+
 		string name = item.m_shared.m_name;
 		return name.CustomStartsWith("$jc_ring_");
 	}
@@ -28,7 +31,7 @@ public class Visual
 		{
 			return false;
 		}
-		
+
 		string name = item.m_shared.m_name;
 		return name.CustomStartsWith("$jc_necklace_");
 	}
@@ -58,11 +61,11 @@ public class Visual
 				}
 			}
 		}
-		
+
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
 		{
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
-			instructions.InsertRange(2, new []
+			instructions.InsertRange(2, new[]
 			{
 				new CodeInstruction(OpCodes.Ldarg_0),
 				new CodeInstruction(OpCodes.Ldloc_0),
@@ -90,7 +93,7 @@ public class Visual
 			}
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.IsItemEquiped))]
 	private static class IsItemEquiped
 	{
@@ -346,6 +349,35 @@ public class Visual
 		if (visEquipment.m_nview.GetZDO() is { } zdo && visEquipment.m_nview.IsOwner())
 		{
 			zdo.Set("FingerItem", string.IsNullOrEmpty(name) ? 0 : name.GetStableHashCode());
+		}
+	}
+
+	public static void HandleSettingChanged(ConfigEntry<Jewelcrafting.Toggle> setting)
+	{
+		if (!AzuExtendedPlayerInventory.API.IsLoaded())
+		{
+			return;
+		}
+
+		void Handle(string name, Func<ItemDrop.ItemData, bool> isValid, Func<Visual, ItemDrop.ItemData?> get)
+		{
+			if (setting.Value == Jewelcrafting.Toggle.On)
+			{
+				AzuExtendedPlayerInventory.API.AddSlot(name, player => visuals.TryGetValue(player.m_visEquipment, out Visual visual) ? get(visual) : null, isValid);
+			}
+			else
+			{
+				AzuExtendedPlayerInventory.API.RemoveSlot(name);
+			}
+		}
+
+		if (setting == Jewelcrafting.necklaceSlot)
+		{
+			Handle("Neck", IsNeckItem, v => v.equippedNeckItem);
+		}
+		else if (setting == Jewelcrafting.ringSlot)
+		{
+			Handle("Finger", IsFingerItem, v => v.equippedFingerItem);
 		}
 	}
 }

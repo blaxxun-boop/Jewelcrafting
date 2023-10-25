@@ -8,7 +8,7 @@ public static class Aquatic
 	{
 		API.OnEffectRecalc += () =>
 		{
-			if (!Utils.IsJewelryEquipped(Player.m_localPlayer, "JC_Necklace_Blue"))
+			if (!API.IsJewelryEquipped(Player.m_localPlayer, "JC_Necklace_Blue"))
 			{
 				Player.m_localPlayer.m_seman.RemoveStatusEffect(GemEffectSetup.aquatic);
 			}
@@ -20,7 +20,7 @@ public static class Aquatic
 	{
 		private static void Postfix(SE_Wet __instance)
 		{
-			if (__instance.m_character != Player.m_localPlayer || !Utils.IsJewelryEquipped(Player.m_localPlayer, "JC_Necklace_Blue"))
+			if (__instance.m_character != Player.m_localPlayer || !API.IsJewelryEquipped(Player.m_localPlayer, "JC_Necklace_Blue"))
 			{
 				return;
 			}
