@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.4";
+	private const string ModVersion = "1.5.5";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -107,6 +107,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<float> defaultEventDuration = null!;
 	public static ConfigEntry<int> frameOfChanceChance = null!;
 	public static ConfigEntry<Toggle> mirrorMirrorImages = null!;
+	public static ConfigEntry<Toggle> unsocketMirrorImages = null!;
 	public static ConfigEntry<string> socketBlacklist = null!;
 	public static ConfigEntry<string> mirrorBlacklist = null!;
 	public static ConfigEntry<Toggle> gemstoneFormationParticles = null!;
@@ -480,6 +481,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		frameOfChanceChance = config("6 - Other", "Frame of Chance chance", 50, new ConfigDescription("Chance to add a socket instead of losing one when applying equipment to a frame of chance.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		mirrorBlacklist = config("6 - Other", "Celestial Mirror Blacklist", "", new ConfigDescription("Comma separated list of prefabs that cannot be duplicated with a celestial mirror.", null, new ConfigurationManagerAttributes { Order = --order }));
 		mirrorMirrorImages = config("6 - Other", "Mirror Mirror Images", Toggle.Off, new ConfigDescription("If on, mirror images can be mirrored again.", null, new ConfigurationManagerAttributes { Order = --order }));
+		unsocketMirrorImages = config("6 - Other", "Unsocket Mirror Images", Toggle.Off, new ConfigDescription("If on, gems can be removed from mirror images.", null, new ConfigurationManagerAttributes { Order = --order }));
 		advancedTooltipKey = config("6 - Other", "Advanced Tooltip Key", new KeyboardShortcut(KeyCode.LeftAlt), new ConfigDescription("Key to hold while hovering an item with sockets, to display the advanced tooltip.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipMode = config("6 - Other", "Advanced Tooltip Details", AdvancedTooltipMode.General, new ConfigDescription("How detailed the advanced tooltip should be.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		advancedTooltipAlwaysOn = config("6 - Other", "Always Display Advanced Tooltip", Toggle.Off, new ConfigDescription("If on, the advanced tooltip is always displayed, instead of the name of the effect.", null, new ConfigurationManagerAttributes { Order = --order }), false);

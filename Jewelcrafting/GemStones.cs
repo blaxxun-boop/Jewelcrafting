@@ -1024,7 +1024,7 @@ public static class GemStones
 				{
 					FusionBoxSetup.AddSealButton.SealButton.SetActive(true);
 				}
-				else if (((Jewelcrafting.allowUnsocketing.Value != Jewelcrafting.Unsocketing.All || Jewelcrafting.breakChanceUnsocketSimple.Value > 0 || Jewelcrafting.breakChanceUnsocketAdvanced.Value > 0 || Jewelcrafting.breakChanceUnsocketPerfect.Value > 0 || Jewelcrafting.breakChanceUnsocketMerged.Value > 0) && sockets is not ItemBag) || sockets is DropChest || itemInfo["SocketsLock"] is not null)
+				else if (((Jewelcrafting.allowUnsocketing.Value != Jewelcrafting.Unsocketing.All || Jewelcrafting.breakChanceUnsocketSimple.Value > 0 || Jewelcrafting.breakChanceUnsocketAdvanced.Value > 0 || Jewelcrafting.breakChanceUnsocketPerfect.Value > 0 || Jewelcrafting.breakChanceUnsocketMerged.Value > 0) && sockets is not ItemBag) || sockets is DropChest || itemInfo["SocketsLock"] is not null || (itemInfo["Mirrored Item"] is not null && Jewelcrafting.unsocketMirrorImages.Value == Jewelcrafting.Toggle.Off))
 				{
 					takeAllButton.gameObject.SetActive(false);
 				}
@@ -1134,6 +1134,11 @@ public static class GemStones
 
 	private static bool AllowsUnsocketing(ItemDrop.ItemData item)
 	{
+		if (AddFakeSocketsContainer.openEquipment?["Mirrored Item"] is not null && Jewelcrafting.unsocketMirrorImages.Value == Jewelcrafting.Toggle.Off)
+		{
+			return false;
+		}
+		
 		if (AddFakeSocketsContainer.openEquipment?["SocketsLock"] is not null)
 		{
 			return false;
@@ -1252,7 +1257,10 @@ public static class GemStones
 					itemClone.m_stack = 1;
 					itemClone.m_equipped = false;
 
-					itemClone.Data()["Mirrored Item"] = "";
+					if (container.m_shared.m_name == MiscSetup.celestialMirrorName)
+					{
+						itemClone.Data()["Mirrored Item"] = "";
+					}
 
 					foreach (API.ItemMirroredHandler handler in ItemMirroredHandlers)
 					{

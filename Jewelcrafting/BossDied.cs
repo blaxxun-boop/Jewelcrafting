@@ -13,7 +13,7 @@ public static class BossDied
 	public static class SetBossFlag
 	{
 		public static bool firstKill = false;
-		
+
 		private static void Prefix(Character __instance)
 		{
 			if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique || Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.GuaranteedFirst)
@@ -21,10 +21,10 @@ public static class BossDied
 				firstKill = !BossKilled(__instance);
 			}
 		}
-		
+
 		private static bool BossKilled(Character boss) => ZoneSystem.instance.GetGlobalKey(boss.m_defeatSetGlobalKey);
 	}
-	
+
 	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
 	private static class AddGemDrop
 	{
@@ -35,9 +35,22 @@ public static class BossDied
 			{
 				if (__instance.m_character.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 				{
-					__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, Player.GetPlayersInRangeXZ(__instance.m_character.transform.position, 100) * Jewelcrafting.bossCoinDrop.Value));
+					List<Player> nearbyPlayers = new();
+					Player.GetPlayersInRange(__instance.m_character.transform.position, 100, nearbyPlayers);
+					foreach (Player player in nearbyPlayers)
+					{
+						if (player.GetInventory().CanAddItem(GachaSetup.gachaCoins, Jewelcrafting.bossCoinDrop.Value))
+						{
+							player.GetInventory().AddItem(GachaSetup.gachaCoins, Jewelcrafting.bossCoinDrop.Value);
+							player.ShowPickupMessage(GachaSetup.gachaCoins.GetComponent<ItemDrop>().m_itemData, Jewelcrafting.bossCoinDrop.Value);
+						}
+						else
+						{
+							__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, Jewelcrafting.bossCoinDrop.Value));
+						}
+					}
 				}
-				
+
 				if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(__instance.gameObject), out GameObject bossDrop))
 				{
 					if ((Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique || Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.GuaranteedFirst) && SetBossFlag.firstKill)

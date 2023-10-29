@@ -171,7 +171,7 @@ public class DropChest : InventoryBag
 
 public class Frame : Socketable
 {
-
+	protected override bool AllowStackingIdenticalValues { get; set; } = true;
 }
 
 public class Box : Socketable
