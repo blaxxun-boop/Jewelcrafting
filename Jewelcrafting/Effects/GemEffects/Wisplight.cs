@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using HarmonyLib;
 using JetBrains.Annotations;
 using UnityEngine;
@@ -50,7 +49,10 @@ public static class Wisplight
 				{
 					for (;;)
 					{
-						forceField.endRange = player.GetEffect(Effect.Wisplight);
+						if (player.GetEffect(Effect.Wisplight) is { } effect and > 0)
+						{
+							forceField.endRange = effect;
+						}
 						yield return new WaitForSeconds(1);
 					}
 					// ReSharper disable once IteratorNeverReturns

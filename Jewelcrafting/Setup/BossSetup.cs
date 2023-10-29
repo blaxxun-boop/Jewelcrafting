@@ -158,6 +158,11 @@ public static class BossSetup
 
 		public new void Damage(HitData hit)
 		{
+			if (!m_nview.IsValid())
+			{
+				return;
+			}
+			
 			int stackCounter = m_nview.GetZDO().GetInt("WorldBoss ranged stacks");
 			if (Jewelcrafting.worldBossExploitProtectionRangedShield.Value == Jewelcrafting.Toggle.On)
 			{

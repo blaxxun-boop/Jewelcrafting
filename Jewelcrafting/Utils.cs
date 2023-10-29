@@ -143,7 +143,7 @@ public static class Utils
 
 	public static bool isAdmin(ZRpc? rpc)
 	{
-		return rpc is null || ZNet.instance.m_adminList.Contains(rpc.GetSocket().GetHostName());
+		return rpc is null || ZNet.instance.ListContainsId(ZNet.instance.m_adminList, rpc.GetSocket().GetHostName());
 	}
 
 	public static T ConvertStatusEffect<T>(StatusEffect statusEffect) where T : StatusEffect

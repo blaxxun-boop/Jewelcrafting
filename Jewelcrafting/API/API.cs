@@ -208,7 +208,7 @@ public static class API
 #if ! API
 	private static GameObject RegisterUncut(string type, string colorName, GameObject uncutGem)
 	{
-		AddUncutGem(uncutGem, colorName, Jewelcrafting.config("2 - Socket System", $"Drop chance for {type} Gemstones", 1.5f, new ConfigDescription($"Chance to drop an {type.ToLower()} gemstone when killing creatures.", new AcceptableValueRange<float>(0, 100))));
+		AddUncutGem(uncutGem, colorName, Jewelcrafting.config("Gem Drops", $"Drop chance for {type} Gemstones", 1.5f, new ConfigDescription($"Chance to drop an {type.ToLower()} gemstone when killing creatures.", new AcceptableValueRange<float>(0, 100))));
 		return uncutGem;
 	}
 #endif

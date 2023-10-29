@@ -176,8 +176,6 @@
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
         <Compile Include="API\VisualEffectCondition.cs"/>
-        <Compile Include="LootSystem\ChestDrops.cs"/>
-        <Compile Include="LootSystem\GemDrops.cs"/>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">
         <Compile Include="Effects\GemEffects\MountainGoat.cs"/>
@@ -308,6 +306,8 @@
         <Compile Include="Effects\AoeEffects.cs"/>
         <Compile Include="Effects\GemEffects\Wisplight.cs"/>
         <Compile Include="LootSystem\EquipmentDrops.cs"/>
+        <Compile Include="LootSystem\ChestDrops.cs"/>
+        <Compile Include="LootSystem\GemDrops.cs"/>
         <Compile Include="Setup\LootSystemSetup.cs"/>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">

@@ -363,7 +363,8 @@ public class Visual
 		{
 			if (setting.Value == Jewelcrafting.Toggle.On)
 			{
-				AzuExtendedPlayerInventory.API.AddSlot(name, player => visuals.TryGetValue(player.m_visEquipment, out Visual visual) ? get(visual) : null, isValid);
+				int index = AzuExtendedPlayerInventory.API.GetSlots().SlotNames.ToList().FindIndex(slot => slot == (name == "Neck" ? "Finger" : "Neck"));
+				AzuExtendedPlayerInventory.API.AddSlot(name, player => visuals.TryGetValue(player.m_visEquipment, out Visual visual) ? get(visual) : null, isValid, index < 0 ? -1 : (name == "Neck" ? index : index + 1));
 			}
 			else
 			{

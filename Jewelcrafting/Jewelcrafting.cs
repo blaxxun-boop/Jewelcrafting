@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.3";
+	private const string ModVersion = "1.5.4";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -520,7 +520,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 			if (ObjectDB.instance)
 			{
-				if (Player.m_localPlayer is { } player && player && player.m_utilityItem.m_shared.m_name == "$item_demister")
+				if (Player.m_localPlayer is { } player && player && player.m_utilityItem?.m_shared.m_name == "$item_demister")
 				{
 					player.UnequipItem(player.m_utilityItem);
 				}
