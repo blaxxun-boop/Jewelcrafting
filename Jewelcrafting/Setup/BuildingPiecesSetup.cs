@@ -18,27 +18,27 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Uncut_Black_Stone", 10, true);
 		piece.RequiredItems.Add("Uncut_Purple_Stone", 10, true);
 		piece.RequiredItems.Add("Uncut_Blue_Stone", 10, true);
-		piece.Category.Add(BuildPieceCategory.Crafting);
+		piece.Category.Set(BuildPieceCategory.Crafting);
 		Utils.ConvertComponent<OpenCompendium, StationExtension>(piece.Prefab);
 
 		piece = new BuildPiece(assets, "op_transmution_table");
 		piece.RequiredItems.Add("Wood", 10, true);
 		piece.RequiredItems.Add("Flint", 10, true);
-		piece.Category.Add(BuildPieceCategory.Crafting);
+		piece.Category.Set(BuildPieceCategory.Crafting);
 		gemcuttersTable = piece.Prefab;
 		
 		piece = new BuildPiece(assets, "Odins_Jewelry_Box");
 		piece.RequiredItems.Add("FineWood", 30, true);
 		piece.RequiredItems.Add("IronNails", 15, true);
 		piece.RequiredItems.Add("Obsidian", 4, true);
-		piece.Category.Add(BuildPieceCategory.Crafting);
+		piece.Category.Set(BuildPieceCategory.Crafting);
 		piece.Prefab.AddComponent<RingInTheBox>();
 		
 		piece = new BuildPiece(assets, "JC_Gemstone_Furnace");
 		piece.RequiredItems.Add("Thunderstone", 1, true);
 		piece.RequiredItems.Add("SurtlingCore", 5, true);
 		piece.RequiredItems.Add("Bronze", 10, true);
-		piece.Category.Add(BuildPieceCategory.Crafting);
+		piece.Category.Set(BuildPieceCategory.Crafting);
 		astralCutter = piece.Prefab;
 	}
 

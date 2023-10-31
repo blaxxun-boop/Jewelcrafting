@@ -39,15 +39,7 @@ public static class BossDied
 					Player.GetPlayersInRange(__instance.m_character.transform.position, 100, nearbyPlayers);
 					foreach (Player player in nearbyPlayers)
 					{
-						if (player.GetInventory().CanAddItem(GachaSetup.gachaCoins, Jewelcrafting.bossCoinDrop.Value))
-						{
-							player.GetInventory().AddItem(GachaSetup.gachaCoins, Jewelcrafting.bossCoinDrop.Value);
-							player.ShowPickupMessage(GachaSetup.gachaCoins.GetComponent<ItemDrop>().m_itemData, Jewelcrafting.bossCoinDrop.Value);
-						}
-						else
-						{
-							__result.Add(new KeyValuePair<GameObject, int>(GachaSetup.gachaCoins, Jewelcrafting.bossCoinDrop.Value));
-						}
+						player.m_nview.InvokeRPC("Jewelcrafting GachaCoin Receive", Jewelcrafting.bossCoinDrop.Value, __instance.m_character.transform.position);
 					}
 				}
 
@@ -94,6 +86,7 @@ public static class BossDied
 			if (__instance.m_nview is { } netView)
 			{
 				netView.Register<string>("Jewelcrafting Box BossDied", BossDied);
+				netView.Register<int, Vector3>("Jewelcrafting GachaCoin Receive", (_, amount, bossPosition) => CoinReceive(__instance, amount, bossPosition));
 			}
 		}
 
@@ -102,6 +95,20 @@ public static class BossDied
 			if (Jewelcrafting.boxBossProgress.TryGetValue(bossName, out ConfigEntry<float>[] configs))
 			{
 				FusionBoxSetup.IncreaseBoxProgress(configs.Select(c => c.Value));
+			}
+		}
+
+		private static void CoinReceive(Player player, int amount, Vector3 bossPosition)
+		{
+			if (player.GetInventory().CanAddItem(GachaSetup.gachaCoins, amount))
+			{
+				player.GetInventory().AddItem(GachaSetup.gachaCoins, amount);
+				player.ShowPickupMessage(GachaSetup.gachaCoins.GetComponent<ItemDrop>().m_itemData, amount);
+			}
+			else
+			{
+				GachaSetup.gachaCoins.GetComponent<ItemDrop>().m_itemData.m_dropPrefab = GachaSetup.gachaCoins;
+				ItemDrop.DropItem(GachaSetup.gachaCoins.GetComponent<ItemDrop>().m_itemData, amount, bossPosition, Quaternion.identity);
 			}
 		}
 	}
