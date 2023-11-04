@@ -286,6 +286,7 @@
         <Compile Include="Setup\MergedGemStoneSetup.cs"/>
         <Compile Include="Setup\MiscSetup.cs"/>
         <Compile Include="Setup\VisualEffectSetup.cs"/>
+        <Compile Include="WorldBosses\BossHud.cs" />
         <Compile Include="WorldBosses\BossMechanics.cs"/>
         <Compile Include="WorldBosses\BossSpawn.cs"/>
         <Compile Include="WorldBosses\GachaChest.cs"/>

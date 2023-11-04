@@ -105,7 +105,7 @@ public static class Synergy
 	{
 		private static void Postfix(ItemDrop.ItemData? item)
 		{
-			if (activeSynergyDisplay.probablyTrash is not null)
+			if (activeSynergyDisplay.probablyTrash != null)
 			{
 				activeSynergyDisplay.probablyTrash.SetActive(item is not null);
 				activeSynergyDisplay.gameObject.SetActive(item is null);

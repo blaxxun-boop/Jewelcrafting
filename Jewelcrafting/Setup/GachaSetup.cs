@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using HarmonyLib;
 using ItemManager;
@@ -102,6 +101,12 @@ public static class GachaSetup
 		celestialItemsConfigs["JC_Reaper_Knife"].mistlands.m_backstabBonus = 6.5f;
 		celestialItemsConfigs["JC_Reaper_Knife"].mistlands.m_damages.m_pierce = 41;
 		celestialItemsConfigs["JC_Reaper_Knife"].mistlands.m_damages.m_slash = 41;
+		RegisterWorldBossBonusItem("JC_Lightning_Staff");
+		celestialItemsConfigs["JC_Lightning_Staff"].plains.m_attack = Utils.Clone(celestialItemsConfigs["JC_Lightning_Staff"].mistlands.m_attack);
+		celestialItemsConfigs["JC_Lightning_Staff"].plains.m_attack.m_attackEitr = 45;
+		RegisterWorldBossBonusItem("JC_Poison_Staff");
+		celestialItemsConfigs["JC_Poison_Staff"].plains.m_attack = Utils.Clone(celestialItemsConfigs["JC_Poison_Staff"].mistlands.m_attack);
+		celestialItemsConfigs["JC_Poison_Staff"].plains.m_attack.m_attackEitr = 45;
 
 		skeletonWindow = assets.LoadAsset<GameObject>("JC_Gacha_Window");
 

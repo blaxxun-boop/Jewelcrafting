@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.6";
+	private const string ModVersion = "1.5.7";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -92,6 +92,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> bossSpawnBaseDistance = null!;
 	public static ConfigEntry<int> bossTimeLimit = null!;
 	public static ConfigEntry<int> bossCoinDrop = null!;
+	public static ConfigEntry<float> eventBossSpawnChance = null!;
 	private static ConfigEntry<GachaSetup.BalanceToggle> worldBossBalance = null!;
 	private static ConfigEntry<float> worldBossHealth = null!;
 	private static ConfigEntry<float> worldBossPunchDamage = null!;
@@ -364,6 +365,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		gachaLocationIcon.SettingChanged += (_, _) => ZoneSystem.instance.GetLocation("JC_Gacha_Location").m_iconPlaced = gachaLocationIcon.Value == Toggle.On;
 		bossSpawnTimer = config("4 - World Boss", "Time between Boss Spawns", 120, new ConfigDescription("Time in minutes between boss spawns. Set this to 0, to disable boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnTimer.SettingChanged += (_, _) => BossSpawn.UpdateBossTimerVisibility();
+		eventBossSpawnChance = config("4 - World Boss", "Event Boss Spawn Chance", 10f, new ConfigDescription("Chance for the Frozen Triumvirate event boss to spawn. Set this to 0, to disable the spawn.", new AcceptableValueRange<float>(0f, 100f), new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnMinDistance = config("4 - World Boss", "Minimum Distance Boss Spawns", 1000, new ConfigDescription("Minimum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnMaxDistance = config("4 - World Boss", "Maximum Distance Boss Spawns", 10000, new ConfigDescription("Maximum distance from the center of the map for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossSpawnBaseDistance = config("4 - World Boss", "Base Distance Boss Spawns", 50, new ConfigDescription("Minimum distance to player build structures for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -780,7 +782,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Reaper_Spear_Pro");
 		PrefabManager.RegisterPrefab(assets, "JC_Purple_Neck_Coins");
 		PrefabManager.RegisterPrefab(assets, "JC_Purple_Neck_Gems");
-
+		PrefabManager.RegisterPrefab(assets, "JC_Staff_Lightning_Pro");
+		PrefabManager.RegisterPrefab(assets, "FX_Lightning_Staff_Explosion");
+		PrefabManager.RegisterPrefab(assets, "JC_Staff_Poison_Pro");
+		PrefabManager.RegisterPrefab(assets, "FX_Poison_Staff_Explosion");
+		
 		Localizer.AddPlaceholder("jc_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_se_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
@@ -802,6 +808,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_reaper_th_sword_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_spear_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_knife_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_lightning_staff_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_poison_staff_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_shield_description", "power", worldBossBonusBlockPower);
 		Localizer.AddPlaceholder("jc_blue_chest_description", "allowed", gemChestAllowedAmount);
 		Localizer.AddPlaceholder("jc_purple_chest_description", "allowed", gemChestAllowedAmount);

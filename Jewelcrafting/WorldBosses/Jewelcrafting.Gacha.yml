@@ -34,7 +34,7 @@ Divine Intervention:
         - perfect emerald
         - perfect sapphire
     blessed crystal mirror:
-      chance: 0.05
+      chance: 0.03
 Radiant Echoes:
   duration: default
   prizes:
@@ -86,8 +86,23 @@ Stellar Impact:
         - perfect spinel
         - perfect sulfur
     celestial crystal mirror:
+      chance: 0.01
+Nebula Mirage:
+  duration: default
+  prizes:
+    celestial bone shocker:
       chance: 0.02
-
+      sockets:
+        - perfect ruby
+        - perfect sapphire
+        - perfect humite
+    celestial bone stinger:
+      chance: 0.02
+      sockets:
+        - perfect humite
+        - perfect spinel
+        - perfect sulfur
+      
 # You can create a global blacklist. Gems on the global blacklist cannot be obtained from any event.
 #global blacklist:
 #  - Shattered_Black_Crystal      

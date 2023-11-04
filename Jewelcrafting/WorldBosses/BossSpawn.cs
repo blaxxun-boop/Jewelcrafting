@@ -49,7 +49,7 @@ public static class BossSpawn
 						int remainingTime = int.MaxValue - 1;
 						while (oldRemainingTime > remainingTime || oldRemainingTime > 50)
 						{
-							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y <= (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.instance.GetZone).ToList();
+							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y < 1 + (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.instance.GetZone).ToList();
 
 							if (locationsToRemove.Count > 0)
 							{
@@ -130,6 +130,16 @@ public static class BossSpawn
 
 	private static void HandleBossDeath(Vector2i sector)
 	{
+		if (ZoneSystem.instance.m_locationInstances.TryGetValue(sector, out ZoneSystem.LocationInstance location))
+		{
+			if (location.m_position.y != (long)location.m_position.y)
+			{
+				location.m_position.y -= 0.25f;
+				ZoneSystem.instance.m_locationInstances[sector] = location;
+				return;
+			}
+		}
+
 		ZoneSystem.instance.m_locationInstances.Remove(sector);
 		BroadcastMinimapUpdate();
 	}
@@ -141,7 +151,8 @@ public static class BossSpawn
 		{
 			if (__instance.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 			{
-				Vector2i sector = ZoneSystem.instance.GetZone(__instance.m_baseAI.m_spawnPoint);
+				__instance.m_nview.GetZDO().GetVec3("Jewelcrafting World Boss spawn position", out Vector3 spawn_pos);
+				Vector2i sector = ZoneSystem.instance.GetZone(spawn_pos);
 				if (ZNet.instance.IsServer())
 				{
 					HandleBossDeath(sector);
@@ -241,7 +252,16 @@ public static class BossSpawn
 		{
 			long despawnTime = ZNet.instance.GetTime().AddMinutes(Jewelcrafting.bossTimeLimit.Value).Ticks / 10000000L;
 
-			string boss = bossIcons.Keys.ToList()[Random.Range(0, bossIcons.Count)];
+			string boss;
+			
+			if (Jewelcrafting.eventBossSpawnChance.Value > 0 && Random.value < Jewelcrafting.eventBossSpawnChance.Value / 100f)
+			{
+				boss = "JC_Crystal_Reapers_Event";
+			}
+			else
+			{
+				boss = bossIcons.Keys.ToList()[Random.Range(0, bossIcons.Count - 1)];
+			}
 
 			ZoneSystem.instance.RegisterLocation(new ZoneSystem.ZoneLocation
 			{

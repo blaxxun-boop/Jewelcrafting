@@ -68,10 +68,12 @@ public static class BossSetup
 		PrefabManager.RegisterPrefab(assets, "Crystal_Frost_Reaper_Cage").AddComponent<RemoveBossDestructible>();
 		PrefabManager.RegisterPrefab(assets, "Crystal_Flame_Reaper_Cage").AddComponent<RemoveBossDestructible>();
 		PrefabManager.RegisterPrefab(assets, "Crystal_Soul_Reaper_Cage").AddComponent<RemoveBossDestructible>();
+		PrefabManager.RegisterPrefab(assets, "JC_Crystal_Reapers_Event").AddComponent<RemoveBossDestructible>().spawned = 3;
 
 		BossSpawn.bossIcons["Crystal_Frost_Reaper_Cage"] = assets.LoadAsset<Sprite>("JCBossIconBlue");
 		BossSpawn.bossIcons["Crystal_Flame_Reaper_Cage"] = assets.LoadAsset<Sprite>("JCBossIconRed");
 		BossSpawn.bossIcons["Crystal_Soul_Reaper_Cage"] = assets.LoadAsset<Sprite>("JCBossIconGreen");
+		BossSpawn.bossIcons["JC_Crystal_Reapers_Event"] = assets.LoadAsset<Sprite>("JCBossIconEvent");
 	}
 
 	public static void ApplyBalanceConfig(BalanceConfig config)
@@ -95,6 +97,8 @@ public static class BossSetup
 
 	private class RemoveBossDestructible : MonoBehaviour
 	{
+		public int spawned = 1;
+		
 		public void Start()
 		{
 			long destruction = GetComponent<ZNetView>().GetZDO().GetLong("Jewelcrafting World Boss", long.MaxValue / 2);
@@ -109,12 +113,16 @@ public static class BossSetup
 					// Give players a bit of extra time when a boss is spawned
 					destruction += 3600;
 
-					Character boss = Character.s_characters.Last();
-					boss.m_nview.GetZDO().Set("Jewelcrafting World Boss", destruction);
-					Vector2i sector = ZoneSystem.instance.GetZone(boss.m_baseAI.m_spawnPoint);
+					foreach (Character boss in ((IEnumerable<Character>)Character.s_characters).Reverse().Take(spawned))
+					{
+						ZDO zdo = boss.m_nview.GetZDO();
+						zdo.Set("Jewelcrafting World Boss", destruction);
+						zdo.Set("Jewelcrafting World Boss spawn position", transform.position);
+					}
+					Vector2i sector = ZoneSystem.instance.GetZone(transform.position);
 					if (ZoneSystem.instance.m_locationInstances.TryGetValue(sector, out ZoneSystem.LocationInstance location))
 					{
-						location.m_position.y = destruction;
+						location.m_position.y = destruction + (spawned - 1) * 0.25f;
 						ZoneSystem.instance.m_locationInstances[sector] = location;
 
 						BossSpawn.BroadcastMinimapUpdate();
