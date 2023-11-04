@@ -124,7 +124,7 @@ public static class Daring
 				List<Character> characters = Character.s_characters.Where(c => !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < SpawnSystem.m_spawnDistanceMax).ToList();
 				foreach (Character character in characters)
 				{
-					if (CreatureLevelControl.API.GetExtraEffectCreature(character) == CreatureExtraEffect.Splitting)
+					if (CreatureLevelControl.API.IsLoaded() && (CreatureExtraEffect)character.m_nview.GetZDO().GetInt("CL&LC effect") == CreatureExtraEffect.Splitting)
 					{
 						continue;
 					}

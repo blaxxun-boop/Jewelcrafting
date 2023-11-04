@@ -26,14 +26,14 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Flint", 10, true);
 		piece.Category.Set(BuildPieceCategory.Crafting);
 		gemcuttersTable = piece.Prefab;
-		
+
 		piece = new BuildPiece(assets, "Odins_Jewelry_Box");
 		piece.RequiredItems.Add("FineWood", 30, true);
 		piece.RequiredItems.Add("IronNails", 15, true);
 		piece.RequiredItems.Add("Obsidian", 4, true);
 		piece.Category.Set(BuildPieceCategory.Crafting);
 		piece.Prefab.AddComponent<RingInTheBox>();
-		
+
 		piece = new BuildPiece(assets, "JC_Gemstone_Furnace");
 		piece.RequiredItems.Add("Thunderstone", 1, true);
 		piece.RequiredItems.Add("SurtlingCore", 5, true);
@@ -56,7 +56,24 @@ public static class BuildingPiecesSetup
 	{
 		private static void Postfix(Smelter __instance, ref Smelter.ItemConversion? __result)
 		{
-			if (__result is not null && Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && Random.value > upgradeChance.Value / 100f * (1 + Jewelcrafting.upgradeChanceIncrease.Value / 100f * __instance.m_nview.GetZDO().GetFloat("Jewelcrafting SkillLevel")))
+
+			if (__result is null || !Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance))
+			{
+				return;
+			}
+
+			float successChance = upgradeChance.Value / 100f;
+			float skillChance = __instance.m_nview.GetZDO().GetFloat("Jewelcrafting SkillLevel") * Jewelcrafting.upgradeChanceIncrease.Value / 100f;
+			if (Jewelcrafting.additiveSkillBonus.Value == Jewelcrafting.Toggle.Off)
+			{
+				successChance *= 1 + skillChance;
+			}
+			else
+			{
+				successChance += skillChance;
+			}
+
+			if (Random.value > successChance)
 			{
 				__result = new Smelter.ItemConversion
 				{
@@ -66,7 +83,7 @@ public static class BuildingPiecesSetup
 			}
 		}
 	}
-	
+
 	[HarmonyPatch(typeof(Smelter), nameof(Smelter.OnAddOre))]
 	private static class StoreSkillLevel
 	{
@@ -93,11 +110,11 @@ public static class BuildingPiecesSetup
 			});
 		}
 	}
-	
+
 	private class RingInTheBox : MonoBehaviour
 	{
 		private float stationMaxDistance;
-		
+
 		public void Awake()
 		{
 			GetComponent<WearNTear>().m_onDestroyed += GetComponentInChildren<ItemStand>().OnDestroyed;

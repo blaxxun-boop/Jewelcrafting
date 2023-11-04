@@ -43,7 +43,18 @@ public static class GemStones
 				{
 					for (int i = 0; i < __instance.m_craftRecipe.m_amount; ++i)
 					{
-						if (Random.value > upgradeChance.Value / 100f * (1 + player.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + player.GetEffect(Effect.Carefulcutting) / 100f)
+						float successChance = upgradeChance.Value / 100f;
+						float skillChance = Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f;
+						if (Jewelcrafting.additiveSkillBonus.Value == Jewelcrafting.Toggle.Off)
+						{
+							successChance *= 1 + skillChance;
+						}
+						else
+						{
+							successChance += skillChance;
+						}
+						
+						if (Random.value > successChance + player.GetEffect(Effect.Carefulcutting) / 100f)
 						{
 							player.ConsumeResources(new Piece.Requirement[] { new() { m_resItem = __instance.m_craftRecipe.m_resources[0].m_resItem } }, 1);
 							--successCount;
@@ -276,8 +287,18 @@ public static class GemStones
 				__instance.m_craftButton.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize("$jc_add_socket_button");
 				__instance.m_craftButton.interactable = CanAddMoreSockets(activeRecipe);
 				int socketNumber = Math.Min(activeRecipe.Data().Get<Sockets>()?.socketedGems.Count ?? 0, 9);
-				int successChance = Math.Min(Mathf.RoundToInt(Jewelcrafting.socketAddingChances[socketNumber].Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f)), 100);
-				__instance.m_itemCraftType.text = successChance < 100 ? Localization.instance.Localize("$jc_socket_adding_warning", successChance.ToString()) : "";
+				float successChance = Jewelcrafting.socketAddingChances[socketNumber].Value / 100f;
+				float skillChance = Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f;
+				if (Jewelcrafting.additiveSkillBonus.Value == Jewelcrafting.Toggle.Off)
+				{
+					successChance *= 1 + skillChance;
+				}
+				else
+				{
+					successChance += skillChance;
+				}
+				int successChanceInt = Mathf.RoundToInt(successChance * 100);
+				__instance.m_itemCraftType.text = successChanceInt < 100 ? Localization.instance.Localize("$jc_socket_adding_warning", successChanceInt.ToString()) : "";
 				if (craftTypeRect.pivot.y != 1)
 				{
 					Vector2 sizeDelta = craftTypeRect.sizeDelta;
@@ -302,8 +323,20 @@ public static class GemStones
 
 				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources.Length > 0 && recipe.m_resources[0].m_amount == recipe.m_amount)
 				{
+					float successChance = chance.Value / 100f;
+					float skillChance = Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f;
+					if (Jewelcrafting.additiveSkillBonus.Value == Jewelcrafting.Toggle.Off)
+					{
+						successChance *= 1 + skillChance;
+					}
+					else
+					{
+						successChance += skillChance;
+					}
+					int successChanceInt = Mathf.RoundToInt(successChance * 100f + Player.m_localPlayer.GetEffect(Effect.Carefulcutting));
+					
 					__instance.m_itemCraftType.textWrappingMode = TextWrappingModes.Normal;
-					__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_gem_cutting_warning", Math.Min(Mathf.RoundToInt(chance.Value * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f) + Player.m_localPlayer.GetEffect(Effect.Carefulcutting)), 100).ToString());
+					__instance.m_itemCraftType.text = successChanceInt < 100 ? Localization.instance.Localize("$jc_gem_cutting_warning", successChanceInt.ToString()) : "";
 
 					if (!displayGemChance)
 					{
@@ -465,7 +498,17 @@ public static class GemStones
 			ItemDrop.ItemData socketedItem = __instance.m_craftUpgradeItem;
 			int socketNumber = Math.Min(socketedItem.Data().Get<Sockets>()?.socketedGems.Count ?? 0, 9);
 
-			if (!Player.m_localPlayer.m_noPlacementCost && Random.value > Jewelcrafting.socketAddingChances[socketNumber].Value / 100f * (1 + Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f))
+			float successChance = Jewelcrafting.socketAddingChances[socketNumber].Value / 100f;
+			float skillChance = Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f;
+			if (Jewelcrafting.additiveSkillBonus.Value == Jewelcrafting.Toggle.Off)
+			{
+				successChance *= 1 + skillChance;
+			}
+			else
+			{
+				successChance += skillChance;
+			}
+			if (!Player.m_localPlayer.m_noPlacementCost && Random.value > successChance)
 			{
 				foreach (API.ItemBreakHandler handler in ItemBreakHandlers)
 				{

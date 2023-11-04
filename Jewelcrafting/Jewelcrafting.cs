@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.7";
+	private const string ModVersion = "1.5.8";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -64,6 +64,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly ConfigEntry<int>[] maxSocketsTableLevel = new ConfigEntry<int>[3];
 	public static ConfigEntry<int> gemRespawnRate = null!;
 	public static ConfigEntry<int> upgradeChanceIncrease = null!;
+	public static ConfigEntry<Toggle> additiveSkillBonus = null!;
 	public static ConfigEntry<int> awarenessRange = null!;
 	private static ConfigEntry<int> rigidDamageReduction = null!;
 	private static ConfigEntry<uint> headhunterDuration = null!;
@@ -171,6 +172,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static List<string> configFilePaths = null!;
 	public static readonly List<SynergyDef> Synergies = new();
 
+	public static readonly HashSet<string> PrefabBlacklist = new();
+	
 	private static Skill jewelcrafting = null!;
 
 	public static Jewelcrafting self = null!;
@@ -457,6 +460,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		};
 		equipmentChestAllowedAmount = config("5 - Loot System", "Allowed Items Equipment Chest", 1, new ConfigDescription("Sets how many items players may take from a single equipment chest.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("6 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		additiveSkillBonus = config("6 - Other", "Additive Skill Bonus", Toggle.Off, new ConfigDescription("If on, the skill bonus from Jewelcrafting is additive instead of multiplicative. Not recommended, since it makes the skill insanely strong.", null, new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor = config("6 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor.SettingChanged += (_, _) => jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;
 		jewelcrafting.SkillGainFactor = experienceGainedFactor.Value;

@@ -72,7 +72,7 @@ public static class API
 	public static GameObject CreateRingFromTemplate(string colorName, Color color)
 	{
 #if ! API
-		return CreateRingFromTemplate(colorName,new MaterialColor { Color = color });
+		return CreateRingFromTemplate(colorName, new MaterialColor { Color = color });
 #else
 		return null!;
 #endif
@@ -164,7 +164,7 @@ public static class API
 		return null!;
 #endif
 	}
-	
+
 	public static GameObject AddDestructibleFromTemplate(string type, string colorName, Material material)
 	{
 #if ! API
@@ -186,7 +186,7 @@ public static class API
 		return prefab;
 	}
 #endif
-	
+
 	public static GameObject AddUncutFromTemplate(string type, string colorName, Color color)
 	{
 #if ! API
@@ -195,7 +195,7 @@ public static class API
 		return null!;
 #endif
 	}
-	
+
 	public static GameObject AddUncutFromTemplate(string type, string colorName, Material material)
 	{
 #if ! API
@@ -212,7 +212,7 @@ public static class API
 		return uncutGem;
 	}
 #endif
-	
+
 	public static GameObject AddAndRegisterUncutFromTemplate(string type, string colorName, Color color)
 	{
 #if ! API
@@ -244,7 +244,7 @@ public static class API
 		return prefab;
 	}
 #endif
-		
+
 	public static GameObject AddShardFromTemplate(string type, string colorName, Color color)
 	{
 #if ! API
@@ -253,7 +253,7 @@ public static class API
 		return null!;
 #endif
 	}
-	
+
 	public static GameObject AddShardFromTemplate(string type, string colorName, Material material)
 	{
 #if ! API
@@ -262,35 +262,35 @@ public static class API
 		return null!;
 #endif
 	}
-	
+
 #if ! API
 	private static GameObject[] AddTieredGemFromTemplate(string type, string colorName, MaterialColor color)
 	{
-			GameObject[] prefabs = new GameObject[GemStoneSetup.customGemTierPrefabs.Length];
-        	Localizer.AddText($"jc_merged_gemstone_{colorName.Replace(" ", "_").ToLower()}", type);
-        	for (int tier = 0; tier < prefabs.Length; ++tier)
-        	{
-        		GameObject prefab = GemStoneSetup.CreateGemFromTemplate(GemStoneSetup.customGemTierPrefabs[tier], colorName, color, tier);
-    
-        		ItemDrop.ItemData.SharedData shared = prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
-        		Localizer.AddText(shared.m_name.Substring(1), tier switch { 0 => "Simple", 1 => "Advanced", _ => "Perfect" } + " " + type);
-        		Localizer.AddText(shared.m_description.Substring(1), $"A {colorName} gemstone, which can be socketed into an equipment piece, to unlock the power within.");
-    
-        		GemStoneSetup.RegisterTieredGemItem(prefab, colorName, tier);
-        		AddGem(prefab, colorName);
-        		prefabs[tier] = prefab;
-        	}
-    
-        	GemType gemType = (GemType)colorName.GetStableHashCode();
-        	MergedGemStoneSetup.mergedGems[gemType] = new Dictionary<GemType, GameObject[]>();
-        	foreach (KeyValuePair<GemType, MaterialColor> other in GemStoneSetup.Colors)
-        	{
-        		MergedGemStoneSetup.CreateMergedGemStone(new KeyValuePair<GemType, MaterialColor>(gemType, color), other);
-        		MergedGemStoneSetup.CreateMergedGemStone(other, new KeyValuePair<GemType, MaterialColor>(gemType, color));
-        	}
-        	GemStoneSetup.Colors.Add(gemType, color);
-    
-        	return prefabs;
+		GameObject[] prefabs = new GameObject[GemStoneSetup.customGemTierPrefabs.Length];
+		Localizer.AddText($"jc_merged_gemstone_{colorName.Replace(" ", "_").ToLower()}", type);
+		for (int tier = 0; tier < prefabs.Length; ++tier)
+		{
+			GameObject prefab = GemStoneSetup.CreateGemFromTemplate(GemStoneSetup.customGemTierPrefabs[tier], colorName, color, tier);
+
+			ItemDrop.ItemData.SharedData shared = prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+			Localizer.AddText(shared.m_name.Substring(1), tier switch { 0 => "Simple", 1 => "Advanced", _ => "Perfect" } + " " + type);
+			Localizer.AddText(shared.m_description.Substring(1), $"A {colorName} gemstone, which can be socketed into an equipment piece, to unlock the power within.");
+
+			GemStoneSetup.RegisterTieredGemItem(prefab, colorName, tier);
+			AddGem(prefab, colorName);
+			prefabs[tier] = prefab;
+		}
+
+		GemType gemType = (GemType)colorName.GetStableHashCode();
+		MergedGemStoneSetup.mergedGems[gemType] = new Dictionary<GemType, GameObject[]>();
+		foreach (KeyValuePair<GemType, MaterialColor> other in GemStoneSetup.Colors)
+		{
+			MergedGemStoneSetup.CreateMergedGemStone(new KeyValuePair<GemType, MaterialColor>(gemType, color), other);
+			MergedGemStoneSetup.CreateMergedGemStone(other, new KeyValuePair<GemType, MaterialColor>(gemType, color));
+		}
+		GemStoneSetup.Colors.Add(gemType, color);
+
+		return prefabs;
 	}
 #endif
 
@@ -440,6 +440,15 @@ public static class API
 			socketable.socketedGems.Add(gem is null ? new SocketItem("") : new SocketItem(gem.gemPrefab));
 		}
 
+		if (socketable is Sockets && socketable.socketedGems.Count == 0)
+		{
+			item.Data().Remove(socketable);
+		}
+		else
+		{
+			socketable.Save();
+		}
+
 		return true;
 #else
 		return false;
@@ -492,8 +501,9 @@ public static class API
 		}
 #endif
 	}
-	
+
 	public delegate bool GemBreakHandler(ItemDrop.ItemData? container, ItemDrop.ItemData gem, int count = 1);
+
 	public delegate bool ItemBreakHandler(ItemDrop.ItemData? container);
 
 	public static void OnGemBreak(GemBreakHandler callback)
@@ -502,7 +512,7 @@ public static class API
 		GemStones.GemBreakHandlers.Add(callback);
 #endif
 	}
-	
+
 	public static void OnItemBreak(ItemBreakHandler callback)
 	{
 #if ! API
@@ -511,7 +521,7 @@ public static class API
 	}
 
 	public delegate bool ItemMirroredHandler(ItemDrop.ItemData? item);
-	
+
 	public static void OnItemMirrored(ItemMirroredHandler callback)
 	{
 #if ! API
@@ -529,6 +539,17 @@ public static class API
 		}
 
 		return Visual.visuals.TryGetValue(player.m_visEquipment, out Visual visual) && (visual.currentFingerItemHash == hash || visual.currentNeckItemHash == hash);
+#else
+		return false;
+#endif
+	}
+
+	public static bool BlacklistItem(GameObject item)
+	{
+#if ! API
+		Jewelcrafting.PrefabBlacklist.Add(item.name);
+		
+		return true;
 #else
 		return false;
 #endif
