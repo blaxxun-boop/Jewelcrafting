@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.8";
+	private const string ModVersion = "1.5.9";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -790,7 +790,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "FX_Lightning_Staff_Explosion");
 		PrefabManager.RegisterPrefab(assets, "JC_Staff_Poison_Pro");
 		PrefabManager.RegisterPrefab(assets, "FX_Poison_Staff_Explosion");
-		
+		PrefabManager.RegisterPrefab(assets, "vfx_jc_crossbow");
+
 		Localizer.AddPlaceholder("jc_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_se_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_ring_purple_description", "power", rigidDamageReduction);
@@ -814,7 +815,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		Localizer.AddPlaceholder("jc_reaper_knife_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_lightning_staff_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_poison_staff_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_crossbow_description", "power", worldBossBonusWeaponDamage);
+		Localizer.AddPlaceholder("jc_reaper_mace_description", "power", worldBossBonusWeaponDamage);
 		Localizer.AddPlaceholder("jc_reaper_shield_description", "power", worldBossBonusBlockPower);
+		Localizer.AddPlaceholder("jc_shield_buckler_description", "power", worldBossBonusBlockPower);
+		Localizer.AddPlaceholder("jc_shield_tower_description", "power", worldBossBonusBlockPower);
 		Localizer.AddPlaceholder("jc_blue_chest_description", "allowed", gemChestAllowedAmount);
 		Localizer.AddPlaceholder("jc_purple_chest_description", "allowed", gemChestAllowedAmount);
 		Localizer.AddPlaceholder("jc_orange_chest_description", "allowed", gemChestAllowedAmount);

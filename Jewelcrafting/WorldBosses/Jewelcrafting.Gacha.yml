@@ -24,6 +24,21 @@ Astral Serenity:
         - perfect ruby
         - perfect sapphire
         - perfect spinel
+Nebulous Aegis:
+  duration: default
+  prizes:
+    celestial bone tower:
+      chance: 0.02
+      sockets:
+        - perfect onyx
+        - perfect sulfur
+        - perfect sapphire
+    celestial bone buckler:
+      chance: 0.02
+      sockets:
+        - perfect ruby
+        - perfect sapphire
+        - perfect spinel
 Divine Intervention:
   duration: default
   prizes:
@@ -101,6 +116,21 @@ Nebula Mirage:
       sockets:
         - perfect humite
         - perfect spinel
+        - perfect sulfur
+Empyrean Odyssey:
+  duration: default
+  prizes:
+    celestial bone mace:
+      chance: 0.02
+      sockets:
+        - perfect ruby
+        - perfect sapphire
+        - perfect emerald
+    celestial bone crossbow:
+      chance: 0.02
+      sockets:
+        - perfect humite
+        - perfect sapphire
         - perfect sulfur
       
 # You can create a global blacklist. Gems on the global blacklist cannot be obtained from any event.

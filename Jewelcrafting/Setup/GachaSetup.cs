@@ -107,6 +107,20 @@ public static class GachaSetup
 		RegisterWorldBossBonusItem("JC_Poison_Staff");
 		celestialItemsConfigs["JC_Poison_Staff"].plains.m_attack = Utils.Clone(celestialItemsConfigs["JC_Poison_Staff"].mistlands.m_attack);
 		celestialItemsConfigs["JC_Poison_Staff"].plains.m_attack.m_attackEitr = 45;
+		RegisterWorldBossBonusItem("JC_Shield_Tower");
+		celestialItemsConfigs["JC_Shield_Tower"].plains.m_blockPower = 104;
+		celestialItemsConfigs["JC_Shield_Tower"].plains.m_movementModifier = -0.1f;
+		celestialItemsConfigs["JC_Shield_Tower"].mistlands.m_blockPower = 122;
+		celestialItemsConfigs["JC_Shield_Tower"].mistlands.m_movementModifier = -0.1f;
+		RegisterWorldBossBonusItem("JC_Shield_Buckler");
+		celestialItemsConfigs["JC_Shield_Buckler"].plains.m_blockPower = 60;
+		celestialItemsConfigs["JC_Shield_Buckler"].plains.m_timedBlockBonus = 2.7f;
+		celestialItemsConfigs["JC_Shield_Buckler"].mistlands.m_timedBlockBonus = 2.7f;
+		RegisterWorldBossBonusItem("JC_Reaper_Crossbow");
+		celestialItemsConfigs["JC_Reaper_Crossbow"].plains.m_damages.m_pierce = 150;
+		RegisterWorldBossBonusItem("JC_Reaper_Mace");
+		celestialItemsConfigs["JC_Reaper_Mace"].plains.m_damages.m_blunt = 95;
+		celestialItemsConfigs["JC_Reaper_Mace"].mistlands.m_damages.m_blunt = 115;
 
 		skeletonWindow = assets.LoadAsset<GameObject>("JC_Gacha_Window");
 

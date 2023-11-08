@@ -151,7 +151,7 @@ public class EffectDef
 {
 	static EffectDef()
 	{
-		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace!) || (t.Namespace ?? "").StartsWith("Jewelcrafting.SynergyEffects")))
+		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace!, StringComparison.Ordinal) || (t.Namespace ?? "").StartsWith("Jewelcrafting.SynergyEffects", StringComparison.Ordinal)))
 		{
 			RuntimeHelpers.RunClassConstructor(t.TypeHandle);
 		}
