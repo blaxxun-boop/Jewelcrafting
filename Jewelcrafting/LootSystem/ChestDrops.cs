@@ -272,6 +272,11 @@ public static class ChestDrops
 				}
 			}
 
+			if (EquipmentDrops.dropBlacklist.Contains(global::Utils.GetPrefabName(__instance.m_character.gameObject).ToLower()) || EquipmentDrops.dropBlacklist.Contains(Localization.instance.Localize(__instance.m_character.m_name).ToLower()) || EquipmentDrops.dropBlacklist.Contains(Jewelcrafting.english.Localize(__instance.m_character.m_name).ToLower()))
+			{
+				return;
+			}
+
 			EquipmentDrops.DoDrop(__instance, Jewelcrafting.LootSystem.EquipmentChests, (biome, character, drops) =>
 			{
 				List<ItemDrop.ItemData> items = new();

@@ -68,7 +68,7 @@ public static class EquipmentDrops
 							}
 							else
 							{
-								errors.Add($"Found invalid item in 'blacklist' of 'equipment' section. Got unexpected {itemObj?.GetType().ToString() ?? "empty string (null)"}.");
+								errors.Add($"Found invalid item or creature in 'blacklist' of 'equipment' section. Got unexpected {itemObj?.GetType().ToString() ?? "empty string (null)"}.");
 							}
 						}
 					}
@@ -166,7 +166,7 @@ public static class EquipmentDrops
 	private static readonly Dictionary<Heightmap.Biome, float> lowHp = new();
 	private static readonly Dictionary<Heightmap.Biome, float> highHp = new();
 	private static readonly Dictionary<Heightmap.Biome, string[]> biomeResourceMap = new();
-	private static string[] dropBlacklist = Array.Empty<string>();
+	public static string[] dropBlacklist = Array.Empty<string>();
 	private static Dictionary<Heightmap.Biome, int> biomeOrder = new();
 
 	public static void Apply(EquipmentDropDef dropDefs)
@@ -224,6 +224,11 @@ public static class EquipmentDrops
 		[HarmonyPriority(Priority.VeryLow - 1)]
 		private static void Postfix(CharacterDrop __instance)
 		{
+			if (dropBlacklist.Contains(global::Utils.GetPrefabName(__instance.m_character.gameObject).ToLower()) || dropBlacklist.Contains(Localization.instance.Localize(__instance.m_character.m_name).ToLower()) || dropBlacklist.Contains(Jewelcrafting.english.Localize(__instance.m_character.m_name).ToLower()))
+			{
+				return;
+			}
+			
 			DoDrop(__instance, Jewelcrafting.LootSystem.EquipmentDrops, (biome, character, drops) => SpawnEquipment(biome, character, drops, prefab =>
 			{
 				Stats.socketedEquipmentDropped.Increment();

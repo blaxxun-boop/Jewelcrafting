@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.10";
+	private const string ModVersion = "1.5.11";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -173,7 +173,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly List<SynergyDef> Synergies = new();
 
 	public static readonly HashSet<string> PrefabBlacklist = new();
-	
+
 	private static Skill jewelcrafting = null!;
 
 	public static Jewelcrafting self = null!;

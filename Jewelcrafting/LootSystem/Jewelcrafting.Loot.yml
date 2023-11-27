@@ -67,7 +67,8 @@ equipment:
       - iron
   blacklist:
     - jewelers bag
-      
+    - deer
+
 gem drops:
   meadows:
     low health: 10
