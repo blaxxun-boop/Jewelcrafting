@@ -30,6 +30,9 @@ public static class GemEffectSetup
 	public static SE_Stats aquatic = null!;
 	public static GameObject guidanceNecklaceWorldBoss = null!;
 	public static GameObject guidanceNecklaceGemstone = null!;
+	public static GameObject legacyRingHaldor = null!;
+	public static GameObject legacyRingHildir = null!;
+	public static GameObject legacyRingHildirQuest = null!;
 	public static SE_Stats lightningStart = null!;
 	public static SE_Stats rootStart = null!;
 	public static SE_Stats poisonStart = null!;
@@ -104,5 +107,8 @@ public static class GemEffectSetup
 		Object.Destroy(fusingSuccessSound.GetComponent<ZNetView>());
 		guidanceNecklaceWorldBoss = assets.LoadAsset<GameObject>("JC_Purple_Neck_Coins");
 		guidanceNecklaceGemstone = assets.LoadAsset<GameObject>("JC_Purple_Neck_Gems");
+		legacyRingHaldor = assets.LoadAsset<GameObject>("JC_Black_Ring_Haldor");
+		legacyRingHildir = assets.LoadAsset<GameObject>("JC_Black_Ring_Hildir");
+		legacyRingHildirQuest = assets.LoadAsset<GameObject>("JC_Black_Ring_Quest");
 	}
 }

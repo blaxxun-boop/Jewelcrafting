@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.12";
+	private const string ModVersion = "1.5.13";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -77,6 +77,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<int> modersBlessingDuration = null!;
 	public static ConfigEntry<int> modersBlessingCooldown = null!;
 	public static ConfigEntry<int> guidanceCooldown = null!;
+	public static ConfigEntry<int> legacyCooldown = null!;
 	public static ConfigEntry<int> gemBagSlotsRows = null!;
 	public static ConfigEntry<int> gemBagSlotsColumns = null!;
 	public static ConfigEntry<Toggle> gemBagAutofill = null!;
@@ -275,7 +276,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	{
 		self = this;
 
-		configFilePaths = new List<string> { Path.GetDirectoryName(Config.ConfigFilePath), Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) };
+		configFilePaths = [Path.GetDirectoryName(Config.ConfigFilePath), Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)];
 
 		Config.SaveOnConfigSet = false;
 
@@ -622,6 +623,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		modersBlessingDuration = config("Ring of Moders Sapphire Blessing", "Effect Duration", 15, new ConfigDescription("Effect duration in seconds for the Ring of Moder's Sapphire Blessing."));
 		modersBlessingCooldown = config("Ring of Moders Sapphire Blessing", "Effect Cooldown", 60, new ConfigDescription("Effect cooldown in seconds for the Ring of Moder's Sapphire Blessing."));
 		guidanceCooldown = config("Spinel Necklace of Guidance", "Effect Cooldown", 30, new ConfigDescription("Effect cooldown in seconds for the Spinel Necklace of Guidance."));
+		legacyCooldown = config("Ring of Onyx Legacy", "Effect Cooldown", 30, new ConfigDescription("Effect cooldown in seconds for the Ring of Onyx Legacy."));
 
 		GemEffectSetup.initializeGemEffect(assets);
 		MiscSetup.initializeMisc(assets);
@@ -791,6 +793,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Staff_Poison_Pro");
 		PrefabManager.RegisterPrefab(assets, "FX_Poison_Staff_Explosion");
 		PrefabManager.RegisterPrefab(assets, "vfx_jc_crossbow");
+		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Haldor");
+		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Hildir");
+		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Quest");
 
 		Localizer.AddPlaceholder("jc_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_se_ring_red_description", "regen", warmthStaminaRegen);
@@ -936,6 +941,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 					tmpText.textWrappingMode = TextWrappingModes.Normal;
 				}
 			}
+
+			english.SetupLanguage("English");
 		}
 	}
 

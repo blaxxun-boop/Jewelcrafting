@@ -11,7 +11,7 @@
         <AssemblyName>Jewelcrafting</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
-        <LangVersion>11</LangVersion>
+        <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <NoWarn>0649</NoWarn>
@@ -176,6 +176,7 @@
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
         <Compile Include="API\VisualEffectCondition.cs"/>
+        <Compile Include="Effects\JewelryEffects\Legacy.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">
         <Compile Include="Effects\GemEffects\MountainGoat.cs"/>

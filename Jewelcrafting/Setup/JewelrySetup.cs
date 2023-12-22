@@ -107,6 +107,16 @@ public static class JewelrySetup
 		ItemDrop.ItemData.SharedData blueRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
 		upgradeableJewelry.Add(blueRingShared.m_name);
 		blueRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<ModersBlessing>(blueRingShared.m_equipStatusEffect);
+		
+		item = new Item(assets, "JC_Ring_Black");
+		item.Crafting.Add("op_transmution_table", 2);
+		item.RequiredItems.Add("Perfect_Black_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		ItemDrop.ItemData.SharedData blackRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		upgradeableJewelry.Add(blackRingShared.m_name);
+		blackRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Legacy>(blackRingShared.m_equipStatusEffect);
 	}
 
 	public static void SetPurpleRingSockets()
