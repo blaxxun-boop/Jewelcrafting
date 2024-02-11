@@ -176,7 +176,6 @@
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
         <Compile Include="API\VisualEffectCondition.cs"/>
-        <Compile Include="Effects\JewelryEffects\Legacy.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">
         <Compile Include="Effects\GemEffects\MountainGoat.cs"/>
@@ -217,6 +216,7 @@
         <Compile Include="Effects\GemEffects\IceHeart.cs"/>
         <Compile Include="Effects\GemEffects\IcyProtection.cs"/>
         <Compile Include="Effects\GemEffects\Inconspicuous.cs"/>
+        <Compile Include="Effects\JewelryEffects\Legacy.cs" />
         <Compile Include="Effects\GemEffects\Lifeguard.cs"/>
         <Compile Include="Effects\GemEffects\LightningSpeed.cs"/>
         <Compile Include="Effects\GemEffects\MagicalBargain.cs"/>

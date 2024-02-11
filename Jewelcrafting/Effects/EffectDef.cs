@@ -191,14 +191,18 @@ public class EffectDef
 
 	public struct ParseResult
 	{
-		public Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution;
-		public Dictionary<Effect, List<EffectDef>> effects;
-		public Dictionary<string, SynergyDef> Synergy;
-		public GemDropDef gemDrops;
-		public EquipmentDropDef equipmentDrops;
-		public Dictionary<Heightmap.Biome, Dictionary<int, Dictionary<string, int>?>> SocketCosts;
-		public List<Prizes> Prizes;
-		public List<string> prizeBlacklist;
+		public Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
+		public Dictionary<Effect, List<EffectDef>> effects = new();
+		public Dictionary<string, SynergyDef> Synergy = new();
+		public GemDropDef gemDrops = new();
+		public EquipmentDropDef equipmentDrops = new();
+		public Dictionary<Heightmap.Biome, Dictionary<int, Dictionary<string, int>?>> SocketCosts = new();
+		public List<Prizes> Prizes = new();
+		public List<string> prizeBlacklist = new();
+
+		public ParseResult()
+		{
+		}
 	}
 
 	public static ParseResult Parse(object? rootDictObj, out List<string> errors)
@@ -206,10 +210,9 @@ public class EffectDef
 		Dictionary<Effect, List<EffectDef>> effects = new();
 		Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
 		Dictionary<string, SynergyDef> synergies = new();
-		Dictionary<Heightmap.Biome, Dictionary<int, Dictionary<string, int>?>> emptySocketCosts = new();
 		List<Prizes> prizes = new();
 		List<string> prizeBlacklist = new();
-		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, SocketCosts = emptySocketCosts, Prizes = prizes, gemDrops = new GemDropDef(), equipmentDrops = new EquipmentDropDef(), prizeBlacklist = prizeBlacklist };
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes, prizeBlacklist = prizeBlacklist };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)

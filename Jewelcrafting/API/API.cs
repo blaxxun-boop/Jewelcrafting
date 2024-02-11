@@ -143,13 +143,8 @@ public static class API
 		string assemblyName = new StackTrace().GetFrame(1).GetMethod().DeclaringType!.Assembly.GetName().Name;
 		EffectDef.Loader.instance.parsed.Add($"/{assemblyName}/{type}.yml", new EffectDef.ParseResult
 		{
-			effects = new Dictionary<Effect, List<EffectDef>>(),
-			Synergy = new Dictionary<string, SynergyDef>(),
 			gemDistribution = EffectDef.Loader.instance.DefaultConfig.gemDistribution.ToDictionary(kv => kv.Key, _ => new Dictionary<GemType, float>
 				{ { (GemType)colorName.GetStableHashCode(), 0.04f } }),
-			equipmentDrops = new EquipmentDropDef(),
-			gemDrops = new GemDropDef(),
-			Prizes = new List<Prizes>(),
 		});
 
 		return prefab;
