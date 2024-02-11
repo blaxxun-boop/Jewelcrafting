@@ -1,5 +1,6 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
+using Jewelcrafting.Setup;
 using PieceManager;
 using SkillManager;
 using UnityEngine;
@@ -20,12 +21,14 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Uncut_Blue_Stone", 10, true);
 		piece.Category.Set(BuildPieceCategory.Crafting);
 		Utils.ConvertComponent<OpenCompendium, StationExtension>(piece.Prefab);
+		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
 
 		piece = new BuildPiece(assets, "op_transmution_table");
 		piece.RequiredItems.Add("Wood", 10, true);
 		piece.RequiredItems.Add("Flint", 10, true);
 		piece.Category.Set(BuildPieceCategory.Crafting);
 		gemcuttersTable = piece.Prefab;
+		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
 
 		piece = new BuildPiece(assets, "Odins_Jewelry_Box");
 		piece.RequiredItems.Add("FineWood", 30, true);
@@ -33,6 +36,7 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Obsidian", 4, true);
 		piece.Category.Set(BuildPieceCategory.Crafting);
 		piece.Prefab.AddComponent<RingInTheBox>();
+		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
 
 		piece = new BuildPiece(assets, "JC_Gemstone_Furnace");
 		piece.RequiredItems.Add("Thunderstone", 1, true);
@@ -40,6 +44,7 @@ public static class BuildingPiecesSetup
 		piece.RequiredItems.Add("Bronze", 10, true);
 		piece.Category.Set(BuildPieceCategory.Crafting);
 		astralCutter = piece.Prefab;
+		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
 	}
 
 	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]

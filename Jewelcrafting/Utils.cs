@@ -78,6 +78,20 @@ public static class Utils
 		return output;
 	}
 
+	public static float GetRealEffectPower(float minConfig, float maxConfig, int fieldIndex, uint? seed)
+	{
+		seed ??= 0;
+		if (fieldIndex > 0)
+		{
+			Random.State state = Random.state;
+			Random.InitState((int)seed.Value + fieldIndex);
+			seed = GenerateSocketSeed();
+			Random.state = state;
+		}
+
+		return minConfig + (float)(((double)maxConfig - minConfig) * seed.Value / uint.MaxValue);
+	}
+
 	public static WaitForSeconds WaitEffect<T>(this Player player, Effect effect, Func<T, float> minWait, Func<T, float> maxWait) where T : struct
 	{
 		T config = player.GetEffect<T>(effect);
@@ -91,7 +105,7 @@ public static class Utils
 		float wait = 0;
 		if (Jewelcrafting.SocketEffects.TryGetValue(effect, out List<EffectDef> defs))
 		{
-			wait = defs.Min(def => minWait((T)def.Power[0]));
+			wait = defs.Min(def => minWait((T)def.MinPower[0]));
 		}
 		return new WaitForSeconds(Mathf.Max(wait, 4));
 	}
@@ -218,7 +232,7 @@ public static class Utils
 
 	public static string FormatShortNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
 
-	public static string LocalizeDescDetail(Player player, int tier, Effect effect, float[] numbers)
+	public static string LocalizeDescDetail(Player player, int tier, Effect effect, string[] numbers)
 	{
 		if (EffectDef.DescriptionOverrides.TryGetValue(effect, out EffectDef.OverrideDescription overrideDesc))
 		{
@@ -227,7 +241,7 @@ public static class Utils
 				return desc;
 			}
 		}
-		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_{tier}_detail") ? $"_{tier}" : "") + "_detail", numbers.Select(FormatShortNumber).ToArray());
+		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_{tier}_detail") ? $"_{tier}" : "") + "_detail", numbers);
 	}
 
 	public static ItemDrop? getRandomGem(int tier = 0, GemType? type = null, HashSet<ItemDrop>? blackList = null)
@@ -335,5 +349,55 @@ public static class Utils
 			}
 			return int.MaxValue / 2;
 		}
+	}
+
+	public static IEnumerable<GemInfo> GetAllGemInfos(string item)
+	{
+		if (MergedGemStoneSetup.mergedGemContents.TryGetValue(item, out List<GemInfo> infos))
+		{
+			return infos;
+		}
+		if (ObjectDB.instance.GetItemPrefab(item) is {} prefab && GemStoneSetup.GemInfos.TryGetValue(prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
+		{
+			return new []{ info };
+		}
+		return Enumerable.Empty<GemInfo>();
+	}
+
+	public static IEnumerable<GemInfo> GetAllGemInfos(ItemDrop.ItemData item)
+	{
+		if (GemStoneSetup.GemInfos.TryGetValue(item.m_shared.m_name, out GemInfo info))
+		{
+			return new []{ info };
+		}
+		if (MergedGemStoneSetup.mergedGemContents.TryGetValue(item.m_dropPrefab.name, out List<GemInfo> infos))
+		{
+			return infos;
+		}
+		return Enumerable.Empty<GemInfo>();
+	}
+
+	public static bool ItemUsesGemPowerRange(ItemDrop.ItemData item)
+	{
+		return GetAllGemInfos(item).Any(info => Jewelcrafting.GemsUsingPowerRanges.Contains(info.Type));
+	}
+
+	public static uint GenerateSocketSeed() => (uint)Random.Range(int.MinValue, int.MaxValue);
+
+	public static Dictionary<string, uint> GenerateSocketSeedForItem(string item) => GetAllGemInfos(item).ToDictionary(i => i.Type.ToString(), _ => GenerateSocketSeed());
+
+	public static string DisplayGemEffectPower(float min, float max, uint? seed)
+	{
+		if (min == max)
+		{
+			return FormatShortNumber(min);
+		}
+		
+		if (seed is null)
+		{
+			return $"{FormatShortNumber(min)} - {FormatShortNumber(max)}";
+		}
+
+		return FormatShortNumber(GetRealEffectPower(min, max, 0, seed));
 	}
 }

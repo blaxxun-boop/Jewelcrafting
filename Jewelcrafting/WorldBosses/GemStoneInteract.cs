@@ -120,7 +120,8 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 					sockets.Clear();
 					foreach (string socket in prize.Sockets)
 					{
-						sockets.Add(new SocketItem(socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)?.name ?? ""));
+						string socketItem = socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)?.name ?? "";
+						sockets.Add(new SocketItem(socketItem, socketItem == "" ? null : Utils.GenerateSocketSeedForItem(socketItem)));
 					}
 					itemTooltip.m_tooltipPrefab = GemStoneSetup.SocketTooltip;
 					GemStones.DisplaySocketTooltip.tooltipItem.Add(itemTooltip, new Tuple<InventoryGrid?, ItemInfo>(null, itemInfo));

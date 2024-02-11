@@ -55,35 +55,35 @@ public static class CompendiumDisplay
 				{
 					GemLocation location = Utils.GetGemLocation(item.m_shared, player);
 					GemLocation itemLocation = Utils.GetItemGemLocation(item);
-					foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != "").Take(active.Sockets(item)))
+					foreach (SocketItem socket in itemSockets.socketedGems.Where(s => s.Name != "").Take(active.Sockets(item)))
 					{
 						int tier = 1;
-						if (ObjectDB.instance.GetItemPrefab(socket) is { } gameObject && GemStoneSetup.GemInfos.TryGetValue(gameObject.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
+						if (ObjectDB.instance.GetItemPrefab(socket.Name) is { } gameObject && GemStoneSetup.GemInfos.TryGetValue(gameObject.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
 						{
 							tier = info.Tier;
 						}
 
-						if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
+						if (Jewelcrafting.EffectPowers.TryGetValue(socket.Name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 						{
 							void handleEffectPowers(List<EffectPower> effectPowers)
 							{
 								foreach (EffectPower effectPower in effectPowers)
 								{
 									float[] powers;
-									FieldInfo[] powerFields = effectPower.Config.GetType().GetFields();
+									FieldInfo[] powerFields = effectPower.MinConfig.GetType().GetFields();
 									if (gems.TryGetValue(effectPower.Effect, out CompendiumGem power))
 									{
 										int i = 0;
 										powers = power.Powers;
 										foreach (FieldInfo powerField in powerFields)
 										{
-											powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], (float)powerField.GetValue(effectPower.Config));
+											powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], Utils.GetRealEffectPower((float)powerField.GetValue(effectPower.MinConfig), (float)powerField.GetValue(effectPower.MaxConfig), i, socket.Seed?.TryGetValue(effectPower.Type.ToString(), out uint seedValue) == true ? seedValue : null));
 											++i;
 										}
 									}
 									else
 									{
-										powers = powerFields.Select(p => (float)p.GetValue(effectPower.Config)).ToArray();
+										powers = powerFields.Select((p, i) => Utils.GetRealEffectPower((float)p.GetValue(effectPower.MinConfig), (float)p.GetValue(effectPower.MaxConfig), i, socket.Seed?.TryGetValue(effectPower.Type.ToString(), out uint seedValue) == true ? seedValue : null)).ToArray();
 									}
 									gems[effectPower.Effect] = new CompendiumGem { Powers = powers, Location = power.Location | location, Tier = tier };
 								}
@@ -107,7 +107,7 @@ public static class CompendiumDisplay
 				foreach (KeyValuePair<Effect, CompendiumGem> kv in gems)
 				{
 					sb.Append("\n");
-					sb.Append(Utils.LocalizeDescDetail(player, kv.Value.Tier, kv.Key, kv.Value.Powers));
+					sb.Append(Utils.LocalizeDescDetail(player, kv.Value.Tier, kv.Key, kv.Value.Powers.Select(Utils.FormatShortNumber).ToArray()));
 				}
 				__instance.m_texts[0].m_text += sb.ToString();
 			}

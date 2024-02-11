@@ -287,12 +287,14 @@
         <Compile Include="Setup\MergedGemStoneSetup.cs"/>
         <Compile Include="Setup\MiscSetup.cs"/>
         <Compile Include="Setup\VisualEffectSetup.cs"/>
+        <Compile Include="Setup\VisualSetup.cs" />
         <Compile Include="WorldBosses\BossHud.cs"/>
         <Compile Include="WorldBosses\BossMechanics.cs"/>
         <Compile Include="WorldBosses\BossSpawn.cs"/>
         <Compile Include="WorldBosses\GachaChest.cs"/>
         <Compile Include="WorldBosses\GachaDef.cs"/>
         <Compile Include="WorldBosses\GemStoneInteract.cs"/>
+        <Compile Include="Socketing.cs" />
         <Compile Include="Sockets.cs"/>
         <Compile Include="Stats.cs"/>
         <Compile Include="TerminalCommands.cs"/>
@@ -323,6 +325,7 @@
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml"/>
         <EmbeddedResource Include="Synergy\Jewelcrafting.Synergy.yml"/>
         <EmbeddedResource Include="WorldBosses\Jewelcrafting.Gacha.yml"/>
+        <EmbeddedResource Include="Setup\Jewelcrafting.SocketCosts.yml" />
         <EmbeddedResource Include="icons\gem_cursor.png"/>
         <EmbeddedResource Include="assets\jewelcrafting"/>
         <EmbeddedResource Include="assets\jc_ui_additions"/>

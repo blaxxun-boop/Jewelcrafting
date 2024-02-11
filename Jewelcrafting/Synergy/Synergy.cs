@@ -220,7 +220,7 @@ public static class Synergy
 				foreach (EffectPower effectPower in synergyDef.EffectPowers)
 				{
 					string conditionLocalization = $"jc_synergy_condition_{synergyDef.Name.Replace(" ", "_")}";
-					string desc = Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} - {(Localization.instance.m_translations.ContainsKey(conditionLocalization) ? $"${conditionLocalization}" : synergyDef.Name)} - $jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()}_desc_detail\n", effectPower.Config.GetType().GetFields().Select(p => formatNumber((float)p.GetValue(effectPower.Config))).ToArray());
+					string desc = Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} - {(Localization.instance.m_translations.ContainsKey(conditionLocalization) ? $"${conditionLocalization}" : synergyDef.Name)} - $jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()}_desc_detail\n", effectPower.MinConfig.GetType().GetFields().Select(p => formatNumber((float)p.GetValue(effectPower.MinConfig))).ToArray());
 					possibleSynergy.text += $"<color={(active ? "yellow" : "#222222")}>{desc}</color><size=5>\n</size>";
 				}
 			}
@@ -240,7 +240,7 @@ public static class Synergy
 			yield return new WaitForSeconds(0.2f);
 			synergyView.SetActive(true);
 		}
-		
+
 		public void OnPointerExit(PointerEventData eventData)
 		{
 			StopCoroutine(nameof(StartDisplaying));

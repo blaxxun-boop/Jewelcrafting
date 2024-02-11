@@ -6,7 +6,6 @@ using HarmonyLib;
 using ItemDataManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.LootSystem;
@@ -184,6 +183,7 @@ public static class EquipmentDrops
 	}
 
 	private static readonly Dictionary<Heightmap.Biome, List<Recipe>> dropCache = new();
+	public static readonly Dictionary<string, Heightmap.Biome> biomeAssignments = new();
 
 	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
 	private static class ClearDropCache
@@ -191,7 +191,7 @@ public static class EquipmentDrops
 		private static void Prefix() => dropCache.Clear();
 	}
 
-	private static void EnsureDropCache()
+	public static void EnsureDropCache()
 	{
 		if (dropCache.Count > 0)
 		{
@@ -213,6 +213,10 @@ public static class EquipmentDrops
 						drops.Add(recipe);
 					}
 				}
+			}
+			foreach (Recipe recipe in drops)
+			{
+				biomeAssignments[recipe.m_item.name] = kv.Key;
 			}
 			dropCache.Add(kv.Key, drops);
 		}
@@ -335,6 +339,7 @@ public static class EquipmentDrops
 			GemType primaryType = randomGemType();
 
 			string gem;
+			Dictionary<string, uint> seed = new();
 			if (isMergedGem)
 			{
 				GemType secondaryType = randomGemType();
@@ -345,13 +350,15 @@ public static class EquipmentDrops
 				}
 
 				gem = MergedGemStoneSetup.mergedGems[primaryType][secondaryType][socketTiers[i] / 2 - 1].name;
+				seed[secondaryType.ToString()] = Utils.GenerateSocketSeed();
 			}
 			else
 			{
 				gem = GemStoneSetup.Gems[primaryType][socketTiers[i] - 1].Prefab.name;
 			}
+			seed[primaryType.ToString()] = Utils.GenerateSocketSeed();
 
-			sockets.socketedGems.Add(new SocketItem(gem));
+			sockets.socketedGems.Add(new SocketItem(gem, seed));
 		}
 
 		sockets.Save();

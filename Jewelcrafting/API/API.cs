@@ -370,7 +370,7 @@ public static class API
 	{
 #if ! API
 		string assemblyName = new StackTrace().GetFrame(1).GetMethod().DeclaringType!.Assembly.GetName().Name;
-		List<string> errors = ConfigLoader.loaders.Single(l => l.GetType() == typeof(EffectDef.Loader)).ProcessConfig($"/{assemblyName}.yml", new DeserializerBuilder().Build().Deserialize<Dictionary<object, object>>(yaml));
+		List<string> errors = ConfigLoader.loaders.Single(l => l.GetType() == typeof(EffectDef.Loader)).ProcessConfig($"/{assemblyName}.yml", new DeserializerBuilder().Build().Deserialize<Dictionary<object, object>>(yaml), true);
 		foreach (string error in errors)
 		{
 			Debug.LogError($"Error in config of Gem config specified by mod {assemblyName}: {error}");
@@ -388,18 +388,13 @@ public static class API
 	}
 
 	[PublicAPI]
-	public class GemInfo
+	public class GemInfo(string gemPrefab, Sprite gemSprite, Dictionary<string, float> gemEffects, Dictionary<string, float[]> gemEffectsPowerRange, Dictionary<string, uint>? gemSeed = null)
 	{
-		public readonly string gemPrefab;
-		public readonly Sprite gemSprite;
-		public readonly Dictionary<string, float> gemEffects;
-
-		public GemInfo(string gemPrefab, Sprite gemSprite, Dictionary<string, float> gemEffects)
-		{
-			this.gemPrefab = gemPrefab;
-			this.gemSprite = gemSprite;
-			this.gemEffects = gemEffects;
-		}
+		public readonly string gemPrefab = gemPrefab;
+		public readonly Dictionary<string, uint>? gemSeed = gemSeed;
+		public readonly Sprite gemSprite = gemSprite;
+		public readonly Dictionary<string, float> gemEffects = gemEffects;
+		public readonly Dictionary<string, float[]> gemEffectsPowerRange = gemEffectsPowerRange;
 	}
 
 	public static List<GemInfo?> GetGems(ItemDrop.ItemData item)
@@ -410,15 +405,15 @@ public static class API
 		{
 			GemLocation location = Utils.GetGemLocation(item.m_shared);
 			IEnumerable<EffectPower> effects(string socket) => Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers) && locationPowers.TryGetValue(location, out List<EffectPower> effectPowers) ? effectPowers : Enumerable.Empty<EffectPower>();
-			foreach (string socket in sockets.socketedGems.Select(i => i.Name))
+			foreach (SocketItem socket in sockets.socketedGems)
 			{
-				if (socket == "" || ObjectDB.instance.GetItemPrefab(socket) is not { } prefab)
+				if (socket.Name == "" || ObjectDB.instance.GetItemPrefab(socket.Name) is not { } prefab)
 				{
 					gems.Add(null);
 				}
 				else
 				{
-					gems.Add(new GemInfo(prefab.name, prefab.GetComponent<ItemDrop>().m_itemData.GetIcon(), effects(socket).ToDictionary(e => EffectDef.EffectNames[e.Effect].Replace("_", " "), e => e.Power)));
+					gems.Add(new GemInfo(prefab.name, prefab.GetComponent<ItemDrop>().m_itemData.GetIcon(), effects(socket.Name).ToDictionary(e => EffectDef.EffectNames[e.Effect].Replace("_", " "), e => (e.MinPower + e.MaxPower) / 2), effects(socket.Name).ToDictionary(e => EffectDef.EffectNames[e.Effect].Replace("_", " "), e => new[] { e.MinPower, e.MaxPower }), socket.Seed));
 				}
 			}
 		}
@@ -548,7 +543,7 @@ public static class API
 	{
 #if ! API
 		Jewelcrafting.PrefabBlacklist.Add(item.name);
-		
+
 		return true;
 #else
 		return false;

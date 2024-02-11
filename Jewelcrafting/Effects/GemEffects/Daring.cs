@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using CreatureLevelControl;
 using HarmonyLib;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.GemEffects;

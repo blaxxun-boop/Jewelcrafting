@@ -14,7 +14,7 @@ using UnityEngine;
 namespace Jewelcrafting.GemEffects;
 
 [Flags]
-public enum GemLocation: ulong
+public enum GemLocation : ulong
 {
 	Head = 1 << 0,
 	Cloak = 1 << 1,
@@ -135,9 +135,12 @@ public enum Uniqueness
 public struct EffectPower
 {
 	public Effect Effect;
-	public float Power => (float)Config.GetType().GetFields().First().GetValue(Config);
-	public object Config;
+	public float MinPower => (float)MinConfig.GetType().GetFields().First().GetValue(MinConfig);
+	public float MaxPower => (float)MaxConfig.GetType().GetFields().First().GetValue(MaxConfig);
+	public object MinConfig;
+	public object MaxConfig;
 	public Uniqueness Unique;
+	public GemType Type;
 }
 
 [PublicAPI]
@@ -161,11 +164,14 @@ public class EffectDef
 	public GemLocation Slots;
 	public List<string> Items = new();
 	public Uniqueness Unique = Uniqueness.None;
-	public object[] Power = Array.Empty<object>();
+	public object[] MinPower = Array.Empty<object>();
+	public object[] MaxPower = Array.Empty<object>();
+	public bool UsesPowerRanges = false;
 
 	public static readonly Dictionary<Effect, Type> ConfigTypes = new();
 
-	public delegate string? OverrideDescription(Player player, ref float[] numbers);
+	public delegate string? OverrideDescription(Player player, ref string[] numbers);
+
 	public static readonly Dictionary<Effect, OverrideDescription> DescriptionOverrides = new();
 
 	public const GemLocation AllGemlocations = GemLocation.All - 1;
@@ -190,6 +196,7 @@ public class EffectDef
 		public Dictionary<string, SynergyDef> Synergy;
 		public GemDropDef gemDrops;
 		public EquipmentDropDef equipmentDrops;
+		public Dictionary<Heightmap.Biome, Dictionary<int, Dictionary<string, int>?>> SocketCosts;
 		public List<Prizes> Prizes;
 		public List<string> prizeBlacklist;
 	}
@@ -199,9 +206,10 @@ public class EffectDef
 		Dictionary<Effect, List<EffectDef>> effects = new();
 		Dictionary<Heightmap.Biome, Dictionary<GemType, float>> gemDistribution = new();
 		Dictionary<string, SynergyDef> synergies = new();
+		Dictionary<Heightmap.Biome, Dictionary<int, Dictionary<string, int>?>> emptySocketCosts = new();
 		List<Prizes> prizes = new();
 		List<string> prizeBlacklist = new();
-		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, Prizes = prizes, gemDrops =  new GemDropDef(), equipmentDrops = new EquipmentDropDef(), prizeBlacklist = prizeBlacklist };
+		ParseResult configurationResult = new() { gemDistribution = gemDistribution, effects = effects, Synergy = synergies, SocketCosts = emptySocketCosts, Prizes = prizes, gemDrops = new GemDropDef(), equipmentDrops = new EquipmentDropDef(), prizeBlacklist = prizeBlacklist };
 		errors = new List<string>();
 
 		if (rootDictObj is not Dictionary<object, object?> rootDict)
@@ -226,7 +234,7 @@ public class EffectDef
 
 				continue;
 			}
-			
+
 			if (rootDictKv.Value is Dictionary<object, object?> prizeDict && prizeDict.ContainsKey("prizes"))
 			{
 				if (GachaDef.Parse(rootDictKv.Key, castDictToStringDict(prizeDict), errors) is { } prize)
@@ -245,7 +253,7 @@ public class EffectDef
 				}
 				continue;
 			}
-						
+
 			if (rootDictKv.Key == "gem drops")
 			{
 				if (ChestDrops.Parse(rootDictKv.Value, errors) is { } drops)
@@ -254,7 +262,7 @@ public class EffectDef
 				}
 				continue;
 			}
-			
+
 			if (rootDictKv.Key == "equipment")
 			{
 				if (EquipmentDrops.Parse(rootDictKv.Value, errors) is { } drops)
@@ -263,7 +271,16 @@ public class EffectDef
 				}
 				continue;
 			}
-			
+
+			if (rootDictKv.Key == "socket cost")
+			{
+				if (Socketing.Parse(rootDictKv.Value, errors) is { } socketCosts)
+				{
+					configurationResult.SocketCosts = socketCosts;
+				}
+				continue;
+			}
+
 			if (!ValidEffects.ContainsKey(effect))
 			{
 				effect = effect.Replace(" ", "");
@@ -274,7 +291,7 @@ public class EffectDef
 				{
 					synergies.Add(rootDictKv.Key, new SynergyDef());
 				}
-				
+
 				if (effect != "gems")
 				{
 					errors.Add($"'{rootDictKv.Key}' is not a valid effect name. Valid effects are: '{string.Join("', '", ValidEffects.Keys)}'. There also can be a 'gems' section to define gem spawn chances.");
@@ -459,7 +476,8 @@ public class EffectDef
 				}
 
 				int tiers = GemStoneSetup.Gems.TryGetValue(effectDef.Type, out List<GemDefinition> gemDefinitions) ? gemDefinitions.Count : 1;
-				effectDef.Power = new object[tiers];
+				effectDef.MinPower = new object[tiers];
+				effectDef.MaxPower = new object[tiers];
 
 				if (!ConfigTypes.TryGetValue(ValidEffects[effect], out Type configType))
 				{
@@ -472,7 +490,8 @@ public class EffectDef
 					{
 						for (int i = 0; i < tiers; ++i)
 						{
-							effectDef.Power[i] = Activator.CreateInstance(configType);
+							effectDef.MinPower[i] = Activator.CreateInstance(configType);
+							effectDef.MaxPower[i] = Activator.CreateInstance(configType);
 						}
 
 						foreach (FieldInfo field in configFields.Values)
@@ -481,13 +500,40 @@ public class EffectDef
 							{
 								for (int i = 0; i < tiers; ++i)
 								{
-									field.SetValue(effectDef.Power[i], optional.DefaultValue);
+									field.SetValue(effectDef.MinPower[i], optional.DefaultValue);
+									field.SetValue(effectDef.MaxPower[i], optional.DefaultValue);
 								}
 							}
 						}
 
 						bool ParseTiers(object? powerObj, FieldInfo? field = null)
 						{
+							bool ParsePower(string powerString, int tier)
+							{
+								if (float.TryParse(powerString, NumberStyles.Float, CultureInfo.InvariantCulture, out float power))
+								{
+									field.SetValue(effectDef.MinPower[tier], power);
+									field.SetValue(effectDef.MaxPower[tier], power);
+
+									return true;
+								}
+
+								string[] split = powerString.Split('-');
+								if (split.Length == 2 && float.TryParse(split[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float minPower) && float.TryParse(split[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float maxPower))
+								{
+									field.SetValue(effectDef.MinPower[tier], minPower);
+									field.SetValue(effectDef.MaxPower[tier], maxPower);
+									if (minPower != maxPower)
+									{
+										effectDef.UsesPowerRanges = true;
+									}
+
+									return true;
+								}
+
+								return false;
+							}
+
 							bool hasField = field is not null;
 							string fieldLocation = field is not null ? $" for the key '{field.Name}'" : "";
 							field ??= configFields.First().Value;
@@ -524,19 +570,15 @@ public class EffectDef
 								{
 									if (powerTiers[i] is string powerNumber)
 									{
-										if (float.TryParse(powerNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out float power))
+										if (!ParsePower(powerNumber, i))
 										{
-											field.SetValue(effectDef.Power[i], power);
-										}
-										else
-										{
-											errorList.Add($"The {i}. power{fieldLocation} is not a number. Got unexpected '{powerNumber}'. {errorLocation}");
+											errorList.Add($"The {i+1}. power{fieldLocation} is not a number or range of two numbers. Got unexpected '{powerNumber}'. {errorLocation}");
 											return false;
 										}
 									}
 									else
 									{
-										errorList.Add($"The {i}. power{fieldLocation} is not a number. Got unexpected {powerTiers[i]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+										errorList.Add($"The {i+1}. power{fieldLocation} is not a number or range of two numbers. Got unexpected {powerTiers[i]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
 										return false;
 									}
 								}
@@ -547,19 +589,15 @@ public class EffectDef
 								{
 									if (powerObj is string powerNumber)
 									{
-										if (float.TryParse(powerNumber, NumberStyles.Float, CultureInfo.InvariantCulture, out float power))
+										if (!ParsePower(powerNumber, 0))
 										{
-											field.SetValue(effectDef.Power[0], power);
-										}
-										else
-										{
-											errorList.Add($"The power{fieldLocation} is not a number. Got unexpected '{powerNumber}'. {errorLocation}");
+											errorList.Add($"The power{fieldLocation} is not a number or range of two numbers. Got unexpected '{powerNumber}'. {errorLocation}");
 											return false;
 										}
 									}
 									else
 									{
-										errorList.Add($"The power{fieldLocation} is not a number. Got unexpected {powerObj?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+										errorList.Add($"The power{fieldLocation} is not a number or range of two numbers. Got unexpected {powerObj?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
 										return false;
 									}
 								}
@@ -642,9 +680,10 @@ public class EffectDef
 	public class Loader : ConfigLoader.Loader
 	{
 		public static Loader instance = null!;
-		
+
 		public readonly Dictionary<string, ParseResult> parsed = new();
 		public ParseResult DefaultConfig => parsed[""];
+		private HashSet<string> globalConfigs = new();
 
 		public Loader()
 		{
@@ -662,8 +701,13 @@ public class EffectDef
 			return errors;
 		}
 
-		public List<string> ProcessConfig(string key, object? yaml)
+		public List<string> ProcessConfig(string key, object? yaml, bool global = false)
 		{
+			if (global)
+			{
+				globalConfigs.Add(key);
+			}
+			
 			ParseResult result = Parse(yaml, out List<string> errors);
 
 			Dictionary<GemType, GemLocation> usedSlots = new();
@@ -702,7 +746,7 @@ public class EffectDef
 
 		public void Reset()
 		{
-			foreach (string key in parsed.Keys.Where(k => k != "" && k != "Groups" && k != "Synergies" && k != "Gacha" && k != "Loot" && !k.StartsWith("/")).ToArray())
+			foreach (string key in parsed.Keys.Where(k => !globalConfigs.Contains(k) && !k.StartsWith("/")).ToArray())
 			{
 				parsed.Remove(key);
 			}
@@ -711,13 +755,13 @@ public class EffectDef
 		public void ValidateRuntime(List<string> warnings)
 		{
 			Utils.ReloadItemNameMap();
-			
+
 			foreach (ParseResult result in parsed.Values)
 			{
 				ValidateRuntime(result, warnings);
 			}
 		}
-		
+
 		private void ValidateRuntime(ParseResult result, List<string> warnings)
 		{
 			foreach (KeyValuePair<Effect, List<EffectDef>> effectKv in result.effects)
@@ -828,6 +872,13 @@ public class EffectDef
 				blacklist = parsed.Values.Last(p => p.equipmentDrops.blacklist is not null).equipmentDrops.blacklist,
 			});
 
+			Dictionary<Heightmap.Biome, Dictionary<int, Dictionary<string, int>?>> socketCosts = new();
+			foreach (KeyValuePair<Heightmap.Biome, Dictionary<int, Dictionary<string, int>?>> biomeCostKv in parsed.Values.SelectMany(p => p.SocketCosts))
+			{
+				socketCosts[biomeCostKv.Key] = biomeCostKv.Value;
+			}
+			Socketing.Apply(socketCosts);
+
 			Dictionary<Heightmap.Biome, GemDropBiome> gemDropBiomes = ValidBiomes.Values.ToDictionary(b => b, _ => new GemDropBiome
 			{
 				lowHp = 0,
@@ -862,6 +913,7 @@ public class EffectDef
 			Jewelcrafting.SocketEffects = socketEffects;
 			Jewelcrafting.GemDistribution = gemDistribution;
 			Jewelcrafting.EffectPowers.Clear();
+			Jewelcrafting.GemsUsingPowerRanges.Clear();
 			foreach (KeyValuePair<Effect, List<EffectDef>> kv in Jewelcrafting.SocketEffects)
 			{
 				foreach (EffectDef def in kv.Value)
@@ -869,6 +921,11 @@ public class EffectDef
 					if ((def.Type == GemType.Wisplight && Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.Off) || (def.Type == GemType.Wishbone && Jewelcrafting.wishboneGem.Value == Jewelcrafting.Toggle.Off))
 					{
 						continue;
+					}
+
+					if (def.UsesPowerRanges)
+					{
+						Jewelcrafting.GemsUsingPowerRanges.Add(def.Type);
 					}
 
 					void ApplyToGems(List<GameObject> gems)
@@ -883,8 +940,10 @@ public class EffectDef
 							EffectPower effectPower = new()
 							{
 								Effect = kv.Key,
-								Config = def.Power[i],
+								MinConfig = def.MinPower[i],
+								MaxConfig = def.MaxPower[i],
 								Unique = def.Unique,
+								Type = def.Type,
 							};
 							foreach (GemLocation location in (GemLocation[])Enum.GetValues(typeof(GemLocation)))
 							{
@@ -899,7 +958,7 @@ public class EffectDef
 							}
 							foreach (string item in def.Items)
 							{
-								if (Utils.GetItem(item) is {} itemdrop)
+								if (Utils.GetItem(item) is { } itemdrop)
 								{
 									GemLocation location = Utils.GetItemGemLocation(itemdrop.m_itemData);
 									if (!power.TryGetValue(location, out List<EffectPower> effectPowers))
@@ -911,7 +970,7 @@ public class EffectDef
 							}
 						}
 					}
-					
+
 					ApplyToGems(GemStoneSetup.Gems[def.Type].Select(g => g.Prefab).ToList());
 					foreach (KeyValuePair<GemType, Dictionary<GemType, GameObject[]>> mergedGem in MergedGemStoneSetup.mergedGems)
 					{

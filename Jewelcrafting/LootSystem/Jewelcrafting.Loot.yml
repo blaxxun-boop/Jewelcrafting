@@ -67,6 +67,7 @@ equipment:
       - iron
   blacklist:
     - jewelers bag
+    - butcher knife
     - deer
 
 gem drops:

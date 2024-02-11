@@ -538,7 +538,7 @@ public class SynergyDef
 					continue;
 				}
 
-				def.EffectPowers.Add(new EffectPower { Config = config, Effect = effect });
+				def.EffectPowers.Add(new EffectPower { MinConfig = config, MaxConfig = config, Effect = effect });
 			}
 		}
 		else

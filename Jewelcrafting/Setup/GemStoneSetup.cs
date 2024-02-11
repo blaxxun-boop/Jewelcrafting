@@ -1,7 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using BepInEx.Configuration;
-using HarmonyLib;
 using ItemManager;
 using UnityEngine;
 using UnityEngine.UI;
@@ -218,7 +216,7 @@ public static class GemStoneSetup
 		
 		Transform toCopy = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_Text_1");
 		Transform toParent = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles");
-		for (int i = 6; i <= 10; ++i)
+		for (int i = 6; i <= Jewelcrafting.maxNumberOfSockets; ++i)
 		{
 			GameObject newSlot = Object.Instantiate(toCopy.gameObject);
 			newSlot.name = $"Transmute_Text_{i}";

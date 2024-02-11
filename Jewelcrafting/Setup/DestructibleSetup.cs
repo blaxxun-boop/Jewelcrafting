@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using HarmonyLib;
 using ItemManager;
+using Jewelcrafting.Setup;
 using UnityEngine;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
@@ -38,6 +39,7 @@ public static class DestructibleSetup
 			},
 		};
 		prefab.AddComponent<CountDestructibleDestruction>();
+		prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
 
 		if (prefab.transform.Find("Orbs") is { } orbs)
 		{

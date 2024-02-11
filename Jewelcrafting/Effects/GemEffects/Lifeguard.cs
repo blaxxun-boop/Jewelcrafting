@@ -1,5 +1,4 @@
 using JetBrains.Annotations;
-using Jewelcrafting.GemEffects;
 
 namespace Jewelcrafting.GemEffects;
 

@@ -30,11 +30,11 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.13";
+	private const string ModVersion = "1.5.14";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-
+	
 	private static ConfigEntry<Toggle> serverConfigLocked = null!;
 	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
 	public static ConfigEntry<Toggle> inventorySocketing = null!;
@@ -136,7 +136,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> ringSlot = null!;
 	public static ConfigEntry<Toggle> necklaceSlot = null!;
 	public static ConfigEntry<Toggle> splitSockets = null!;
-
+	public static ConfigEntry<Toggle> socketCostsItems = null!;
+	public static ConfigEntry<Toggle> successfulSocketsCosts = null!;
+	public static ConfigEntry<Toggle> pixelateTextures = null!;
+	
+	
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
 	public static readonly CustomSyncedValue<List<string>> socketEffectDefinitions = new(configSync, "socket effects", new List<string>());
@@ -169,11 +173,14 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 	public static Dictionary<Effect, List<EffectDef>> SocketEffects = new();
 	public static readonly Dictionary<int, Dictionary<GemLocation, List<EffectPower>>> EffectPowers = new();
+	public static readonly HashSet<GemType> GemsUsingPowerRanges = new();
 	public static Dictionary<Heightmap.Biome, Dictionary<GemType, float>> GemDistribution = new();
 	public static List<string> configFilePaths = null!;
 	public static readonly List<SynergyDef> Synergies = new();
 
 	public static readonly HashSet<string> PrefabBlacklist = new();
+
+	public const int maxNumberOfSockets = 10;
 
 	private static Skill jewelcrafting = null!;
 
@@ -302,6 +309,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		config("2 - Socket System", "YAML Editor Anchor", 0, new ConfigDescription("Just ignore this.", null, new ConfigurationManagerAttributes { HideSettingName = true, HideDefaultButton = true, CustomDrawer = DrawYamlEditorButton }), false);
 		inventorySocketing = config("2 - Socket System", "Inventory Socketing", Toggle.On, "If enabled, you can press the interact key to change gems in your items from your inventory. If disabled, you have to use the Gemcutters Table, to change the gems in your items.");
+		socketCostsItems = config("2 - Socket System", "Sockets Cost Items", Toggle.Off, "If enabled, adding sockets to items costs items. Use the Jewelcrafting.SocketCosts.yml to configure this.");
+		successfulSocketsCosts = config("2 - Socket System", "Successful Sockets Cost", Toggle.Off, "If enabled, only successfully added sockets spend the socket adding cost.");
 		inventoryInteractBehaviour = config("2 - Socket System", "Interact Behaviour", InteractBehaviour.Hovering, "Disabled: Interact key is disabled, while the inventory is open.\nHovering: Interact key is disabled, while hovering an item with at least one socket.\nEnabled: Interact key is enabled. You will have to use the Gemcutters Table, to socket your items.", false);
 		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
 		visualEffects.SettingChanged += (_, _) =>
@@ -337,7 +346,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		resourceReturnRate = config("2 - Socket System", "Percentage Recovered", 50, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it. This only considers the base cost of the item.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRateUpgrade = config("2 - Socket System", "Percentage Recovered Upgrades", 100, new ConfigDescription("Percentage of items to be recovered, when an item breaks while trying to add a socket to it. This only considers the upgrade cost of the item.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		resourceReturnRateDistance = config("2 - Socket System", "Maximum Distance for Item Recovery", 0, new ConfigDescription("Maximum distance between the position where the item has been crafted and the position where the item has been destroyed to recover non-teleportable resources. This can be used, to prevent people from crafting items from metal, taking them through a portal and destroying them on the other side, to teleport the metal. Setting this to 0 disables this.", null, new ConfigurationManagerAttributes { Order = --order }));
-		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, 10), new ConfigurationManagerAttributes { Order = --order }));
+		maximumNumberSockets = config("2 - Socket System", "Maximum number of Sockets", 3, new ConfigDescription("Maximum number of sockets on each item.", new AcceptableValueRange<int>(1, maxNumberOfSockets), new ConfigurationManagerAttributes { Order = --order }));
 		maximumNumberSockets.SettingChanged += (_, _) =>
 		{
 			SocketsBackground.CalculateColors();
@@ -346,7 +355,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		limitSocketsByTableLevel = config("2 - Socket System", "Limit number of Sockets", Toggle.Off, new ConfigDescription("If on, the number of sockets that can be added to an item by a player is limited by the level of the Gemcutters Table.", null, new ConfigurationManagerAttributes { Order = --order }));
 		for (int i = 0; i < maxSocketsTableLevel.Length; ++i)
 		{
-			maxSocketsTableLevel[i] = config("2 - Socket System", $"Socket limit table level {i + 1}", i + 1, new ConfigDescription($"Sets the maximum number of sockets that can be added to an item at a level {i + 1} Gemcutters Table, if Limit number of Sockets is on.", new AcceptableValueRange<int>(1, 10), new ConfigurationManagerAttributes { Order = --order }));
+			maxSocketsTableLevel[i] = config("2 - Socket System", $"Socket limit table level {i + 1}", i + 1, new ConfigDescription($"Sets the maximum number of sockets that can be added to an item at a level {i + 1} Gemcutters Table, if Limit number of Sockets is on.", new AcceptableValueRange<int>(1, maxNumberOfSockets), new ConfigurationManagerAttributes { Order = --order }));
 		}
 		gemRespawnRate = config("2 - Socket System", "Gemstone Respawn Time", 100, new ConfigDescription("Respawn time for raw gemstones in ingame days. Use 0 to disable respawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		socketingItemsExperience = config("2 - Socket System", "Adding Sockets grants Experience", Toggle.On, new ConfigDescription("If off, adding sockets to items does not grant Jewelcrafting experience anymore. This can be used, to prevent people from crafting cheap items and socketing them, to level up the skill.", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -612,6 +621,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				TrackEquipmentChanges.CalculateEffects(Player.m_localPlayer);
 			}
 		};
+		pixelateTextures = config("6 - Other", "Pixelate Textures", Toggle.Off, new ConfigDescription("If on, all Jewelcrafting textures will be slightly pixelate. Some people think this makes it look more vanilla. Needs a reload of the objects visuals to take effect, e.g. by leaving the area or unequipping items.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 
 		warmthStaminaRegen = config("Ruby Ring of Warmth", "Stamina Regen", 10, new ConfigDescription("Stamina regen increase for the Ruby Ring of Warmth effect.", new AcceptableValueRange<int>(0, 100)));
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
@@ -683,7 +693,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		}
 
 		int socketAddingOrder = 0;
-		for (int i = 0; i < 10; ++i)
+		for (int i = 0; i < maxNumberOfSockets; ++i)
 		{
 			socketAddingChances.Add(i, config("Socket Adding Chances", $"{i + 1}. Socket", i <= 5 ? 80 - i * 10 : 55 - i * 5, new ConfigDescription($"Success chance while trying to add the {i + 1}. Socket.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --socketAddingOrder })));
 		}

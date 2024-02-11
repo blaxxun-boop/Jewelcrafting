@@ -17,7 +17,6 @@ public static class Avoidance
 		[InverseMultiplicativePercentagePower] public float Power;
 		[MaxPower] [OptionalPower(100f)] public float DamageReduction;
 	}
-
 	
 	[HarmonyPatch(typeof(Character), nameof(Character.RPC_Damage))]
 	public static class AddChanceToAvoidDamage

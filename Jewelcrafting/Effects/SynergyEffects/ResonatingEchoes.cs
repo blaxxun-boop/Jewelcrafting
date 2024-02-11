@@ -17,12 +17,12 @@ public static class ResonatingEchoes
 		[InverseMultiplicativePercentagePower] public float Power;
 	}
 
-	private static string? setEchoDesc(Player player, ref float[] numbers)
+	private static string? setEchoDesc(Player player, ref string[] numbers)
 	{
 		if (player.GetEffect(Effect.Resonatingechoes) > 0)
 		{
 			// chance
-			numbers[0] += numbers[0] * player.GetEffect(Effect.Resonatingechoes) / 100;
+			numbers[0] = Utils.FormatShortNumber(float.Parse(numbers[0]) * (1 + player.GetEffect(Effect.Resonatingechoes) / 100));
 		}
 		return null;
 	}

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using ItemDataManager;
 using ItemManager;
@@ -102,29 +103,34 @@ public static class MiscSetup
 						}
 					}
 
-					for (int i = 0; i < socketBag.socketedGems.Count; ++i)
+					Dictionary<string, uint> seed = item.Data().GetAll<SocketSeed>().ToDictionary(kv => kv.Key, kv => kv.Value.Seed);
+
+					if (seed.Count == 0)
 					{
-						SocketItem slot = socketBag.socketedGems[i];
-						if (slot.Name == item.m_dropPrefab.name)
+						for (int i = 0; i < socketBag.socketedGems.Count; ++i)
 						{
-							bool canFillLastItem = item.m_shared.m_maxStackSize - slot.Count >= remainingStack;
-							if (canFillLastItem)
+							SocketItem slot = socketBag.socketedGems[i];
+							if (slot.Name == item.m_dropPrefab.name && slot.Seed is null)
 							{
-								slot.Count += remainingStack;
-							}
-							else
-							{
-								remainingStack -= item.m_shared.m_maxStackSize - slot.Count;
-								slot.Count = item.m_shared.m_maxStackSize;
-							}
-							if (!dryRun)
-							{
-								socketBag.socketedGems[i] = slot;
-							}
-							if (canFillLastItem)
-							{
-								FinishPickup();
-								return true;
+								bool canFillLastItem = item.m_shared.m_maxStackSize - slot.Count >= remainingStack;
+								if (canFillLastItem)
+								{
+									slot.Count += remainingStack;
+								}
+								else
+								{
+									remainingStack -= item.m_shared.m_maxStackSize - slot.Count;
+									slot.Count = item.m_shared.m_maxStackSize;
+								}
+								if (!dryRun)
+								{
+									socketBag.socketedGems[i] = slot;
+								}
+								if (canFillLastItem)
+								{
+									FinishPickup();
+									return true;
+								}
 							}
 						}
 					}
@@ -135,7 +141,7 @@ public static class MiscSetup
 						{
 							if (!dryRun)
 							{
-								socketBag.socketedGems[i] = new SocketItem(item.m_dropPrefab.name, remainingStack);
+								socketBag.socketedGems[i] = new SocketItem(item.m_dropPrefab.name, count: remainingStack, seed: seed);
 							}
 							FinishPickup();
 							return true;
@@ -145,7 +151,7 @@ public static class MiscSetup
 					if (!dryRun)
 					{
 						socketBag.Save();
-						if (GemStones.AddFakeSocketsContainer.openEquipment == socketBag.Info)
+						if (GemStones.AddFakeSocketsContainer.openEquipment == socketBag.Info && seed.Count == 0)
 						{
 							GemStones.AddFakeSocketsContainer.openInventory!.AddItem(item.m_dropPrefab, startingAmount - remainingStack);
 						}
