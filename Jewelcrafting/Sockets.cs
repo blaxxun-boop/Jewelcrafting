@@ -44,7 +44,7 @@ public struct SocketItem(string name, Dictionary<string, uint>? seed = null, int
 				value = (value << 32) + seed;
 			}
 		}
-		return Seed.First().ToString();
+		return Seed.First().Value.ToString();
 	}
 }
 

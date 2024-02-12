@@ -100,6 +100,7 @@ public enum Effect
 	Energetic,
 	Mountaingoat,
 	Glowingspirit,
+	Dungeonguide,
 	Lightningspeed,
 	Rootedrevenge,
 	Poisonousdrain,
@@ -141,6 +142,7 @@ public struct EffectPower
 	public object MaxConfig;
 	public Uniqueness Unique;
 	public GemType Type;
+	public GemLocation Location;
 }
 
 [PublicAPI]
@@ -686,7 +688,7 @@ public class EffectDef
 
 		public readonly Dictionary<string, ParseResult> parsed = new();
 		public ParseResult DefaultConfig => parsed[""];
-		private HashSet<string> globalConfigs = new();
+		private readonly HashSet<string> globalConfigs = new();
 
 		public Loader()
 		{
@@ -956,7 +958,7 @@ public class EffectDef
 									{
 										effectPowers = power[location] = new List<EffectPower>();
 									}
-									effectPowers.Add(effectPower);
+									effectPowers.Add(effectPower with { Location = location });
 								}
 							}
 							foreach (string item in def.Items)
@@ -968,7 +970,7 @@ public class EffectDef
 									{
 										effectPowers = power[location] = new List<EffectPower>();
 									}
-									effectPowers.Add(effectPower);
+									effectPowers.Add(effectPower with { Location = location });
 								}
 							}
 						}

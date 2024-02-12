@@ -78,18 +78,26 @@ public static class Utils
 		return output;
 	}
 
-	public static float GetRealEffectPower(float minConfig, float maxConfig, int fieldIndex, uint? seed)
+	private static float CalcRealEffectPower(float minConfig, float maxConfig, int fieldIndex, GemType type, GemLocation location, Dictionary<string, uint>? seeds)
 	{
-		seed ??= 0;
-		if (fieldIndex > 0)
+		if (seeds?.TryGetValue(type.ToString(), out uint seed) != true)
 		{
-			Random.State state = Random.state;
-			Random.InitState((int)seed.Value + fieldIndex);
-			seed = GenerateSocketSeed();
-			Random.state = state;
+			seed = 0;
 		}
+		
+		Random.State state = Random.state;
+		Random.InitState((int)(seed + fieldIndex * (uint)GemLocation.All + (Jewelcrafting.randomPowerRanges.Value == Jewelcrafting.Toggle.On ? (uint)location : 0)));
+		seed = GenerateSocketSeed();
+		Random.state = state;
 
-		return minConfig + (float)(((double)maxConfig - minConfig) * seed.Value / uint.MaxValue);
+		return minConfig + (float)(((double)maxConfig - minConfig) * seed / uint.MaxValue);
+	}
+
+	public static float GetRealEffectPower(EffectPower power, FieldInfo? field, int fieldIndex, Dictionary<string, uint>? seeds)
+	{
+		float min = field is null ? power.MinPower : (float)field.GetValue(power.MinConfig);
+		float max = field is null ? power.MaxPower : (float)field.GetValue(power.MaxConfig);
+		return CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Location, seeds);
 	}
 
 	public static WaitForSeconds WaitEffect<T>(this Player player, Effect effect, Func<T, float> minWait, Func<T, float> maxWait) where T : struct
@@ -230,7 +238,7 @@ public static class Utils
 		return timeString;
 	}
 
-	public static string FormatShortNumber(float num) => num.ToString(num < 100 ? "G2" : "0");
+	public static string FormatShortNumber(float num) => num.ToString(num < 99.95 ? "G2" : "0");
 
 	public static string LocalizeDescDetail(Player player, int tier, Effect effect, string[] numbers)
 	{
@@ -386,18 +394,21 @@ public static class Utils
 
 	public static Dictionary<string, uint> GenerateSocketSeedForItem(string item) => GetAllGemInfos(item).ToDictionary(i => i.Type.ToString(), _ => GenerateSocketSeed());
 
-	public static string DisplayGemEffectPower(float min, float max, uint? seed)
+	public static string DisplayGemEffectPower(EffectPower power, FieldInfo? field, int fieldIndex, Dictionary<string, uint>? seeds)
 	{
+		float min = field is null ? power.MinPower : (float)field.GetValue(power.MinConfig);
+		float max = field is null ? power.MaxPower : (float)field.GetValue(power.MaxConfig);
+		
 		if (min == max)
 		{
 			return FormatShortNumber(min);
 		}
 		
-		if (seed is null)
+		if (seeds is null)
 		{
 			return $"{FormatShortNumber(min)} - {FormatShortNumber(max)}";
 		}
 
-		return FormatShortNumber(GetRealEffectPower(min, max, 0, seed));
+		return FormatShortNumber(CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Location, seeds));
 	}
 }

@@ -795,11 +795,11 @@ public static class GemStones
 											// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
 											if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
 											{
-												text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? "_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}_desc_{tier}") ? $"_{tier}" : "") : $" {Utils.DisplayGemEffectPower(gem.MinPower, gem.MaxPower, socket.Seed?.TryGetValue(gem.Type.ToString(), out uint seedValue) == true ? seedValue : null)}")));
+												text = string.Join("\n", allEffectPowers.Select(power => $"$jc_effect_{EffectDef.EffectNames[power.Effect].ToLower()}" + (displayAdvanced ? "_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[power.Effect].ToLower()}_desc_{tier}") ? $"_{tier}" : "") : $" {Utils.DisplayGemEffectPower(power, null, 0, socket.Seed)}")));
 											}
 											else
 											{
-												text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, tier, gem.Effect, gem.MinConfig.GetType().GetFields().Select(p => Utils.DisplayGemEffectPower((float)p.GetValue(gem.MinConfig), (float)p.GetValue(gem.MaxConfig), socket.Seed?.TryGetValue(gem.Type.ToString(), out uint seedValue) == true ? seedValue : null)).ToArray()) : $" {Utils.DisplayGemEffectPower(gem.MinPower, gem.MaxPower, 0)}")));
+												text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, tier, gem.Effect, gem.MinConfig.GetType().GetFields().Select((p, i) => Utils.DisplayGemEffectPower(gem, p, i, socket.Seed)).ToArray()) : $" {Utils.DisplayGemEffectPower(gem, null, 0, socket.Seed)}")));
 											}
 										}
 										else
@@ -911,7 +911,7 @@ public static class GemStones
 							}
 						}
 
-						sb.Append($"\n<color=orange>{name}:</color> {string.Join(", ", kv.Value.Select(effectPower => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {Utils.DisplayGemEffectPower(effectPower.MinPower, effectPower.MaxPower, item.Data().Get<SocketSeed>(effectPower.Type.ToString())?.Seed)}"))}");
+						sb.Append($"\n<color=orange>{name}:</color> {string.Join(", ", kv.Value.Select((effectPower, i) => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {Utils.DisplayGemEffectPower(effectPower, null, i, item.Data().GetAll<SocketSeed>() is { Count: > 0 } seeds ? seeds.ToDictionary(kv => kv.Key, kv => kv.Value.Seed) : null)}"))}");
 					}
 
 					string flavorText = $"{item.m_shared.m_description.Substring(1)}_flavor";
@@ -1272,6 +1272,7 @@ public static class GemStones
 		return Jewelcrafting.allowUnsocketing.Value == Jewelcrafting.Unsocketing.UniquesOnly && bossToGem.Values.Any(g => g.GetComponent<ItemDrop>().m_itemData.m_shared.m_name == item.m_shared.m_name);
 	}
 
+	static bool socketing = false;
 	private static void HandleSocketingFrameAndMirrors(ItemDrop.ItemData container, ItemDrop.ItemData item)
 	{
 		bool socketingFrame = container.m_shared.m_name == MiscSetup.chanceFrameName || container.m_shared.m_name == MiscSetup.chaosFrameName;
@@ -1289,6 +1290,14 @@ public static class GemStones
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_blessed_mirror_no_gem");
 		}
+		else if (container.m_shared.m_name == MiscSetup.divinityOrbName && !socketableGemStones.Contains(item.m_shared.m_name))
+		{
+			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_divinity_orb_no_gem");
+		}
+		else if (container.m_shared.m_name == MiscSetup.divinityOrbName && item.Data().GetAll<SocketSeed>().Count == 0)
+		{
+			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_divinity_orb_no_gem_ranges");
+		}
 		else if (container.m_shared.m_name == MiscSetup.celestialMirrorName && (!Utils.IsSocketableItem(item) || item.Data().Get<ItemBag>() is not null))
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_celestial_mirror_not_socketable");
@@ -1301,15 +1310,24 @@ public static class GemStones
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_mirror_already_mirrored");
 		}
-		else if (!socketingFrame || existingSockets?.socketedGems.Count != Jewelcrafting.maximumNumberSockets.Value)
+		else if (!socketing && (!socketingFrame || existingSockets?.socketedGems.Count != Jewelcrafting.maximumNumberSockets.Value))
 		{
+			socketing = true;
+			
 			IEnumerator DelayedFrameDelete()
 			{
-				yield return null;
-				InventoryGui.instance.CloseContainer();
-				InventoryGui.instance.SetupDragItem(null, null, 1);
-				yield return null;
-				Player.m_localPlayer.GetInventory().RemoveItem(container, 1);
+				try
+				{
+					yield return null;
+					InventoryGui.instance.CloseContainer();
+					InventoryGui.instance.SetupDragItem(null, null, 1);
+					yield return null;
+					Player.m_localPlayer.GetInventory().RemoveItem(container, 1);
+				}
+				finally
+				{
+					socketing = false;
+				}
 
 				if (socketingFrame)
 				{
@@ -1357,14 +1375,6 @@ public static class GemStones
 						existingSockets.socketedGems = Enumerable.Repeat(new SocketItem(""), newSockets).ToList();
 					}
 					item.Data().Save();
-
-					// refresh tooltip
-					yield return null;
-					if (UITooltip.m_current)
-					{
-						UITooltip.m_current.OnHoverStart(UITooltip.m_hovered);
-						UITooltip.m_tooltip.SetActive(true);
-					}
 				}
 				else if (container.m_shared.m_name == MiscSetup.blessedMirrorName || container.m_shared.m_name == MiscSetup.celestialMirrorName)
 				{
@@ -1396,6 +1406,23 @@ public static class GemStones
 
 						(container.m_shared.m_name == MiscSetup.blessedMirrorName ? Stats.gemsDuplicated : Stats.itemsDuplicated).Increment();
 					}
+
+					yield break;
+				}
+				else if (container.m_shared.m_name == MiscSetup.divinityOrbName)
+				{
+					foreach (SocketSeed seed in item.Data().GetAll<SocketSeed>().Select(kv => kv.Value))
+					{
+						seed.Seed = Utils.GenerateSocketSeed();
+					}
+				}
+
+				// refresh tooltip
+				yield return null;
+				if (UITooltip.m_current)
+				{
+					UITooltip.m_current.OnHoverStart(UITooltip.m_hovered);
+					UITooltip.m_tooltip.SetActive(true);
 				}
 			}
 

@@ -12,6 +12,8 @@ public static class GemEffectSetup
 	public static StatusEffect glidingDark = null!;
 	public static SE_Stats glowingSpirit = null!;
 	public static GameObject glowingSpiritPrefab = null!;
+	public static SE_Stats dungeonGuide = null!;
+	public static GameObject dungeonGuidePrefab = null!;
 	public static SE_Stats lightningSpeed = null!;
 	public static SE_Stats rootedRevenge = null!;
 	public static SE_Stats poisonousDrain = null!;
@@ -62,6 +64,9 @@ public static class GemEffectSetup
 		glowingSpirit = assets.LoadAsset<SE_Stats>("SE_Crystal_Magelight");
 		glowingSpiritPrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Magelight");
 		glowingSpiritPrefab.AddComponent<GlowingSpirit.OrbDestroy>();
+		dungeonGuide = assets.LoadAsset<SE_Stats>("SE_Crystal_Dungeonlight");
+		dungeonGuidePrefab = PrefabManager.RegisterPrefab(assets, "JC_Crystal_Dungeonlight");
+		dungeonGuidePrefab.AddComponent<DungeonGuide.OrbDestroy>();
 		lightningSpeed = Utils.ConvertStatusEffect<LightningSpeed.LightningSpeedEffect>(assets.LoadAsset<SE_Stats>("JC_Electric_Wings_SE"));
 		apotheosis = Utils.ConvertStatusEffect<Apotheosis.ApotheosisEffect>(assets.LoadAsset<SE_Stats>("SE_Apotheosis"));
 		rootedRevenge = assets.LoadAsset<SE_Stats>("SE_Boss_3");

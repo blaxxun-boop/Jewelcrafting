@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.15";
+	private const string ModVersion = "1.5.16";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -139,8 +139,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> socketCostsItems = null!;
 	public static ConfigEntry<Toggle> successfulSocketsCosts = null!;
 	public static ConfigEntry<Toggle> pixelateTextures = null!;
-	
-	
+	public static ConfigEntry<int> divinityOrbDropChance = null!;
+	public static ConfigEntry<Toggle> randomPowerRanges = null!;
+
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
 	public static readonly CustomSyncedValue<List<string>> socketEffectDefinitions = new(configSync, "socket effects", new List<string>());
@@ -311,6 +312,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		inventorySocketing = config("2 - Socket System", "Inventory Socketing", Toggle.On, "If enabled, you can press the interact key to change gems in your items from your inventory. If disabled, you have to use the Gemcutters Table, to change the gems in your items.");
 		socketCostsItems = config("2 - Socket System", "Sockets Cost Items", Toggle.Off, "If enabled, adding sockets to items costs items. Use the Jewelcrafting.SocketCosts.yml to configure this.");
 		successfulSocketsCosts = config("2 - Socket System", "Successful Sockets Cost", Toggle.Off, "If enabled, only successfully added sockets spend the socket adding cost.");
+		randomPowerRanges = config("2 - Socket System", "Random Power Ranges", Toggle.On, "If enabled, the effect powers for power ranges on gems are different for each effect on the gem.");
 		inventoryInteractBehaviour = config("2 - Socket System", "Interact Behaviour", InteractBehaviour.Hovering, "Disabled: Interact key is disabled, while the inventory is open.\nHovering: Interact key is disabled, while hovering an item with at least one socket.\nEnabled: Interact key is enabled. You will have to use the Gemcutters Table, to socket your items.", false);
 		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
 		visualEffects.SettingChanged += (_, _) =>
@@ -622,6 +624,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		};
 		pixelateTextures = config("6 - Other", "Pixelate Textures", Toggle.Off, new ConfigDescription("If on, all Jewelcrafting textures will be slightly pixelate. Some people think this makes it look more vanilla. Needs a reload of the objects visuals to take effect, e.g. by leaving the area or unequipping items.", null, new ConfigurationManagerAttributes { Order = --order }), false);
+		divinityOrbDropChance = config("6 - Other", "Divinity Orb Drop Chance", 1, new ConfigDescription("Chance to obtain an Orb of Divinity from a treasure chest. Has no effect, if there are no gem effect powers that use value ranges.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 
 		warmthStaminaRegen = config("Ruby Ring of Warmth", "Stamina Regen", 10, new ConfigDescription("Stamina regen increase for the Ruby Ring of Warmth effect.", new AcceptableValueRange<int>(0, 100)));
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));

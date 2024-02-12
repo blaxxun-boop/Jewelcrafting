@@ -1,5 +1,9 @@
 # Weapon
 
+# All power values can take a value range:
+# power: [5-10, 10-15, 15-20]
+# means a perfect gem rolls its power randomly between 15 and 20.
+
 fire starter:
   slot: [weapon, elementalmagic]
   gem: red
@@ -27,6 +31,7 @@ shadow hit:
   power: [2, 3, 4]
   # Optional Configs:
   # - range (default: 5)
+  # - amount (default: 1)
   
 vampire:
   slot: [weapon, elementalmagic]
@@ -163,6 +168,11 @@ glowing spirit:
   slot: utility
   gem: blue
   power: [4, 6, 8]
+
+dungeon guide:
+  slot: utility
+  gem: black
+  power: [2, 4, 6]
 
 daring:
   slot: utility

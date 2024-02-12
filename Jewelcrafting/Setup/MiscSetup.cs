@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using ItemDataManager;
 using ItemManager;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
 
@@ -18,6 +20,8 @@ public static class MiscSetup
 	public static readonly List<GameObject> framePrefabs = new();
 	private static SocketBag socketBag = null!;
 	public static InventoryBag jewelryBag = null!;
+	public static GameObject divinityOrbPrefab = null!;
+	public static string divinityOrbName = null!;
 
 	public static void initializeMisc(AssetBundle assets)
 	{
@@ -54,6 +58,11 @@ public static class MiscSetup
 		item = new Item(assets, "JC_Celestial_Crystal_Mirror");
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		celestialMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		
+		item = new Item(assets, "JC_Orb_of_Divinity");
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
+		divinityOrbPrefab = item.Prefab;
+		divinityOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 	}
 
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.Pickup))]
@@ -197,5 +206,29 @@ public static class MiscSetup
 			socketBag.socketedGems.Add(new SocketItem(""));
 		}
 		socketBag.Save();
+	}
+	
+	[HarmonyPatch(typeof(Container), nameof(Container.RPC_OpenRespons))]
+	private static class DropDivinityOrb
+	{
+		private static void Prefix(Container __instance, bool granted)
+		{
+			if (!Player.m_localPlayer || !granted || Jewelcrafting.GemsUsingPowerRanges.Count == 0 || !__instance.name.StartsWith("TreasureChest_", StringComparison.Ordinal))
+			{
+				return;
+			}
+
+			if (__instance.m_nview.GetZDO().GetBool("Jewelcrafting Treasure Looted"))
+			{
+				return;
+			}
+
+			__instance.m_nview.GetZDO().Set("Jewelcrafting Treasure Looted", true);
+
+			if (Random.value < Jewelcrafting.divinityOrbDropChance.Value / 100f)
+			{
+				__instance.m_inventory.AddItem(divinityOrbPrefab, 1);
+			}
+		}
 	}
 }

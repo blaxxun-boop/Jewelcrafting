@@ -61,14 +61,14 @@ public class TrackEquipmentChanges
 					effectValue = effects[effectPower.Effect] = Utils.Clone(effectPower.MinConfig);
 					foreach (FieldInfo field in effectPower.MinConfig.GetType().GetFields())
 					{
-						field.SetValue(effectValue, Utils.GetRealEffectPower((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.MaxConfig), fieldIndex++, seed?.TryGetValue(effectPower.Type.ToString(), out uint seedValue) == true ? seedValue : null) * multiplier);
+						field.SetValue(effectValue, Utils.GetRealEffectPower(effectPower, field, fieldIndex++, seed) * multiplier);
 					}
 				}
 				else
 				{
 					foreach (FieldInfo field in effectPower.MinConfig.GetType().GetFields())
 					{
-						field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), Utils.GetRealEffectPower((float)field.GetValue(effectPower.MinConfig), (float)field.GetValue(effectPower.MaxConfig), fieldIndex++, seed?.TryGetValue(effectPower.Type.ToString(), out uint seedValue) == true ? seedValue : null) * multiplier));
+						field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), Utils.GetRealEffectPower(effectPower, field, fieldIndex++, seed) * multiplier));
 					}
 				}
 			}

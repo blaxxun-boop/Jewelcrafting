@@ -77,13 +77,13 @@ public static class CompendiumDisplay
 										powers = power.Powers;
 										foreach (FieldInfo powerField in powerFields)
 										{
-											powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], Utils.GetRealEffectPower((float)powerField.GetValue(effectPower.MinConfig), (float)powerField.GetValue(effectPower.MaxConfig), i, socket.Seed?.TryGetValue(effectPower.Type.ToString(), out uint seedValue) == true ? seedValue : null));
+											powers[i] = powerField.GetCustomAttribute<PowerAttribute>().Add(powers[i], Utils.GetRealEffectPower(effectPower, powerField, i, socket.Seed));
 											++i;
 										}
 									}
 									else
 									{
-										powers = powerFields.Select((p, i) => Utils.GetRealEffectPower((float)p.GetValue(effectPower.MinConfig), (float)p.GetValue(effectPower.MaxConfig), i, socket.Seed?.TryGetValue(effectPower.Type.ToString(), out uint seedValue) == true ? seedValue : null)).ToArray();
+										powers = powerFields.Select((p, i) => Utils.GetRealEffectPower(effectPower, p, i, socket.Seed)).ToArray();
 									}
 									gems[effectPower.Effect] = new CompendiumGem { Powers = powers, Location = power.Location | location, Tier = tier };
 								}

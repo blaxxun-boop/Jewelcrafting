@@ -176,6 +176,7 @@
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
         <Compile Include="API\VisualEffectCondition.cs"/>
+        <Compile Include="Effects\GemEffects\DungeonGuide.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">
         <Compile Include="Effects\GemEffects\MountainGoat.cs"/>
