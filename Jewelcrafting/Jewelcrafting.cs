@@ -30,11 +30,11 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.16";
+	private const string ModVersion = "1.5.17";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
-	
+
 	private static ConfigEntry<Toggle> serverConfigLocked = null!;
 	public static SyncedConfigEntry<Toggle> useExternalYaml = null!;
 	public static ConfigEntry<Toggle> inventorySocketing = null!;
@@ -136,8 +136,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> ringSlot = null!;
 	public static ConfigEntry<Toggle> necklaceSlot = null!;
 	public static ConfigEntry<Toggle> splitSockets = null!;
-	public static ConfigEntry<Toggle> socketCostsItems = null!;
-	public static ConfigEntry<Toggle> successfulSocketsCosts = null!;
+	public static ConfigEntry<SocketCost> socketCost = null!;
 	public static ConfigEntry<Toggle> pixelateTextures = null!;
 	public static ConfigEntry<int> divinityOrbDropChance = null!;
 	public static ConfigEntry<Toggle> randomPowerRanges = null!;
@@ -249,6 +248,14 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		KnownRecipe = 2,
 	}
 
+	public enum SocketCost
+	{
+		ItemMayBreak,
+		CostsItems,
+		BreakOrCost,
+		BreakAndCost,
+	}
+
 	[PublicAPI]
 	public class ConfigurationManagerAttributes
 	{
@@ -310,8 +317,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		config("2 - Socket System", "YAML Editor Anchor", 0, new ConfigDescription("Just ignore this.", null, new ConfigurationManagerAttributes { HideSettingName = true, HideDefaultButton = true, CustomDrawer = DrawYamlEditorButton }), false);
 		inventorySocketing = config("2 - Socket System", "Inventory Socketing", Toggle.On, "If enabled, you can press the interact key to change gems in your items from your inventory. If disabled, you have to use the Gemcutters Table, to change the gems in your items.");
-		socketCostsItems = config("2 - Socket System", "Sockets Cost Items", Toggle.Off, "If enabled, adding sockets to items costs items. Use the Jewelcrafting.SocketCosts.yml to configure this.");
-		successfulSocketsCosts = config("2 - Socket System", "Successful Sockets Cost", Toggle.Off, "If enabled, only successfully added sockets spend the socket adding cost.");
+		socketCost = config("2 - Socket System", "Socket Cost", SocketCost.ItemMayBreak, "Item May Break: If adding a socket to the item fails, the item will be destroyed.\nCosts Items: Adding sockets to an item costs other items. Use the Jewelcrafting.SocketCosts.yml to configure this.\nBreak Or Cost: Successfully adding a socket spends the resources required for that socket. Failing to add a socket breaks the item.\nBreak And Cost: Successfully adding a socket spends the resources required for that socket. Failing to add a socket breaks the item and spends the resources.");
 		randomPowerRanges = config("2 - Socket System", "Random Power Ranges", Toggle.On, "If enabled, the effect powers for power ranges on gems are different for each effect on the gem.");
 		inventoryInteractBehaviour = config("2 - Socket System", "Interact Behaviour", InteractBehaviour.Hovering, "Disabled: Interact key is disabled, while the inventory is open.\nHovering: Interact key is disabled, while hovering an item with at least one socket.\nEnabled: Interact key is enabled. You will have to use the Gemcutters Table, to socket your items.", false);
 		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
@@ -333,7 +339,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		displaySocketBackground = config("2 - Socket System", "Display Socket Background", Toggle.On, "Changes the background of items that have sockets.", false);
 		displaySocketBackground.SettingChanged += (_, _) => SocketsBackground.UpdateSocketBackground();
 		colorItemName = config("2 - Socket System", "Color Item Names", Toggle.On, "Colors the name of items according to their socket levels.", false);
-		useExternalYaml = configSync.AddConfigEntry(Config.Bind("2 - Socket System", "Use External YAML", Toggle.Off, new ConfigDescription("If set to on, the YAML file from your config folder will be used, to override gem effects configured inside of that file.", null, new ConfigurationManagerAttributes { Order = --order })));
+		useExternalYaml = configSync.AddConfigEntry(Config.Bind("2 - Socket System", "Use External YAML", Toggle.Off, new ConfigDescription("If set to on, external YAML files will be loaded from your config folder. These can be used, to highly fine tune Jewelcrafting to your liking.", null, new ConfigurationManagerAttributes { Order = --order })));
 		useExternalYaml.SourceConfig.SettingChanged += (_, _) => ConfigLoader.reloadConfigFile();
 		badLuckRecipes = config("2 - Socket System", "Bad Luck Recipes", Toggle.On, new ConfigDescription("Enables or disables the bad luck recipes of all gems.", null, new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropSystem = config("2 - Socket System", "Drop System for Unique Gems", UniqueDrop.TrulyUnique, new ConfigDescription("Disabled: Unique Gems do not drop.\nTruly Unique: The first kill of each boss grants one Unique Gem.\nCustom: Lets you configure a drop chance and rate.\nGuaranteed First: The first kill of each boss grants one Unique Gem. After that, the custom drop chance is used.", null, new ConfigurationManagerAttributes { Order = --order }));

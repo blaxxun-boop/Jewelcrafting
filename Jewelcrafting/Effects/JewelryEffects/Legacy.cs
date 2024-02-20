@@ -15,7 +15,7 @@ public class Legacy : SE_Stats
 	public override void UpdateStatusEffect(float dt)
 	{
 		m_tickTimer += dt;
-		if (m_tickTimer >= Jewelcrafting.guidanceCooldown.Value)
+		if (m_tickTimer >= Jewelcrafting.legacyCooldown.Value)
 		{
 			Transform playerPosition = Player.m_localPlayer.transform;
 			if (playerPosition.position.y < 3500)

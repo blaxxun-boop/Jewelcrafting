@@ -288,7 +288,7 @@ public static class GemStones
 				bool canAfford = Player.m_localPlayer.NoCostCheat() || ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoCraftCost) || Player.m_localPlayer.HaveRequirementItems(__instance.m_selectedRecipe.Key, false, 1);
 				__instance.m_craftButton.interactable = __instance.m_selectedRecipe.Key.m_enabled && CanAddMoreSockets(activeRecipe) && canAfford;
 				__instance.m_craftButton.GetComponent<UITooltip>().m_text = canAfford ? "" : Localization.instance.Localize("$msg_missingrequirement");
-				if (Jewelcrafting.socketCostsItems.Value == Jewelcrafting.Toggle.Off)
+				if (Jewelcrafting.socketCost.Value == Jewelcrafting.SocketCost.ItemMayBreak)
 				{
 					__instance.m_recipeRequirementList[0].transform.parent.gameObject.SetActive(false);
 				}
@@ -304,14 +304,14 @@ public static class GemStones
 					successChance += skillChance;
 				}
 				int successChanceInt = Mathf.RoundToInt(successChance * 100);
-				__instance.m_itemCraftType.text = successChanceInt < 100 ? Localization.instance.Localize("$jc_socket_adding_warning", successChanceInt.ToString()) : "";
+				__instance.m_itemCraftType.text = successChanceInt < 100 ? Localization.instance.Localize(Jewelcrafting.socketCost.Value == Jewelcrafting.SocketCost.CostsItems ? "$jc_socket_adding_warning_costsonly" :  "$jc_socket_adding_warning", successChanceInt.ToString()) : "";
 				if (craftTypeRect.pivot.y != 1)
 				{
 					Vector2 sizeDelta = craftTypeRect.sizeDelta;
 					originalCraftSize = sizeDelta.y;
 					craftTypeRect.sizeDelta = new Vector2(sizeDelta.x, 67);
 					__instance.m_itemCraftType.textWrappingMode = TextWrappingModes.Normal;
-					if (Jewelcrafting.socketCostsItems.Value == Jewelcrafting.Toggle.On)
+					if (Jewelcrafting.socketCost.Value is not Jewelcrafting.SocketCost.ItemMayBreak)
 					{
 						RectTransform descRect = __instance.m_recipeDecription.GetComponent<RectTransform>();
 						descRect.sizeDelta = descRect.sizeDelta with { y = descRect.sizeDelta.y - 36 };
@@ -328,7 +328,7 @@ public static class GemStones
 				{
 					__instance.m_itemCraftType.textWrappingMode = TextWrappingModes.NoWrap;
 					craftTypeRect.sizeDelta = new Vector2(craftTypeRect.sizeDelta.x, originalCraftSize);
-					if (Jewelcrafting.socketCostsItems.Value == Jewelcrafting.Toggle.On)
+					if (__instance.m_recipeRequirementList[0].transform.parent.gameObject.activeSelf)
 					{
 						RectTransform descRect = __instance.m_recipeDecription.GetComponent<RectTransform>();
 						descRect.sizeDelta = descRect.sizeDelta with { y = descRect.sizeDelta.y + 36 };
@@ -413,7 +413,7 @@ public static class GemStones
 
 				void UpdateRecipeSocketingCosts(Recipe recipe, ItemDrop.ItemData itemData)
 				{
-					if (Jewelcrafting.socketCostsItems.Value == Jewelcrafting.Toggle.On)
+					if (Jewelcrafting.socketCost.Value is not Jewelcrafting.SocketCost.ItemMayBreak)
 					{
 						Socketing.EnsureCostsCache();
 
@@ -547,7 +547,7 @@ public static class GemStones
 
 			Player player = Player.m_localPlayer;
 			Action consumeResources = () => {};
-			if (Jewelcrafting.socketCostsItems.Value == Jewelcrafting.Toggle.On)
+			if (Jewelcrafting.socketCost.Value is not Jewelcrafting.SocketCost.ItemMayBreak)
 			{
 				if (!player.NoCostCheat() && !ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoCraftCost))
 				{
@@ -557,7 +557,7 @@ public static class GemStones
 					}
 					
 					void DoConsume() => player.ConsumeResources(__instance.m_craftRecipe.m_resources, 1);
-					if (Jewelcrafting.successfulSocketsCosts.Value == Jewelcrafting.Toggle.On)
+					if (Jewelcrafting.socketCost.Value == Jewelcrafting.SocketCost.BreakOrCost)
 					{
 						consumeResources = DoConsume;
 					}
@@ -592,47 +592,51 @@ public static class GemStones
 
 				__instance.m_craftUpgradeItem = null;
 
-				if (socketedItem.Data().Get<Sockets>() is { } sockets)
+				if (Jewelcrafting.socketCost.Value != Jewelcrafting.SocketCost.CostsItems)
 				{
-					Inventory itemInventory = sockets.ReadInventory();
-
-					Player.m_localPlayer.m_inventory.MoveAll(itemInventory);
-
-					Transform playerPosition = Player.m_localPlayer.transform;
-					foreach (ItemDrop itemDrop in itemInventory.GetAllItems().Select(gem => ItemDrop.DropItem(gem, 1, playerPosition.position + playerPosition.forward + playerPosition.up, playerPosition.rotation)))
+					if (socketedItem.Data().Get<Sockets>() is { } sockets)
 					{
-						itemDrop.OnPlayerDrop();
-						itemDrop.GetComponent<Rigidbody>().velocity = (playerPosition.forward + Vector3.up) * 5f;
-						Player.m_localPlayer.m_dropEffects.Create(playerPosition.position, Quaternion.identity);
-					}
-				}
-				Player.m_localPlayer.UnequipItem(socketedItem);
-				Player.m_localPlayer.GetInventory().RemoveItem(socketedItem);
+						Inventory itemInventory = sockets.ReadInventory();
 
-				if ((Jewelcrafting.resourceReturnRate.Value > 0 || Jewelcrafting.resourceReturnRateUpgrade.Value > 0) && ObjectDB.instance.GetRecipe(socketedItem) is { } recipe)
-				{
-					bool returnNonTeleportable = !(Jewelcrafting.resourceReturnRateDistance.Value > 0 && socketedItem.Data().Get<PositionStorage>() is { } positionStorage && global::Utils.DistanceXZ(positionStorage.Position, Player.m_localPlayer.transform.position) > Jewelcrafting.resourceReturnRateDistance.Value);
+						Player.m_localPlayer.m_inventory.MoveAll(itemInventory);
 
-					foreach (Piece.Requirement requirement in recipe.m_resources)
-					{
-						if (!returnNonTeleportable && !requirement.m_resItem.m_itemData.m_shared.m_teleportable)
+						Transform playerPosition = Player.m_localPlayer.transform;
+						foreach (ItemDrop itemDrop in itemInventory.GetAllItems().Select(gem => ItemDrop.DropItem(gem, 1, playerPosition.position + playerPosition.forward + playerPosition.up, playerPosition.rotation)))
 						{
-							continue;
-						}
-						int amount = Mathf.FloorToInt(Random.value + requirement.m_amount * Jewelcrafting.resourceReturnRate.Value / 100f + Enumerable.Range(2, Math.Max(0, socketedItem.m_quality - 1)).Sum(requirement.GetAmount) * (Jewelcrafting.resourceReturnRateUpgrade.Value / 100f));
-						if (amount > 0 && !Player.m_localPlayer.m_inventory.AddItem(ItemSharedMap.items[requirement.m_resItem.m_itemData.m_shared.m_name], amount))
-						{
-							Transform transform = Player.m_localPlayer.transform;
-							Vector3 position = transform.position;
-							ItemDrop itemDrop = ItemDrop.DropItem(requirement.m_resItem.m_itemData, amount, position + transform.forward + transform.up, transform.rotation);
 							itemDrop.OnPlayerDrop();
-							itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
-							Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
+							itemDrop.GetComponent<Rigidbody>().velocity = (playerPosition.forward + Vector3.up) * 5f;
+							Player.m_localPlayer.m_dropEffects.Create(playerPosition.position, Quaternion.identity);
+						}
+					}
+					Player.m_localPlayer.UnequipItem(socketedItem);
+					Player.m_localPlayer.GetInventory().RemoveItem(socketedItem);
+
+					if ((Jewelcrafting.resourceReturnRate.Value > 0 || Jewelcrafting.resourceReturnRateUpgrade.Value > 0) && ObjectDB.instance.GetRecipe(socketedItem) is { } recipe)
+					{
+						bool returnNonTeleportable = !(Jewelcrafting.resourceReturnRateDistance.Value > 0 && socketedItem.Data().Get<PositionStorage>() is { } positionStorage && global::Utils.DistanceXZ(positionStorage.Position, Player.m_localPlayer.transform.position) > Jewelcrafting.resourceReturnRateDistance.Value);
+
+						foreach (Piece.Requirement requirement in recipe.m_resources)
+						{
+							if (!returnNonTeleportable && !requirement.m_resItem.m_itemData.m_shared.m_teleportable)
+							{
+								continue;
+							}
+							int amount = Mathf.FloorToInt(Random.value + requirement.m_amount * Jewelcrafting.resourceReturnRate.Value / 100f + Enumerable.Range(2, Math.Max(0, socketedItem.m_quality - 1)).Sum(requirement.GetAmount) * (Jewelcrafting.resourceReturnRateUpgrade.Value / 100f));
+							if (amount > 0 && !Player.m_localPlayer.m_inventory.AddItem(ItemSharedMap.items[requirement.m_resItem.m_itemData.m_shared.m_name], amount))
+							{
+								Transform transform = Player.m_localPlayer.transform;
+								Vector3 position = transform.position;
+								requirement.m_resItem.m_itemData.m_dropPrefab = requirement.m_resItem.gameObject;
+								ItemDrop itemDrop = ItemDrop.DropItem(requirement.m_resItem.m_itemData, amount, position + transform.forward + transform.up, transform.rotation);
+								itemDrop.OnPlayerDrop();
+								itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
+								Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
+							}
 						}
 					}
 				}
 
-				Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_socket_adding_fail");
+				Player.m_localPlayer.Message(MessageHud.MessageType.Center, Jewelcrafting.socketCost.Value == Jewelcrafting.SocketCost.CostsItems ? "$jc_socket_adding_fail_costsonly" : "$jc_socket_adding_fail");
 				Stats.socketAddFailure.Increment();
 				Stats.socketAddFailureSlot[socketNumber].Increment();
 

@@ -23,9 +23,9 @@ public static class FusionBoxSetup
 
 	public static void initializeFusionBoxes(AssetBundle assets)
 	{
-		Boxes[0] = new Item(assets, "JC_Common_Gembox") { Configurable = Configurability.Disabled }.Prefab;
-		Boxes[1] = new Item(assets, "JC_Epic_Gembox") { Configurable = Configurability.Disabled }.Prefab;
-		Boxes[2] = new Item(assets, "JC_Legendary_Gembox") { Configurable = Configurability.Disabled }.Prefab;
+		Boxes[0] = new Item(assets, "JC_Common_Gembox") { Configurable = Configurability.Recipe }.Prefab;
+		Boxes[1] = new Item(assets, "JC_Epic_Gembox") { Configurable = Configurability.Recipe }.Prefab;
+		Boxes[2] = new Item(assets, "JC_Legendary_Gembox") { Configurable = Configurability.Recipe }.Prefab;
 
 		for (int tier = 0; tier < Boxes.Length; ++tier)
 		{

@@ -20,7 +20,7 @@ public static class MiscSetup
 	public static readonly List<GameObject> framePrefabs = new();
 	private static SocketBag socketBag = null!;
 	public static InventoryBag jewelryBag = null!;
-	public static GameObject divinityOrbPrefab = null!;
+	private static GameObject divinityOrbPrefab = null!;
 	public static string divinityOrbName = null!;
 
 	public static void initializeMisc(AssetBundle assets)
@@ -44,22 +44,37 @@ public static class MiscSetup
 		jewelryBag = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<InventoryBag>()!;
 		gemBoxName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 
-		item = new Item(assets, "Blue_Crystal_Frame");
+		item = new Item(assets, "Blue_Crystal_Frame")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		framePrefabs.Add(item.Prefab);
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chaosFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		item = new Item(assets, "Black_Crystal_Frame");
+		item = new Item(assets, "Black_Crystal_Frame")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		framePrefabs.Add(item.Prefab);
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chanceFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		item = new Item(assets, "JC_Blessed_Crystal_Mirror");
+		item = new Item(assets, "JC_Blessed_Crystal_Mirror")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		blessedMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		item = new Item(assets, "JC_Celestial_Crystal_Mirror");
+		item = new Item(assets, "JC_Celestial_Crystal_Mirror")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		celestialMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		
-		item = new Item(assets, "JC_Orb_of_Divinity");
+
+		item = new Item(assets, "JC_Orb_of_Divinity")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		divinityOrbPrefab = item.Prefab;
 		divinityOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
@@ -74,9 +89,9 @@ public static class MiscSetup
 			{
 				return true;
 			}
-			
+
 			int originalAmount = itemDrop.m_itemData.m_stack;
-			itemDrop.m_itemData.m_dropPrefab ??= ObjectDB.instance.GetItemPrefab(global::Utils.GetPrefabName(itemDrop.gameObject)); 
+			itemDrop.m_itemData.m_dropPrefab ??= ObjectDB.instance.GetItemPrefab(global::Utils.GetPrefabName(itemDrop.gameObject));
 			if (Do(player.m_inventory, itemDrop.m_itemData))
 			{
 				ZNetScene.instance.Destroy(go);
@@ -200,14 +215,14 @@ public static class MiscSetup
 	public static void UpdateGemBagSize()
 	{
 		socketBag.socketedGems.Clear();
-		
+
 		for (int i = 0; i < Jewelcrafting.gemBagSlotsRows.Value * Jewelcrafting.gemBagSlotsColumns.Value; ++i)
 		{
 			socketBag.socketedGems.Add(new SocketItem(""));
 		}
 		socketBag.Save();
 	}
-	
+
 	[HarmonyPatch(typeof(Container), nameof(Container.RPC_OpenRespons))]
 	private static class DropDivinityOrb
 	{
