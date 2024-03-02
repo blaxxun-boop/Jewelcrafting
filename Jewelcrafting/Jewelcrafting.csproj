@@ -176,7 +176,6 @@
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
         <Compile Include="API\VisualEffectCondition.cs"/>
-        <Compile Include="Effects\GemEffects\DungeonGuide.cs" />
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">
         <Compile Include="Effects\GemEffects\MountainGoat.cs"/>
@@ -199,6 +198,7 @@
         <Compile Include="Effects\GemEffects\Comfortable.cs"/>
         <Compile Include="Effects\GemEffects\Daring.cs"/>
         <Compile Include="Effects\GemEffects\Defender.cs"/>
+        <Compile Include="Effects\GemEffects\DungeonGuide.cs" />
         <Compile Include="Effects\GemEffects\Echo.cs"/>
         <Compile Include="Effects\GemEffects\EitrSurge.cs"/>
         <Compile Include="Effects\GemEffects\ElementalChaos.cs"/>

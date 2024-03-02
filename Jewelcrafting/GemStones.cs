@@ -316,7 +316,7 @@ public static class GemStones
 						RectTransform descRect = __instance.m_recipeDecription.GetComponent<RectTransform>();
 						descRect.sizeDelta = descRect.sizeDelta with { y = descRect.sizeDelta.y - 36 };
 						descRect.anchoredPosition = descRect.anchoredPosition with { y = descRect.anchoredPosition.y + 18 };
-						anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y + __instance.m_recipeDecription.transform.parent.Find("requirements").GetComponent<RectTransform>().sizeDelta.y);
+						anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y + (__instance.m_recipeRequirementList.FirstOrDefault()?.transform.parent.GetComponent<RectTransform>().sizeDelta.y ?? 0));
 					}
 					craftTypeRect.anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y - originalCraftSize / 2);
 					craftTypeRect.pivot = new Vector2(0.5f, 1);
@@ -333,7 +333,7 @@ public static class GemStones
 						RectTransform descRect = __instance.m_recipeDecription.GetComponent<RectTransform>();
 						descRect.sizeDelta = descRect.sizeDelta with { y = descRect.sizeDelta.y + 36 };
 						descRect.anchoredPosition = descRect.anchoredPosition with { y = descRect.anchoredPosition.y - 18 };
-						anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y - __instance.m_recipeDecription.transform.parent.Find("requirements").GetComponent<RectTransform>().sizeDelta.y);
+						anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y - (__instance.m_recipeRequirementList.FirstOrDefault()?.transform.parent.GetComponent<RectTransform>().sizeDelta.y ?? 0));
 					}
 					craftTypeRect.anchoredPosition = new Vector2(anchoredPosition.x, anchoredPosition.y + originalCraftSize / 2);
 					craftTypeRect.pivot = new Vector2(0.5f, 0.5f);
@@ -714,127 +714,138 @@ public static class GemStones
 	{
 		public static void Postfix(UITooltip __instance)
 		{
-			if (UITooltip.m_tooltip is not null && global::Utils.GetPrefabName(UITooltip.m_tooltip) == GemStoneSetup.SocketTooltip.name && DisplaySocketTooltip.tooltipItem.TryGetValue(__instance, out Tuple<InventoryGrid?, ItemInfo> itemInfo) && itemInfo.Item2.Get<ItemContainer>() is { } container)
+			if (UITooltip.m_tooltip?.transform.Find("Bkg (1)") is {} transform && global::Utils.GetPrefabName(UITooltip.m_tooltip) == GemStoneSetup.SocketTooltip.name && DisplaySocketTooltip.tooltipItem.TryGetValue(__instance, out Tuple<InventoryGrid?, ItemInfo> itemInfo) && itemInfo.Item2.Get<ItemContainer>() is { } container)
 			{
-				if (UITooltip.m_tooltip.transform.Find("Bkg (1)/Transmute_Press_Interact") is { } interact)
-				{
-					string text = "";
-					if (itemInfo.Item1 == InventoryGui.instance?.m_playerGrid)
-					{
-						if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && container is Frame)
-						{
-							text = Localization.instance.Localize("$jc_press_frame_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
-						}
-						else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && container is ItemBag)
-						{
-							text = Localization.instance.Localize("$jc_press_gem_bag_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
-						}
-						else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table")))
-						{
-							text = Localization.instance.Localize(container is Box { progress: >= 100 } ? "$jc_gembox_interact_finished" : "$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
-						}
-						else
-						{
-							text = Localization.instance.Localize("$jc_table_required");
-						}
-						text += "\n";
-					}
-					if (Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.Off && container is Sockets)
-					{
-						text += Localization.instance.Localize("$jc_hold_advanced", $"<color=yellow><b>{Jewelcrafting.advancedTooltipKey.Value.MainKey}</b></color>");
-					}
-					interact.GetComponent<TMP_Text>().text = text;
-					interact.gameObject.SetActive(!container.boxSealed);
-				}
+				FillItemTooltip(container, transform, itemInfo.Item1 == InventoryGui.instance?.m_playerGrid);
+			}
+		}
+	}
 
-				int numSockets = 0;
-				int activeSockets = int.MaxValue / 2;
-				if (container is Socketable sockets and not Box { progress: >= 100 } and not SocketBag and not Frame)
+	public static void FillItemTooltip(ItemContainer container, Transform root, bool showInteract)
+	{
+		if (root.Find("Transmute_Press_Interact") is { } interact)
+		{
+			string text = "";
+			if (showInteract)
+			{
+				if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && container is Frame)
 				{
-					numSockets = sockets.socketedGems.Count;
-					if (Player.m_localPlayer is not null)
-					{
-						activeSockets = new Utils.ActiveSockets(Player.m_localPlayer).Sockets(itemInfo.Item2.ItemData);
-					}
+					text = Localization.instance.Localize("$jc_press_frame_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
 				}
-				for (int i = 1; i <= Jewelcrafting.maxNumberOfSockets; ++i)
+				else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && container is ItemBag)
 				{
-					if (UITooltip.m_tooltip.transform.Find($"Bkg (1)/TrannyHoles/Transmute_Text_{i}") is { } transmute)
-					{
-						transmute.gameObject.SetActive(i <= numSockets);
-						if (i <= numSockets)
-						{
-							SocketItem socket = ((Socketable)container).socketedGems[i - 1];
-							if (socket.Name == "")
-							{
-								++activeSockets;
-							}
+					text = Localization.instance.Localize("$jc_press_gem_bag_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+				}
+				else if (Jewelcrafting.inventoryInteractBehaviour.Value != Jewelcrafting.InteractBehaviour.Enabled && (Jewelcrafting.inventorySocketing.Value == Jewelcrafting.Toggle.On || (Player.m_localPlayer?.GetCurrentCraftingStation() is { } craftingStation && craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == "op_transmution_table")))
+				{
+					text = Localization.instance.Localize(container is Box { progress: >= 100 } ? "$jc_gembox_interact_finished" : "$jc_press_interact", Localization.instance.Localize("<color=yellow><b>$KEY_Use</b></color>"));
+				}
+				else
+				{
+					text = Localization.instance.Localize("$jc_table_required");
+				}
+				text += "\n";
+			}
+			if (Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.Off && container is Sockets)
+			{
+				text += Localization.instance.Localize("$jc_hold_advanced", $"<color=yellow><b>{Jewelcrafting.advancedTooltipKey.Value.MainKey}</b></color>");
+			}
+			interact.GetComponent<TMP_Text>().text = text;
+			interact.gameObject.SetActive(!container.boxSealed);
+		}
 
-							string text = "$jc_empty_socket_text";
-							Sprite? sprite = null;
-							if (ObjectDB.instance.GetItemPrefab(socket.Name) is { } gameObject)
+		int numSockets = 0;
+		int activeSockets = int.MaxValue / 2;
+		if (container is Socketable sockets and not Box { progress: >= 100 } and not SocketBag and not Frame)
+		{
+			numSockets = sockets.socketedGems.Count;
+			if (Player.m_localPlayer is not null)
+			{
+				activeSockets = new Utils.ActiveSockets(Player.m_localPlayer).Sockets(container.Item);
+			}
+		}
+		for (int i = 1; i <= Jewelcrafting.maxNumberOfSockets; ++i)
+		{
+			if (root.Find($"TrannyHoles/Transmute_Text_{i}") is { } transmute)
+			{
+				transmute.gameObject.SetActive(i <= numSockets);
+				if (i <= numSockets)
+				{
+					SocketItem socket = ((Socketable)container).socketedGems[i - 1];
+					if (socket.Name == "")
+					{
+						++activeSockets;
+					}
+
+					string text = "$jc_empty_socket_text";
+					Sprite? sprite = null;
+					if (ObjectDB.instance.GetItemPrefab(socket.Name) is { } gameObject)
+					{
+						if (container is not Box)
+						{
+							if (i <= activeSockets)
 							{
-								if (container is not Box)
+								IEnumerable<EffectPower> allEffectPowers = Array.Empty<EffectPower>();
+								if (Jewelcrafting.EffectPowers.TryGetValue(socket.Name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 								{
-									if (i <= activeSockets)
+									if (locationPowers.TryGetValue(Utils.GetGemLocation(container.Item.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
 									{
-										IEnumerable<EffectPower> allEffectPowers = Array.Empty<EffectPower>();
-										if (Jewelcrafting.EffectPowers.TryGetValue(socket.Name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
-										{
-											if (locationPowers.TryGetValue(Utils.GetGemLocation(itemInfo.Item2.ItemData.m_shared, Player.m_localPlayer), out List<EffectPower> effectPowers))
-											{
-												allEffectPowers = effectPowers;
-											}
-											if (locationPowers.TryGetValue(Utils.GetItemGemLocation(itemInfo.Item2.ItemData), out effectPowers))
-											{
-												allEffectPowers = allEffectPowers.Concat(effectPowers);
-											}
-										}
-										allEffectPowers = allEffectPowers.ToArray();
-										if (allEffectPowers.Any())
-										{
-											ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
-											bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
-											int tier = GemStoneSetup.GemInfos.TryGetValue(gameObject.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo gemInfo) ? gemInfo.Tier : 1;
-											// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
-											if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
-											{
-												text = string.Join("\n", allEffectPowers.Select(power => $"$jc_effect_{EffectDef.EffectNames[power.Effect].ToLower()}" + (displayAdvanced ? "_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[power.Effect].ToLower()}_desc_{tier}") ? $"_{tier}" : "") : $" {Utils.DisplayGemEffectPower(power, null, 0, socket.Seed)}")));
-											}
-											else
-											{
-												text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, tier, gem.Effect, gem.MinConfig.GetType().GetFields().Select((p, i) => Utils.DisplayGemEffectPower(gem, p, i, socket.Seed)).ToArray()) : $" {Utils.DisplayGemEffectPower(gem, null, 0, socket.Seed)}")));
-											}
-										}
-										else
-										{
-											text = "$jc_effect_no_effect";
-										}
+										allEffectPowers = effectPowers;
+									}
+									if (locationPowers.TryGetValue(Utils.GetItemGemLocation(container.Item), out effectPowers))
+									{
+										allEffectPowers = allEffectPowers.Concat(effectPowers);
+									}
+								}
+								allEffectPowers = allEffectPowers.ToArray();
+								if (allEffectPowers.Any())
+								{
+									ReplaceTooltipText.keyDown = Jewelcrafting.advancedTooltipKey.Value.IsPressed();
+									bool displayAdvanced = ReplaceTooltipText.keyDown || Jewelcrafting.advancedTooltipAlwaysOn.Value == Jewelcrafting.Toggle.On;
+									int tier = GemStoneSetup.GemInfos.TryGetValue(gameObject.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo gemInfo) ? gemInfo.Tier : 1;
+									// ReSharper disable once ConvertIfStatementToConditionalTernaryExpression
+									if (Jewelcrafting.advancedTooltipMode.Value == Jewelcrafting.AdvancedTooltipMode.General)
+									{
+										text = string.Join("\n", allEffectPowers.Select(power => $"$jc_effect_{EffectDef.EffectNames[power.Effect].ToLower()}" + (displayAdvanced ? "_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[power.Effect].ToLower()}_desc_{tier}") ? $"_{tier}" : "") : $" {Utils.DisplayGemEffectPower(power, null, 0, socket.Seed)}")));
 									}
 									else
 									{
-										text = "$jc_effect_disabled_other_utility_item_equipped";
+										text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, tier, gem.Effect, gem.MinConfig.GetType().GetFields().Select((p, i) => Utils.DisplayGemEffectPower(gem, p, i, socket.Seed)).ToArray()) : $" {Utils.DisplayGemEffectPower(gem, null, 0, socket.Seed)}")));
 									}
 								}
 								else
 								{
-									text = gameObject.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+									text = "$jc_effect_no_effect";
 								}
-
-								sprite = gameObject.GetComponent<ItemDrop>().m_itemData.GetIcon();
 							}
-							transmute.GetComponent<TMP_Text>().text = Localization.instance.Localize(text);
-							transmute.Find("Border/Transmute_1").gameObject.SetActive(sprite is not null);
-							transmute.Find("Border/Transmute_1").GetComponent<Image>().sprite = sprite;
+							else
+							{
+								text = "$jc_effect_disabled_other_utility_item_equipped";
+							}
 						}
+						else
+						{
+							text = gameObject.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+						}
+
+						sprite = gameObject.GetComponent<ItemDrop>().m_itemData.GetIcon();
+					}
+					if (transmute.GetComponent<TMP_Text>() is { } desc)
+					{
+						desc.text = Localization.instance.Localize(text);
+					}
+					if (transmute.Find("Border/Transmute_1") is { } image)
+					{
+						image.gameObject.SetActive(sprite is not null);
+						image.GetComponent<Image>().sprite = sprite;
 					}
 				}
-
-				foreach (LayoutGroup rect in UITooltip.m_tooltip.GetComponentsInChildren<LayoutGroup>())
-				{
-					LayoutRebuilder.ForceRebuildLayoutImmediate(rect.GetComponent<RectTransform>());
-				}
 			}
+		}
+
+		foreach (LayoutGroup rect in root.GetComponentsInChildren<LayoutGroup>())
+		{
+			LayoutRebuilder.ForceRebuildLayoutImmediate(rect.GetComponent<RectTransform>());
 		}
 	}
 

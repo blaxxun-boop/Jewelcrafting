@@ -544,4 +544,36 @@ public static class API
 		return false;
 #endif
 	}
+
+	public static Transform? GetJewelcraftingTooltipRoot(GameObject tooltip)
+	{
+#if ! API
+		return tooltip.transform.Find("Bkg (1)");
+#else
+		return null;
+#endif
+	}
+
+	public static bool FillItemContainerTooltip(ItemDrop.ItemData? item, Transform root, bool showInteract)
+	{
+#if ! API
+		if (item?.Data().Get<ItemContainer>() is { } container)
+		{
+			GemStones.FillItemTooltip(container, root, showInteract);
+			return true;
+		}
+#endif
+		return false;
+	}
+
+	public static Color? GetSocketableItemColor(ItemDrop.ItemData item)
+	{
+#if ! API
+		if (item.Data().Get<Sockets>() is { } sockets)
+		{
+			return SocketsBackground.ItemColor(sockets);
+		}
+#endif
+		return null;
+	}
 }
