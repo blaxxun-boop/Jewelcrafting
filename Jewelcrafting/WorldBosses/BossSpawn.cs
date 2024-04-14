@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using SoftReferenceableAssets;
 using TMPro;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -14,6 +15,7 @@ public static class BossSpawn
 {
 	private static readonly HashSet<int> playerBasePieces = new();
 	private static readonly Dictionary<string, Location> locations = new();
+	private static Dictionary<string, SoftReference<GameObject>> locationReferences = new();
 	public static readonly Dictionary<string, Sprite> bossIcons = new();
 	public static readonly List<Vector3> currentBossPositions = new();
 	private static TextMeshProUGUI bossTimer = null!;
@@ -33,6 +35,11 @@ public static class BossSpawn
 	{
 		private static void Postfix(ZoneSystem __instance)
 		{
+			if (locationReferences.Count == 0)
+			{
+				locationReferences = locations.ToDictionary(kv => kv.Key, kv => LocationManager.Location.PrefabManager.AddLoadedSoftReferenceAsset(kv.Value.gameObject));
+			}
+
 			if (ZNet.instance.IsServer())
 			{
 				IEnumerator Check()
@@ -267,7 +274,7 @@ public static class BossSpawn
 			{
 				m_iconAlways = true,
 				m_prefabName = locations[boss].name,
-				m_location = locations[boss],
+				m_prefab = locationReferences[boss],
 			}, pos with { y = despawnTime }, true);
 
 			ZDO zdo = ZDOMan.instance.CreateNewZDO(pos, boss.GetStableHashCode());

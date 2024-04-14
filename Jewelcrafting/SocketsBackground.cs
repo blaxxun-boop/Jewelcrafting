@@ -110,6 +110,24 @@ public static class SocketsBackground
 		activePrefab = elementPrefab;
 	}
 
+	[HarmonyPatch(typeof(FejdStartup), nameof(FejdStartup.Awake))]
+	private static class ResetElementPrefabs
+	{
+		private static void Prefix()
+		{
+			if (gridElementPrefab is not null)
+			{
+				Object.Destroy(gridElementPrefab);
+				gridElementPrefab = null;
+			}
+			if (hotkeyElementPrefab is not null)
+			{
+				Object.Destroy(hotkeyElementPrefab);
+				hotkeyElementPrefab = null;
+			}
+		}
+	}
+
 	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.Awake))]
 	private static class ReplaceBackgroundInventory
 	{

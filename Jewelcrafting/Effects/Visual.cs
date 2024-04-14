@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace Jewelcrafting;
 
-public class Visual
+public partial class Visual
 {
 	public static readonly Dictionary<VisEquipment, Visual> visuals = new();
 
@@ -256,20 +256,10 @@ public class Visual
 		}
 	}
 
-	private readonly VisEquipment visEquipment;
-	public ItemDrop.ItemData? equippedFingerItem;
-	public ItemDrop.ItemData? equippedNeckItem;
 	private string fingerItem = "";
 	private string neckItem = "";
 	private List<GameObject> fingerItemInstances = new();
 	private List<GameObject> neckItemInstances = new();
-	public int currentFingerItemHash;
-	public int currentNeckItemHash;
-
-	private Visual(VisEquipment visEquipment)
-	{
-		this.visEquipment = visEquipment;
-	}
 
 	private int getHash(string zdoKey, string equippedItem)
 	{

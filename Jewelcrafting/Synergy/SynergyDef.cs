@@ -17,26 +17,16 @@ public class SynergyDef
 		float Eval(Dictionary<GemType, int> gems);
 	}
 
-	private class Gem : Expr
+	private class Gem(GemType type) : Expr
 	{
-		private readonly GemType type;
-		public Gem(GemType type) => this.type = type;
 		public float Eval(Dictionary<GemType, int> gems) => gems.TryGetValue(type, out int num) ? num : 0;
 		public override string ToString() => $"$jc_merged_gemstone_{EffectDef.GemTypeNames[type].ToLower()}";
 	}
 
 	private delegate float GemsOp(IEnumerable<KeyValuePair<GemType, int>> gems);
 
-	private class GemsExpr : Expr
+	private class GemsExpr(string func, HashSet<GemType> exclude) : Expr
 	{
-		private readonly HashSet<GemType> exclude;
-		private readonly string func;
-
-		public GemsExpr(string func, HashSet<GemType> exclude)
-		{
-			this.func = func;
-			this.exclude = exclude;
-		}
 
 		public float Eval(Dictionary<GemType, int> gems) => gemsOps[func](gems.Where(kv => !exclude.Contains(kv.Key)).DefaultIfEmpty(new KeyValuePair<GemType, int>(GemType.Black, 0)));
 		public override string ToString() => $"{func} {(exclude.Count == 0 ? "all" : "other")}";
@@ -49,26 +39,20 @@ public class SynergyDef
 		{ "max", gems => gems.Max(kv => kv.Value) },
 	};
 
-	private class Value : Expr
+	private class Value(float value) : Expr
 	{
-		private readonly float value;
-		public Value(float value) => this.value = value;
 		public virtual float Eval(Dictionary<GemType, int> gems) => value;
 		public override string ToString() => value.ToString(CultureInfo.InvariantCulture);
 	}
 
-	private class BooleanInverse : Expr
+	private class BooleanInverse(Expr expr) : Expr
 	{
-		private readonly Expr expr;
-		public BooleanInverse(Expr expr) => this.expr = expr;
 		public virtual float Eval(Dictionary<GemType, int> gems) => expr.Eval(gems) != 0 ? 1 : 0;
 		public override string ToString() => expr is BinaryExpr ? $"not ({expr})" : $"not {expr}";
 	}
 
-	private class AdditiveInverse : Expr
+	private class AdditiveInverse(Expr expr) : Expr
 	{
-		private readonly Expr expr;
-		public AdditiveInverse(Expr expr) => this.expr = expr;
 		public virtual float Eval(Dictionary<GemType, int> gems) => -expr.Eval(gems);
 		public override string ToString() => expr is BinaryExpr ? $"-({expr})" : $"-{expr}";
 	}
@@ -170,13 +154,12 @@ public class SynergyDef
 		public override float Eval(Dictionary<GemType, int> gems) => Left.Eval(gems) != 0 && Right.Eval(gems) != 0 ? 1 : 0;
 	}
 
-	private class ExprOpPair
+	private class ExprOpPair(Expr expr)
 	{
-		public Expr expr;
+		public Expr expr = expr;
 		public BinaryOp op;
 		public ExprOpPair? next;
 
-		public ExprOpPair(Expr expr) => this.expr = expr;
 	}
 
 	private struct BinaryOp

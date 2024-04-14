@@ -37,8 +37,7 @@ public class MaxPowerAttribute : PowerAttribute
 }
 
 [AttributeUsage(AttributeTargets.Field)]
-public class OptionalPowerAttribute : Attribute
+public class OptionalPowerAttribute(float defaultValue) : Attribute
 {
-	public readonly float DefaultValue;
-	public OptionalPowerAttribute(float defaultValue) => DefaultValue = defaultValue;
+	public readonly float DefaultValue = defaultValue;
 }

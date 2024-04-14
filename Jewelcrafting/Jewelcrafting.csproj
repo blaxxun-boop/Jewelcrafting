@@ -116,6 +116,9 @@
         <Reference Include="SkillManager">
             <HintPath>Libs\SkillManager.dll</HintPath>
         </Reference>
+        <Reference Include="SoftReferenceableAssets">
+          <HintPath>$(GamePath)\valheim_Data\Managed\publicized_assemblies\SoftReferenceableAssets_publicized.dll</HintPath>
+        </Reference>
         <Reference Include="StatManager">
             <HintPath>Libs\StatManager.dll</HintPath>
         </Reference>
@@ -156,9 +159,6 @@
         <Reference Include="UnityEngine.PhysicsModule">
             <HintPath>$(GamePath)\valheim_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
         </Reference>
-        <Reference Include="UnityEngine.TextCoreModule">
-            <HintPath>$(GamePath)\valheim_Data\Managed\UnityEngine.TextCoreModule.dll</HintPath>
-        </Reference>
         <Reference Include="UnityEngine.TextRenderingModule">
             <HintPath>$(GamePath)\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
         </Reference>
@@ -175,6 +175,7 @@
     <ItemGroup>
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
+        <Compile Include="API\Visual.cs" />
         <Compile Include="API\VisualEffectCondition.cs"/>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">

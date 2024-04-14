@@ -533,6 +533,16 @@ public static class API
 		return false;
 #endif
 	}
+	
+	public static Visual? GetEquippedJewelry(Player player)
+	{
+#if ! API
+		Visual.visuals.TryGetValue(player.m_visEquipment, out Visual visual);
+		return visual;
+#else
+		return false;
+#endif
+	}
 
 	public static bool BlacklistItem(GameObject item)
 	{
