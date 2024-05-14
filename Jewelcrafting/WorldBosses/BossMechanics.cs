@@ -56,17 +56,17 @@ public static class BossMechanics
 		{
 			if (__instance is Player player)
 			{
-				if (player.m_seman.HaveStatusEffect(GemEffectSetup.fireBossDebuff.name))
+				if (player.m_seman.HaveStatusEffect(GemEffectSetup.fireBossDebuff.name.GetStableHashCode()))
 				{
 					hit.m_damage.m_fire *= 2;
 				}
 
-				if (player.m_seman.HaveStatusEffect(GemEffectSetup.frostBossDebuff.name))
+				if (player.m_seman.HaveStatusEffect(GemEffectSetup.frostBossDebuff.name.GetStableHashCode()))
 				{
 					hit.m_damage.m_frost *= 2;
 				}
 
-				if (player.m_seman.HaveStatusEffect(GemEffectSetup.poisonBossDebuff.name))
+				if (player.m_seman.HaveStatusEffect(GemEffectSetup.poisonBossDebuff.name.GetStableHashCode()))
 				{
 					hit.m_damage.m_poison *= 2;
 				}

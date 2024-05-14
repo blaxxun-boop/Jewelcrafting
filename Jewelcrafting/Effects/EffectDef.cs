@@ -107,6 +107,7 @@ public enum Effect
 	Icyprotection,
 	Fierydoom,
 	Apotheosis,
+	Lizardfriendship,
 	Togetherforever,
 	Neveralone,
 	Equilibrium,

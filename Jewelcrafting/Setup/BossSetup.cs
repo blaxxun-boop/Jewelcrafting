@@ -13,6 +13,7 @@ public static class BossSetup
 {
 	public static BalanceConfig plainsConfigs = new();
 	public static BalanceConfig mistlandsConfigs = new();
+	public static BalanceConfig ashlandsConfigs = new();
 	private static Aoe fireBossAoe = null!;
 	private static Aoe poisonBossAoe = null!;
 	private static Aoe frostBossAoe = null!;
@@ -64,6 +65,15 @@ public static class BossSetup
 			aoeFrost = 140f,
 			aoePoison = 400f,
 		};
+		ashlandsConfigs = new BalanceConfig
+		{
+			health = 15000f,
+			punchBlunt = 175f,
+			smashBlunt = 250f,
+			aoeFire = 230f,
+			aoeFrost = 180f,
+			aoePoison = 500f,
+		};
 
 		PrefabManager.RegisterPrefab(assets, "Crystal_Frost_Reaper_Cage").AddComponent<RemoveBossDestructible>();
 		PrefabManager.RegisterPrefab(assets, "Crystal_Flame_Reaper_Cage").AddComponent<RemoveBossDestructible>();
@@ -98,7 +108,7 @@ public static class BossSetup
 	private class RemoveBossDestructible : MonoBehaviour
 	{
 		public int spawned = 1;
-		
+
 		public void Start()
 		{
 			long destruction = GetComponent<ZNetView>().GetZDO().GetLong("Jewelcrafting World Boss", long.MaxValue / 2);
@@ -170,7 +180,7 @@ public static class BossSetup
 			{
 				return;
 			}
-			
+
 			int stackCounter = m_nview.GetZDO().GetInt("WorldBoss ranged stacks");
 			if (Jewelcrafting.worldBossExploitProtectionRangedShield.Value == Jewelcrafting.Toggle.On)
 			{
@@ -200,7 +210,7 @@ public static class BossSetup
 	private static class IncreaseShieldBlockPower
 	{
 		private static float original = 0;
-		
+
 		private static void Prefix(Humanoid __instance, Character? attacker)
 		{
 			if (attacker?.GetComponent<BossCharacter>() is not null && __instance.GetCurrentBlocker()?.m_shared.m_name == "$jc_reaper_shield")

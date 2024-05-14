@@ -4,10 +4,10 @@ equipment:
     - black forest
     - swamp
     - ocean
-    - ash lands
     - mountain
     - plains
     - mistlands
+    - ash lands
   meadows:
     low health: 10
     high health: 50
@@ -61,10 +61,11 @@ equipment:
       - serpent scale
       - chitin
   ash lands:
-    low health: 40
-    high health: 120
+    low health: 120
+    high health: 1200
     resource map:
-      - iron
+      - flametal
+      - asksvin hide
   blacklist:
     - jewelers bag
     - butcher knife

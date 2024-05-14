@@ -62,7 +62,7 @@ public static class DungeonGuide
 				return;
 			}
 
-			if (!__instance.m_seman.HaveStatusEffect(GemEffectSetup.dungeonGuide.name))
+			if (!__instance.m_seman.HaveStatusEffect(GemEffectSetup.dungeonGuide.name.GetStableHashCode()))
 			{
 				ZNetScene.instance.Destroy(lightOrb);
 				lightOrb = null;
@@ -114,7 +114,7 @@ public static class DungeonGuide
 			if (zdo.IsValid() && zdo.IsOwner())
 			{
 				ZDOMan.instance.DestroyZDO(zdo);
-				if (Player.m_localPlayer && Player.m_localPlayer.m_seman.HaveStatusEffect(GemEffectSetup.dungeonGuide.name))
+				if (Player.m_localPlayer && Player.m_localPlayer.m_seman.HaveStatusEffect(GemEffectSetup.dungeonGuide.name.GetStableHashCode()))
 				{
 					lightOrb = Instantiate(GemEffectSetup.dungeonGuidePrefab);
 					lightOrb.transform.position = Player.m_localPlayer.transform.position;

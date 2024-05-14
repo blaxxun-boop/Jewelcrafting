@@ -280,6 +280,13 @@ jc_se_start_buff_black: "Impending Apotheosis"
 jc_se_start_buff_black_description: "You are about to ascend to divinity."
 jc_se_apotheosis: "Apotheosis"
 jc_se_apotheosis_description: "Your magic abilities are divine."
+jc_effect_lizardfriendship: "Lizard Friendship"
+jc_effect_lizardfriendship_desc: "Summon a loyal lizard friend."
+jc_effect_lizardfriendship_desc_detail: "Summon a tamed Asksvin within $7m dealing $1 movement damage for $4 seconds every $2-$3 seconds. The Asksvin moves $5% faster than usual and has $6% increased health."
+jc_boss_6: "Impending Lizard Friendship"
+jc_boss_6_description: "You are about to experience true lizard friendship."
+jc_asksvin_duration: "Lizard Friendship"
+jc_asksvin_duration_description: "An Asksvin is fighting by your side."
 jc_effect_comfortable: "Comfortable"
 jc_effect_comfortable_desc: "Increases comfort."
 jc_effect_comfortable_desc_detail: "Comfort while resting is increased by $1."
@@ -474,6 +481,15 @@ jc_boss_crystal_7: "Eikthyr's Lightning"
 jc_boss_crystal_7_description: "A gem which contains Eikthyr's lightning itself."
 jc_boss_crystal_7_description_flavor: |
   "Thunder is good, thunder is impressive; but it is lightning that does the work."
+jc_boss_crystal_8: "Fader's Ashes"
+jc_boss_crystal_8_description: "A gem which contains Fader's ash itself."
+jc_boss_crystal_8_description_flavor: |
+  "In order to rise
+  From its own ashes
+  A phoenix
+  First
+  Must
+  Burn."
 jc_friendship_group_gem: "Power of Friendship"
 jc_friendship_group_gem_description: "A gem which contains the Power of Friendship itself."
 jc_friendship_group_gem_description_flavor: |
@@ -665,3 +681,7 @@ jc_orb_of_divinity: "Orb of Divinity"
 jc_orb_of_divinity_description: "A divine orb, which can be applied to a gem with power ranges, in order to reroll the power."
 jc_divinity_orb_no_gem: "This orb can only be applied to gems."
 jc_divinity_orb_no_gem_ranges: "This orb can only be applied to gems with power ranges."
+jc_asksvin_blue: "Sapphire Asksvin"
+jc_asksvin_red: "Ruby Asksvin"
+jc_asksvin_yellow: "Sulfur Asksvin"
+jc_asksvin_purple: "Spinel Asksvin"

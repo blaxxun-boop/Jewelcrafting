@@ -27,7 +27,7 @@ public static class Awareness
 	{
 		private static void Postfix()
 		{
-			if (Player.m_localPlayer?.m_seman.HaveStatusEffect(GemEffectSetup.awareness.name) != true)
+			if (Player.m_localPlayer?.m_seman.HaveStatusEffect(GemEffectSetup.awareness.name.GetStableHashCode()) != true)
 			{
 				attackedIcon.gameObject.SetActive(false);
 				heardIcon.gameObject.SetActive(false);

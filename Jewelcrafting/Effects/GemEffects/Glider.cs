@@ -32,7 +32,7 @@ public static class Glider
 
 			GlideInsteadOfFalling.glidingUsed = false;
 
-			if (__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name))
+			if (__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name.GetStableHashCode()) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name.GetStableHashCode()))
 			{
 				___m_maxAirAltitude = Mathf.Min(3.49f + __instance.transform.position.y, ___m_maxAirAltitude);
 				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.NameHash(), true);
@@ -55,7 +55,7 @@ public static class Glider
 				float effect = __instance.GetEffect(Effect.Glider) * (Jewelcrafting.featherGliding.Value == Jewelcrafting.Toggle.Off && __instance.m_shoulderItem?.m_shared.m_name == "$item_cape_feather" ? 1 + Jewelcrafting.featherGlidingBuff.Value / 100f : 1);
 				if (!glidingUsed && effect > 0)
 				{
-					if (EnvMan.instance.IsNight())
+					if (EnvMan.IsNight())
 					{
 						__instance.m_seman.AddStatusEffect(GemEffectSetup.gliding).m_ttl = effect;
 					}
@@ -68,7 +68,7 @@ public static class Glider
 				}
 			}
 
-			if ((__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name)) && __instance.m_body && gliding)
+			if ((__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name.GetStableHashCode()) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name.GetStableHashCode())) && __instance.m_body && gliding)
 			{
 				Vector3 velocity = __instance.m_body.velocity;
 				velocity.y = Math.Max(-2, velocity.y);

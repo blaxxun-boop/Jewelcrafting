@@ -31,7 +31,7 @@ public static class Utils
 		{
 			return false;
 		}
-		
+
 		return item.m_shared.m_itemType is
 			       ItemDrop.ItemData.ItemType.Bow or
 			       ItemDrop.ItemData.ItemType.Chest or
@@ -84,7 +84,7 @@ public static class Utils
 		{
 			seed = 0;
 		}
-		
+
 		Random.State state = Random.state;
 		Random.InitState((int)(seed + fieldIndex * (uint)GemLocation.All + (Jewelcrafting.randomPowerRanges.Value == Jewelcrafting.Toggle.On ? (uint)location : 0)));
 		seed = GenerateSocketSeed();
@@ -301,6 +301,7 @@ public static class Utils
 
 	private static readonly Dictionary<string, ItemDrop> items = new(StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<GemLocation, ItemDrop> itemsByGemLocation = new();
+
 	private static List<string> prefabLocalizations(ItemDrop prefab) => new()
 	{
 		prefab.name.ToLower(),
@@ -308,7 +309,7 @@ public static class Utils
 		Localization.instance.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
 		Jewelcrafting.english.Localize(prefab.m_itemData.m_shared.m_name).ToLower(),
 	};
-	
+
 	public static void ReloadItemNameMap()
 	{
 		items.Clear();
@@ -340,7 +341,7 @@ public static class Utils
 		private readonly int activeUtilityItems;
 		private readonly ItemDrop.ItemData? primaryUtilityItem;
 		private readonly int availableUtilitySlots;
-		
+
 		public ActiveSockets(Player player)
 		{
 			bool isSocketedUtility(ItemDrop.ItemData i) => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i.Data().Get<Sockets>() is not null;
@@ -365,9 +366,9 @@ public static class Utils
 		{
 			return infos;
 		}
-		if (ObjectDB.instance.GetItemPrefab(item) is {} prefab && GemStoneSetup.GemInfos.TryGetValue(prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
+		if (ObjectDB.instance.GetItemPrefab(item) is { } prefab && GemStoneSetup.GemInfos.TryGetValue(prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
 		{
-			return new []{ info };
+			return new[] { info };
 		}
 		return Enumerable.Empty<GemInfo>();
 	}
@@ -376,7 +377,7 @@ public static class Utils
 	{
 		if (GemStoneSetup.GemInfos.TryGetValue(item.m_shared.m_name, out GemInfo info))
 		{
-			return new []{ info };
+			return new[] { info };
 		}
 		if (MergedGemStoneSetup.mergedGemContents.TryGetValue(item.m_dropPrefab.name, out List<GemInfo> infos))
 		{
@@ -398,17 +399,33 @@ public static class Utils
 	{
 		float min = field is null ? power.MinPower : (float)field.GetValue(power.MinConfig);
 		float max = field is null ? power.MaxPower : (float)field.GetValue(power.MaxConfig);
-		
+
 		if (min == max)
 		{
 			return FormatShortNumber(min);
 		}
-		
+
 		if (seeds is null)
 		{
 			return $"{FormatShortNumber(min)} - {FormatShortNumber(max)}";
 		}
 
 		return FormatShortNumber(CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Location, seeds));
+	}
+
+	public static bool FindSpawnPoint(Vector3 center, float distance, out Vector3 point)
+	{
+		for (int index = 0; index < 10; ++index)
+		{
+			Vector3 p = center + Quaternion.Euler(0.0f, Random.Range(0, 360), 0.0f) * Vector3.forward * Random.Range(0.0f, distance);
+			if (ZoneSystem.instance.FindFloor(p, out float height) && !ZoneSystem.instance.IsBlocked(p))
+			{
+				p.y = height + 0.1f;
+				point = p;
+				return true;
+			}
+		}
+		point = Vector3.zero;
+		return false;
 	}
 }

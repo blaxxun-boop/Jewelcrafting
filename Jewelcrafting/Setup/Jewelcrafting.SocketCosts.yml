@@ -34,13 +34,6 @@ socket cost:
     3:
       iron: 10
       Root: 5
-  ash lands:
-    1:
-      iron: 5
-    2:
-      iron: 10
-    3:
-      iron: 15
   ocean:
     1:
       chitin: 5
@@ -78,4 +71,13 @@ socket cost:
     3:
       Refined eitr: 10
       Mandible: 5
-      
+  ash lands:
+    1:
+      Flametal: 3
+      Asksvin Hide: 5
+    2:
+      Flametal: 5
+      Morgen Sinew: 3
+    3:
+      Flametal: 7
+      Morgen Heart: 1

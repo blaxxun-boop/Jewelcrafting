@@ -416,6 +416,19 @@ apotheosis:
     magic damage increase: 15
     attack speed: 20
   unique: all
+  
+lizard friendship:
+  slot: all
+  gem: fader
+  power:
+    movement damage: 100
+    min cooldown: 420
+    max cooldown: 600
+    duration: 30
+    speed increase: 15
+    health increase: 200
+    spawn range: 20
+  unique: all
 
 # Gem Spawn
 

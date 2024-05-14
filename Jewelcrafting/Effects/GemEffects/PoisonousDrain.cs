@@ -96,7 +96,7 @@ public static class PoisonousDrain
 		[UsedImplicitly]
 		private static void Prefix(Character __instance, ref float hp)
 		{
-			if (__instance is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.poisonousDrain.name))
+			if (__instance is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.poisonousDrain.name.GetStableHashCode()))
 			{
 				hp *= 1 + player.GetEffect<Config>(Effect.Poisonousdrain).HealingIncrease / 100f;
 			}

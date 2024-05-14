@@ -10,7 +10,7 @@ public static class Apotheosis
 	static Apotheosis()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Apotheosis, typeof(Config));
-		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name) ? player.GetEffect<Config>(Effect.Apotheosis).AttackSpeed / 100f : 0);
+		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name.GetStableHashCode()) ? player.GetEffect<Config>(Effect.Apotheosis).AttackSpeed / 100f : 0);
 	}
 	
 	[StructLayout(LayoutKind.Sequential)]
@@ -61,7 +61,7 @@ public static class Apotheosis
 	{
 		private static void Postfix(Attack __instance, ref float __result)
 		{
-			if (__instance.m_character is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name))
+			if (__instance.m_character is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name.GetStableHashCode()))
 			{
 				__result *= 1 - player.GetEffect<Config>(Effect.Apotheosis).EitrReduction / 100f;
 			}

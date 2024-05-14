@@ -70,7 +70,7 @@ public static class IcyProtection
 		[UsedImplicitly]
 		private static void Prefix(Character __instance, HitData hit)
 		{
-			if (__instance is Player player && hit.GetAttacker() is { } attacker && attacker != __instance && player.m_seman.HaveStatusEffect(GemEffectSetup.icyProtection.name))
+			if (__instance is Player player && hit.GetAttacker() is { } attacker && attacker != __instance && player.m_seman.HaveStatusEffect(GemEffectSetup.icyProtection.name.GetStableHashCode()))
 			{
 				hit.ApplyModifier(1 - player.GetEffect<Config>(Effect.Icyprotection).DamageReduction / 100f);
 			}

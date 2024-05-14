@@ -221,6 +221,7 @@
         <Compile Include="Effects\JewelryEffects\Legacy.cs" />
         <Compile Include="Effects\GemEffects\Lifeguard.cs"/>
         <Compile Include="Effects\GemEffects\LightningSpeed.cs"/>
+        <Compile Include="Effects\GemEffects\LizardFriendship.cs" />
         <Compile Include="Effects\GemEffects\MagicalBargain.cs"/>
         <Compile Include="Effects\GemEffects\Magnetic.cs"/>
         <Compile Include="Effects\GemEffects\Marathon.cs"/>

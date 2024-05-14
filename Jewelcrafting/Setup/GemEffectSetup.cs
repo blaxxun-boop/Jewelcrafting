@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ItemManager;
 using Jewelcrafting.GemEffects;
 using Jewelcrafting.GemEffects.Groups;
@@ -22,6 +23,7 @@ public static class GemEffectSetup
 	public static SE_Stats fieryDoom = null!;
 	public static GameObject fieryDoomExplosion = null!;
 	public static SE_Stats apotheosis = null!;
+	public static SE_Stats lizardFriendship = null!;
 	public static SE_Stats awareness = null!;
 	public static GameObject heardIcon = null!;
 	public static GameObject attackedIcon = null!;
@@ -42,6 +44,7 @@ public static class GemEffectSetup
 	public static SE_Stats fireStart = null!;
 	public static SE_Stats apotheosisStart = null!;
 	public static SE_Stats friendshipStart = null!;
+	public static SE_Stats lizardFriendshipStart = null!;
 	public static SE_Stats friendship = null!;
 	public static SE_Stats loneliness = null!;
 	public static GameObject friendshipTether = null!;
@@ -55,6 +58,8 @@ public static class GemEffectSetup
 	public static Material fadingMaterial = null!;
 	public static GameObject fusingFailSound = null!;
 	public static GameObject fusingSuccessSound = null!;
+	public static List<GameObject> asksvinPrefabs = new();
+	public static GameObject asksvinSpawnVFX = null!;
 
 	public static void initializeGemEffect(AssetBundle assets)
 	{
@@ -69,6 +74,7 @@ public static class GemEffectSetup
 		dungeonGuidePrefab.AddComponent<DungeonGuide.OrbDestroy>();
 		lightningSpeed = Utils.ConvertStatusEffect<LightningSpeed.LightningSpeedEffect>(assets.LoadAsset<SE_Stats>("JC_Electric_Wings_SE"));
 		apotheosis = Utils.ConvertStatusEffect<Apotheosis.ApotheosisEffect>(assets.LoadAsset<SE_Stats>("SE_Apotheosis"));
+		lizardFriendship = Utils.ConvertStatusEffect<LizardFriendship.LizardFriendshipEffect>(assets.LoadAsset<SE_Stats>("SE_Asksvin_Duration"));
 		rootedRevenge = assets.LoadAsset<SE_Stats>("SE_Boss_3");
 		poisonousDrain = assets.LoadAsset<SE_Stats>("SE_Boss_2");
 		poisonousDrainCloud = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_2");
@@ -94,6 +100,7 @@ public static class GemEffectSetup
 		fireStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Red");
 		apotheosisStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Black");
 		friendshipStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
+		lizardFriendshipStart = assets.LoadAsset<SE_Stats>("SE_Boss_6");
 		friendship = Utils.ConvertStatusEffect<TogetherForever.TogetherForeverEffect>(assets.LoadAsset<SE_Stats>("SE_Friendship_Group"));
 		loneliness = Utils.ConvertStatusEffect<TogetherForever.LonelinessEffect>(assets.LoadAsset<SE_Stats>("SE_Loneliness_Group"));
 		friendshipTether = assets.LoadAsset<GameObject>("VFX_FriendLine_Render");
@@ -115,5 +122,15 @@ public static class GemEffectSetup
 		legacyRingHaldor = assets.LoadAsset<GameObject>("JC_Black_Ring_Haldor");
 		legacyRingHildir = assets.LoadAsset<GameObject>("JC_Black_Ring_Hildir");
 		legacyRingHildirQuest = assets.LoadAsset<GameObject>("JC_Black_Ring_Quest");
+		asksvinSpawnVFX = assets.LoadAsset<GameObject>("vfx_asksvin_spawn");
+
+		asksvinPrefabs.Add(PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Blue"));
+		asksvinPrefabs.Add(PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Purple"));
+		asksvinPrefabs.Add(PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Red"));
+		asksvinPrefabs.Add(PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Yellow"));
+		foreach (GameObject asksvin in asksvinPrefabs)
+		{
+			asksvin.GetComponent<Tameable>().m_saddle = Utils.ConvertComponent<LizardFriendship.LizardSadle, Sadle>(asksvin.GetComponent<Tameable>().m_saddle.gameObject);
+		}
 	}
 }

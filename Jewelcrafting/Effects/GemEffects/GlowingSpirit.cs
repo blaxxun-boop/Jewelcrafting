@@ -53,7 +53,7 @@ public static class GlowingSpirit
 				return;
 			}
 
-			if (!__instance.m_seman.HaveStatusEffect(GemEffectSetup.glowingSpirit.name))
+			if (!__instance.m_seman.HaveStatusEffect(GemEffectSetup.glowingSpirit.name.GetStableHashCode()))
 			{
 				ZNetScene.instance.Destroy(lightOrb);
 				lightOrb = null;
@@ -105,7 +105,7 @@ public static class GlowingSpirit
 			if (zdo.IsValid() && zdo.IsOwner())
 			{
 				ZDOMan.instance.DestroyZDO(zdo);
-				if (Player.m_localPlayer && Player.m_localPlayer.m_seman.HaveStatusEffect(GemEffectSetup.glowingSpirit.name))
+				if (Player.m_localPlayer && Player.m_localPlayer.m_seman.HaveStatusEffect(GemEffectSetup.glowingSpirit.name.GetStableHashCode()))
 				{
 					lightOrb = Instantiate(GemEffectSetup.glowingSpiritPrefab);
 					lightOrb.transform.position = Player.m_localPlayer.transform.position;

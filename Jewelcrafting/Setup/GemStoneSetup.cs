@@ -22,6 +22,7 @@ public enum GemType
 	Moder,
 	Yagluth,
 	Queen,
+	Fader,
 	Group,
 	Wisplight,
 	Wishbone,
@@ -63,7 +64,7 @@ public static class GemStoneSetup
 		{ GemType.Purple, new MaterialColor { Color = Color.magenta } },
 		{ GemType.Orange, new MaterialColor { Color = new Color(1, 0.6f, 0) } },
 	};
-	
+
 	private static readonly Dictionary<GemType, string> materials = new()
 	{
 		{ GemType.Black, "StoneBlack" },
@@ -177,13 +178,13 @@ public static class GemStoneSetup
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Simple {colorName}", 12, new ConfigDescription($"{colorName} shards required to craft a Simple {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
-				
+
 				_ = new Conversion(gemStone)
 				{
 					Input = $"Uncut_{colorName}_Stone",
 					Custom = "JC_Gemstone_Furnace",
 				};
-				
+
 				break;
 			case 1:
 				gemStone["GambleRecipe"].Crafting.Add("op_transmution_table", 1);
@@ -194,13 +195,13 @@ public static class GemStoneSetup
 				gemStone["BadLuckRecipe"].Crafting.Add("op_transmution_table", 1);
 				gemStone["BadLuckRecipe"].RequiredItems.Add($"Shattered_{colorName}_Crystal", Jewelcrafting.config("Bad Luck Protection", $"Bad Luck Cost Advanced {colorName}", 35, new ConfigDescription($"{colorName} shards required to craft an Advanced {colorName}.")));
 				gemStone["BadLuckRecipe"].RecipeIsActive = Jewelcrafting.badLuckRecipes;
-				
+
 				_ = new Conversion(gemStone)
 				{
 					Input = $"Simple_{colorName}_Socket",
 					Custom = "JC_Gemstone_Furnace",
 				};
-				
+
 				break;
 			case 2:
 				gemStone.Crafting.Add("op_transmution_table", 2);
@@ -213,7 +214,7 @@ public static class GemStoneSetup
 	{
 		SocketTooltip = assets.LoadAsset<GameObject>("CrystalText");
 		GemStones.emptySocketSprite = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_Text_1/Border/Transmute_1").GetComponent<Image>().sprite;
-		
+
 		Transform toCopy = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_Text_1");
 		Transform toParent = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles");
 		for (int i = 6; i <= Jewelcrafting.maxNumberOfSockets; ++i)
@@ -224,7 +225,7 @@ public static class GemStoneSetup
 			newSlot.transform.SetParent(toParent, false);
 			newSlot.gameObject.SetActive(false);
 		}
-		
+
 		customGemTierPrefabs[0] = assets.LoadAsset<GameObject>("Simple_Custom_Socket");
 		customGemTierPrefabs[1] = assets.LoadAsset<GameObject>("Advanced_Custom_Socket");
 		customGemTierPrefabs[2] = assets.LoadAsset<GameObject>("Perfect_Custom_Socket");
@@ -235,7 +236,7 @@ public static class GemStoneSetup
 		{
 			Colors[kv.Key] = Colors[kv.Key] with { Material = assets.LoadAsset<Material>(kv.Value) };
 		}
-		
+
 		if (Groups.API.IsLoaded())
 		{
 			Colors.Add(GemType.Cyan, new MaterialColor { Color = Color.cyan });
@@ -277,6 +278,8 @@ public static class GemStoneSetup
 		GemStones.bossToGem.Add("GoblinKing", gemStone.Prefab);
 		gemStone = AddGem("Boss_Crystal_3", GemType.Queen);
 		GemStones.bossToGem.Add("SeekerQueen", gemStone.Prefab);
+		gemStone = AddGem("Boss_Crystal_8", GemType.Fader);
+		GemStones.bossToGem.Add("Fader", gemStone.Prefab);
 
 		if (Groups.API.IsLoaded())
 		{

@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.20";
+	private const string ModVersion = "1.5.21";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -392,7 +392,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		bossSpawnBaseDistance = config("4 - World Boss", "Base Distance Boss Spawns", 50, new ConfigDescription("Minimum distance to player build structures for boss spawns.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossTimeLimit = config("4 - World Boss", "Time Limit", 60, new ConfigDescription("Time in minutes before world bosses despawn.", null, new ConfigurationManagerAttributes { Order = --order }));
 		bossCoinDrop = config("4 - World Boss", "Coins per Boss Kill", 5, new ConfigDescription("Number of Celestial Coins dropped by bosses per player.", new AcceptableValueRange<int>(0, 20), new ConfigurationManagerAttributes { Order = --order }));
-		worldBossBalance = config("4 - World Boss", "Balance", GachaSetup.BalanceToggle.Mistlands, new ConfigDescription("Balancing to use for the world bosses.", null, new ConfigurationManagerAttributes { Order = --order }));
+		worldBossBalance = config("4 - World Boss", "Balance", GachaSetup.BalanceToggle.Ashlands, new ConfigDescription("Balancing to use for the world bosses.", null, new ConfigurationManagerAttributes { Order = --order }));
 		List<ConfigurationManagerAttributes> worldBossCustomAttributes = new();
 		worldBossBalance.SettingChanged += (o, e) =>
 		{
@@ -403,17 +403,17 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			reloadConfigDisplay();
 			WorldBossCustomChanged(o, e);
 		};
-		worldBossHealth = config("4 - World Boss", "Boss Health", BossSetup.mistlandsConfigs.health, new ConfigDescription("Balancing to use for the world bosses.", null, WorldBossAttribute()));
+		worldBossHealth = config("4 - World Boss", "Boss Health", BossSetup.ashlandsConfigs.health, new ConfigDescription("Balancing to use for the world bosses.", null, WorldBossAttribute()));
 		worldBossHealth.SettingChanged += WorldBossCustomChanged;
-		worldBossPunchDamage = config("4 - World Boss", "Punch Damage", BossSetup.mistlandsConfigs.punchBlunt, new ConfigDescription("Basic attack damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossPunchDamage = config("4 - World Boss", "Punch Damage", BossSetup.ashlandsConfigs.punchBlunt, new ConfigDescription("Basic attack damage dealt by world bosses.", null, WorldBossAttribute()));
 		worldBossPunchDamage.SettingChanged += WorldBossCustomChanged;
-		worldBossSmashDamage = config("4 - World Boss", "Smash Damage", BossSetup.mistlandsConfigs.smashBlunt, new ConfigDescription("Smash attack damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossSmashDamage = config("4 - World Boss", "Smash Damage", BossSetup.ashlandsConfigs.smashBlunt, new ConfigDescription("Smash attack damage dealt by world bosses.", null, WorldBossAttribute()));
 		worldBossSmashDamage.SettingChanged += WorldBossCustomChanged;
-		worldBossFireDamage = config("4 - World Boss", "Fire Damage", BossSetup.mistlandsConfigs.aoeFire, new ConfigDescription("Fire damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossFireDamage = config("4 - World Boss", "Fire Damage", BossSetup.ashlandsConfigs.aoeFire, new ConfigDescription("Fire damage dealt by world bosses.", null, WorldBossAttribute()));
 		worldBossFireDamage.SettingChanged += WorldBossCustomChanged;
-		worldBossFrostDamage = config("4 - World Boss", "Frost Damage", BossSetup.mistlandsConfigs.aoeFrost, new ConfigDescription("Frost damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossFrostDamage = config("4 - World Boss", "Frost Damage", BossSetup.ashlandsConfigs.aoeFrost, new ConfigDescription("Frost damage dealt by world bosses.", null, WorldBossAttribute()));
 		worldBossFrostDamage.SettingChanged += WorldBossCustomChanged;
-		worldBossPoisonDamage = config("4 - World Boss", "Poison Damage", BossSetup.mistlandsConfigs.aoePoison, new ConfigDescription("Poison damage dealt by world bosses.", null, WorldBossAttribute()));
+		worldBossPoisonDamage = config("4 - World Boss", "Poison Damage", BossSetup.ashlandsConfigs.aoePoison, new ConfigDescription("Poison damage dealt by world bosses.", null, WorldBossAttribute()));
 		worldBossPoisonDamage.SettingChanged += WorldBossCustomChanged;
 		worldBossBonusWeaponDamage = config("4 - World Boss", "Celestial Weapon Bonus Damage", 10, new ConfigDescription("Bonus damage taken by world bosses when hit with a celestial weapon.", null, new ConfigurationManagerAttributes { Order = --order }));
 		worldBossBonusBlockPower = config("4 - World Boss", "Celestial Shield Bonus Power", 10, new ConfigDescription("Additional damage blocked by a celestial shield when hit by a world boss..", null, new ConfigurationManagerAttributes { Order = --order }));
@@ -664,7 +664,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 
 		foreach (GachaSetup.BalanceConfig balanceConfig in GachaSetup.celestialItemsConfigs.Values)
 		{
-			ConfigEntry<GachaSetup.BalanceToggle> toggle = config(english.Localize(balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name), "Balance", GachaSetup.BalanceToggle.Mistlands, "");
+			ConfigEntry<GachaSetup.BalanceToggle> toggle = config(english.Localize(balanceConfig.item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name), "Balance", GachaSetup.BalanceToggle.Ashlands, "");
 			void Apply()
 			{
 				if (toggle.Value == GachaSetup.BalanceToggle.Custom)
@@ -676,6 +676,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 					balanceConfig.item.ToggleConfigurationVisibility(Configurability.Recipe | Configurability.Drop);
 					ItemDrop.ItemData.SharedData sharedData = toggle.Value switch
 					{
+						GachaSetup.BalanceToggle.Ashlands => balanceConfig.ashlands,
 						GachaSetup.BalanceToggle.Mistlands => balanceConfig.mistlands,
 						GachaSetup.BalanceToggle.Plains => balanceConfig.plains,
 						_ => throw new ArgumentOutOfRangeException(),
@@ -815,6 +816,12 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Haldor");
 		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Hildir");
 		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Quest");
+		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Blue");
+		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Purple");
+		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Yellow");
+		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Red");
+		PrefabManager.RegisterPrefab(assets, "vfx_asksvin_spawn");
+		PrefabManager.RegisterPrefab(assets, "JC_Start_FX_Asksvin");
 
 		Localizer.AddPlaceholder("jc_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_se_ring_red_description", "regen", warmthStaminaRegen);
@@ -880,6 +887,9 @@ public partial class Jewelcrafting : BaseUnityPlugin
 					break;
 				case GachaSetup.BalanceToggle.Mistlands:
 					BossSetup.ApplyBalanceConfig(BossSetup.mistlandsConfigs);
+					break;
+				case GachaSetup.BalanceToggle.Ashlands:
+					BossSetup.ApplyBalanceConfig(BossSetup.ashlandsConfigs);
 					break;
 				case GachaSetup.BalanceToggle.Custom:
 					BossSetup.ApplyBalanceConfig(new BossSetup.BalanceConfig

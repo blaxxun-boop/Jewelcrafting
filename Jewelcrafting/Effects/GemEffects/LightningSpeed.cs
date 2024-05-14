@@ -10,7 +10,7 @@ public static class LightningSpeed
 	static LightningSpeed()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Lightningspeed, typeof(Config));
-		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(GemEffectSetup.lightningSpeed.name) ? player.GetEffect<Config>(Effect.Lightningspeed).AttackSpeed / 100f : 0);
+		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(GemEffectSetup.lightningSpeed.name.GetStableHashCode()) ? player.GetEffect<Config>(Effect.Lightningspeed).AttackSpeed / 100f : 0);
 	}
 	
 	[StructLayout(LayoutKind.Sequential)]
@@ -63,7 +63,7 @@ public static class LightningSpeed
 	{
 		private static void Prefix(Player __instance, ref float v)
 		{
-			if (__instance.m_seman.HaveStatusEffect(GemEffectSetup.lightningSpeed.name))
+			if (__instance.m_seman.HaveStatusEffect(GemEffectSetup.lightningSpeed.name.GetStableHashCode()))
 			{
 				v *= 1 - __instance.GetEffect<Config>(Effect.Lightningspeed).Stamina / 100f;
 			}

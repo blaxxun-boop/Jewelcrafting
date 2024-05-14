@@ -28,7 +28,7 @@ public static class DedicatedTank
 			}
 		}
 
-		[HarmonyPatch(typeof(Player), nameof(Player.UpdateMovementModifier))]
+		[HarmonyPatch(typeof(Player), nameof(Player.UpdateModifiers))]
 		private static class RemoveSpeedMalus
 		{
 			private static void Prefix(Player __instance, ref float __state)

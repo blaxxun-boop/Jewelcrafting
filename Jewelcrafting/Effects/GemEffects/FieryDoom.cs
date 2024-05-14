@@ -64,7 +64,7 @@ public static class FieryDoom
 	{
 		private static void Postfix(Character __instance, HitData hit)
 		{
-			if (!__instance.IsStaggering() && hit.GetAttacker() is Player attacker && attacker.GetSEMan().HaveStatusEffect(GemEffectSetup.fieryDoom.name) && Random.value < attacker.GetEffect<Config>(Effect.Fierydoom).StaggerChance / 100f)
+			if (!__instance.IsStaggering() && hit.GetAttacker() is Player attacker && attacker.GetSEMan().HaveStatusEffect(GemEffectSetup.fieryDoom.name.GetStableHashCode()) && Random.value < attacker.GetEffect<Config>(Effect.Fierydoom).StaggerChance / 100f)
 			{
 				__instance.Stagger(hit.m_dir);
 			}
