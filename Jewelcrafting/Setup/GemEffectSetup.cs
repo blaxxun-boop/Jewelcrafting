@@ -58,7 +58,7 @@ public static class GemEffectSetup
 	public static Material fadingMaterial = null!;
 	public static GameObject fusingFailSound = null!;
 	public static GameObject fusingSuccessSound = null!;
-	public static List<GameObject> asksvinPrefabs = new();
+	public static readonly List<GameObject> asksvinPrefabs = new();
 	public static GameObject asksvinSpawnVFX = null!;
 
 	public static void initializeGemEffect(AssetBundle assets)
