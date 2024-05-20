@@ -30,7 +30,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.22";
+	private const string ModVersion = "1.5.23";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -816,10 +816,6 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Haldor");
 		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Hildir");
 		PrefabManager.RegisterPrefab(assets, "JC_Black_Ring_Quest");
-		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Blue");
-		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Purple");
-		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Yellow");
-		PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Red");
 		PrefabManager.RegisterPrefab(assets, "vfx_asksvin_spawn");
 		PrefabManager.RegisterPrefab(assets, "JC_Start_FX_Asksvin");
 
