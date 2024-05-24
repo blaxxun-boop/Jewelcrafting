@@ -61,8 +61,7 @@ public static class BuildingPiecesSetup
 	{
 		private static void Postfix(Smelter __instance, ref Smelter.ItemConversion? __result)
 		{
-
-			if (__result is null || !Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance))
+			if (__result?.m_to is null || !Jewelcrafting.gemUpgradeChances.TryGetValue(__result.m_to.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance))
 			{
 				return;
 			}
