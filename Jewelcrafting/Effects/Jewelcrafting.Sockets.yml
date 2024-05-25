@@ -233,10 +233,15 @@ master archer:
   gem: purple
   power: [4, 6, 8]
 
-stealth archer:
+stealth archer: unset
+#  slot: bow
+#  gem: black
+#  power: [20, 35, 50]
+
+quick draw:
   slot: bow
   gem: black
-  power: [20, 35, 50]
+  power: [3, 5, 7]
 
 # Crossbow
 
@@ -249,6 +254,11 @@ master arbalist:
   slot: crossbow
   gem: purple
   power: [4, 6, 8]
+  
+quick load:
+  slot: bow
+  gem: black
+  power: [3, 5, 7]
 
 # Bow and Crossbow
 

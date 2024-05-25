@@ -121,6 +121,8 @@ public enum Effect
 	Perforation,
 	Thunderclap,
 	Fade,
+	Quickdraw,
+	Quickload,
 	Wisplight,
 	Wishbone,
 }

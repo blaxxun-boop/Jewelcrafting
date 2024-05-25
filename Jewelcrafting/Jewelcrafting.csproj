@@ -117,7 +117,7 @@
             <HintPath>Libs\SkillManager.dll</HintPath>
         </Reference>
         <Reference Include="SoftReferenceableAssets">
-          <HintPath>$(GamePath)\valheim_Data\Managed\publicized_assemblies\SoftReferenceableAssets_publicized.dll</HintPath>
+            <HintPath>$(GamePath)\valheim_Data\Managed\publicized_assemblies\SoftReferenceableAssets_publicized.dll</HintPath>
         </Reference>
         <Reference Include="StatManager">
             <HintPath>Libs\StatManager.dll</HintPath>
@@ -175,7 +175,7 @@
     <ItemGroup>
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
-        <Compile Include="API\Visual.cs" />
+        <Compile Include="API\Visual.cs"/>
         <Compile Include="API\VisualEffectCondition.cs"/>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">
@@ -199,7 +199,7 @@
         <Compile Include="Effects\GemEffects\Comfortable.cs"/>
         <Compile Include="Effects\GemEffects\Daring.cs"/>
         <Compile Include="Effects\GemEffects\Defender.cs"/>
-        <Compile Include="Effects\GemEffects\DungeonGuide.cs" />
+        <Compile Include="Effects\GemEffects\DungeonGuide.cs"/>
         <Compile Include="Effects\GemEffects\Echo.cs"/>
         <Compile Include="Effects\GemEffects\EitrSurge.cs"/>
         <Compile Include="Effects\GemEffects\ElementalChaos.cs"/>
@@ -218,10 +218,10 @@
         <Compile Include="Effects\GemEffects\IceHeart.cs"/>
         <Compile Include="Effects\GemEffects\IcyProtection.cs"/>
         <Compile Include="Effects\GemEffects\Inconspicuous.cs"/>
-        <Compile Include="Effects\JewelryEffects\Legacy.cs" />
+        <Compile Include="Effects\JewelryEffects\Legacy.cs"/>
         <Compile Include="Effects\GemEffects\Lifeguard.cs"/>
         <Compile Include="Effects\GemEffects\LightningSpeed.cs"/>
-        <Compile Include="Effects\GemEffects\LizardFriendship.cs" />
+        <Compile Include="Effects\GemEffects\LizardFriendship.cs"/>
         <Compile Include="Effects\GemEffects\MagicalBargain.cs"/>
         <Compile Include="Effects\GemEffects\Magnetic.cs"/>
         <Compile Include="Effects\GemEffects\Marathon.cs"/>
@@ -240,6 +240,8 @@
         <Compile Include="Effects\GemEffects\PoisonousDrain.cs"/>
         <Compile Include="Effects\GemEffects\PowerRecovery.cs"/>
         <Compile Include="Effects\GemEffects\PreciousBlood.cs"/>
+        <Compile Include="Effects\GemEffects\QuickDraw.cs"/>
+        <Compile Include="Effects\GemEffects\QuickLoad.cs"/>
         <Compile Include="Effects\GemEffects\Regeneration.cs"/>
         <Compile Include="Effects\GemEffects\Resilience.cs"/>
         <Compile Include="Effects\GemEffects\Ricochet.cs"/>
@@ -290,14 +292,14 @@
         <Compile Include="Setup\MergedGemStoneSetup.cs"/>
         <Compile Include="Setup\MiscSetup.cs"/>
         <Compile Include="Setup\VisualEffectSetup.cs"/>
-        <Compile Include="Setup\VisualSetup.cs" />
+        <Compile Include="Setup\VisualSetup.cs"/>
         <Compile Include="WorldBosses\BossHud.cs"/>
         <Compile Include="WorldBosses\BossMechanics.cs"/>
         <Compile Include="WorldBosses\BossSpawn.cs"/>
         <Compile Include="WorldBosses\GachaChest.cs"/>
         <Compile Include="WorldBosses\GachaDef.cs"/>
         <Compile Include="WorldBosses\GemStoneInteract.cs"/>
-        <Compile Include="Socketing.cs" />
+        <Compile Include="Socketing.cs"/>
         <Compile Include="Sockets.cs"/>
         <Compile Include="Stats.cs"/>
         <Compile Include="TerminalCommands.cs"/>
@@ -328,7 +330,7 @@
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml"/>
         <EmbeddedResource Include="Synergy\Jewelcrafting.Synergy.yml"/>
         <EmbeddedResource Include="WorldBosses\Jewelcrafting.Gacha.yml"/>
-        <EmbeddedResource Include="Setup\Jewelcrafting.SocketCosts.yml" />
+        <EmbeddedResource Include="Setup\Jewelcrafting.SocketCosts.yml"/>
         <EmbeddedResource Include="icons\gem_cursor.png"/>
         <EmbeddedResource Include="assets\jewelcrafting"/>
         <EmbeddedResource Include="assets\jc_ui_additions"/>

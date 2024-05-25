@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using BepInEx;
@@ -30,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.24";
+	private const string ModVersion = "1.5.25";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -159,10 +160,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{ "$enemy_bonemass", new[] { 20f, 4f, 1.5f } },
 		{ "$enemy_dragon", new[] { 28f, 12f, 3f } },
 		{ "$enemy_goblinking", new[] { 40f, 20f, 6f } },
-		{ "$jc_crystal_frost_reaper", new[] { 47f, 25f, 8f } },
-		{ "$jc_crystal_flame_reaper", new[] { 47f, 25f, 8f } },
-		{ "$jc_crystal_soul_reaper", new[] { 47f, 25f, 8f } },
 		{ "$enemy_seekerqueen", new[] { 55f, 30f, 9f } },
+		{ "$jc_crystal_frost_reaper", new[] { 57f, 31f, 10f } },
+		{ "$jc_crystal_flame_reaper", new[] { 57f, 31f, 10f } },
+		{ "$jc_crystal_soul_reaper", new[] { 57f, 31f, 10f } },
+		{ "$enemy_fader", new[] { 60f, 33f, 11f } },
 	};
 
 	public static readonly Dictionary<string, ConfigEntry<float>> gemUpgradeChances = new();
@@ -998,6 +1000,28 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		private static void Postfix()
 		{
 			ToggleFeatherFall(null!, null!);
+		}
+	}
+
+	[HarmonyPatch(typeof(ItemStand), nameof(ItemStand.CanAttach))]
+	private static class MakeGemsAttachableToItemStand
+	{
+		private static bool CanAttachGem(ItemStand itemStand, ItemDrop.ItemData item)
+		{
+			return itemStand.m_supportedTypes.Contains(ItemDrop.ItemData.ItemType.Misc) && Utils.ItemAllowedInGemBag(item);
+		}
+		
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
+		{
+			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
+			instructions.InsertRange(instructions.Count - 1, new []
+			{
+				new CodeInstruction(OpCodes.Ldarg_0),
+				new CodeInstruction(OpCodes.Ldarg_1),
+				new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(MakeGemsAttachableToItemStand), nameof(CanAttachGem))),
+				new CodeInstruction(OpCodes.Or),
+			});
+			return instructions;
 		}
 	}
 }
