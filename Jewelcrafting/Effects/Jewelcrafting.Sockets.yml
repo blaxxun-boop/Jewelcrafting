@@ -256,7 +256,7 @@ master arbalist:
   power: [4, 6, 8]
   
 quick load:
-  slot: bow
+  slot: crossbow
   gem: black
   power: [3, 5, 7]
 

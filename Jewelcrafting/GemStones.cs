@@ -2000,11 +2000,35 @@ public static class GemStones
 					return MoveToInv(AddFakeSocketsContainer.openInventory!);
 				}
 
+				bool CheckUnsocket()
+				{
+					if (__instance.m_dragInventory == AddFakeSocketsContainer.openInventory && AddFakeSocketsContainer.openEquipment?.Get<Sockets>() is not null)
+					{
+						if (AllowsUnsocketing(dragItem))
+						{
+							if (ShallDestroyGem(item, __instance.m_dragInventory))
+							{
+								RemoveItem();
+								return false;
+							}
+						}
+						else
+						{
+							return false;
+						}
+					}
+					return true;
+				}
+
 				for (int i = 0; i < socketBag.socketedGems.Count; ++i)
 				{
 					if (socketBag.socketedGems[i].Count != 0 && socketBag.socketedGems[i].Name == dragItem.m_dropPrefab.name && dragItem.Data().GetAll<SocketSeed>().Count == 0)
 					{
 						int remove = Math.Min(dragItem.m_shared.m_maxStackSize - socketBag.socketedGems[i].Count, dragItem.m_stack);
+						if (remove > 0 && !CheckUnsocket())
+						{
+							return false;
+						}
 						socketBag.socketedGems[i] = new SocketItem(dragItem.m_dropPrefab.name, count: socketBag.socketedGems[i].Count + remove);
 						if (dragItem.m_stack == remove)
 						{
@@ -2019,6 +2043,10 @@ public static class GemStones
 
 				if (socketBag.socketedGems.FindIndex(s => s.Count == 0 || s.Name == "") is { } index and >= 0)
 				{
+					if (!CheckUnsocket())
+					{
+						return false;
+					}
 					socketBag.socketedGems[index] = new SocketItem(dragItem.m_dropPrefab.name, count: dragItem.m_stack, seed: dragItem.Data().GetAll<SocketSeed>().ToDictionary(kv => kv.Key, kv => kv.Value.Seed));
 					RemoveItem();
 				}
