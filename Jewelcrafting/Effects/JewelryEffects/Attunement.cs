@@ -99,27 +99,30 @@ public class Attunement : SE_Stats
 	{
 		private static readonly MethodInfo AddStatusEffect = AccessTools.DeclaredMethod(typeof(SEMan), nameof(SEMan.AddStatusEffect), new []{ typeof(StatusEffect), typeof(bool), typeof(int), typeof(float) });
 
-		private static void BackupItem(ItemDrop.ItemData item) => nextItem = item;
-
-		private static void PopItem()
+		private static void BackupItem(ItemDrop.ItemData item)
 		{
-			nextItem = items[0];
-			items.RemoveAt(0);
-		}
-
-		private static bool StoreItem(bool success)
-		{
-			if (success)
+			if (item.m_shared.m_equipStatusEffect is { } equip)
 			{
-				items.Add(nextItem);
+				items[equip] = item;
 			}
-			return success;
+			if (item.m_shared.m_setStatusEffect is { } set)
+			{
+				items[set] = item;
+			}
 		}
 
-		private static int GetQuality() => nextItem.m_quality;
+		private static StatusEffect FetchItem(StatusEffect se)
+		{
+			items.TryGetValue(se, out nextItem);
+			return se;
+		}
 
-		private static ItemDrop.ItemData nextItem = null!;
-		private static readonly List<ItemDrop.ItemData> items = new();
+		private static int GetQuality() => nextItem?.m_quality ?? 0;
+
+		private static ItemDrop.ItemData? nextItem;
+		private static readonly Dictionary<StatusEffect, ItemDrop.ItemData> items = new();
+
+		private static void Finalizer() => items.Clear();
 
 		[HarmonyPriority(Priority.VeryLow)]
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
@@ -133,7 +136,6 @@ public class Attunement : SE_Stats
 					{
 						if (instructions[j].LoadsField(AccessTools.DeclaredField(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.m_shared))))
 						{
-							instructions.Insert(i, new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(FixupItemLevelForEquipmentStatusEffects), nameof(StoreItem))));
 							List<Label> labels = instructions[j].labels;
 							instructions[j].labels = new List<Label>();
 							instructions.Insert(j, new CodeInstruction(OpCodes.Dup) { labels = labels });
@@ -141,18 +143,14 @@ public class Attunement : SE_Stats
 							break;
 						}
 					}
+					i += 3;
 				}
 				if (instructions[i].Calls(AddStatusEffect) && instructions[i - 2].opcode == OpCodes.Ldc_I4_0)
 				{
 					instructions[i - 2] = new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(FixupItemLevelForEquipmentStatusEffects), nameof(GetQuality)));
-					while (--i > 0)
-					{
-						if (instructions[i].opcode == OpCodes.Call && ((MethodBase)instructions[i].operand).Name == "get_Current")
-						{
-							instructions.Insert(i, new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(FixupItemLevelForEquipmentStatusEffects), nameof(PopItem))));
-							break;
-						}
-					}
+					FieldInfo seman = AccessTools.DeclaredField(typeof(Character), nameof(Character.m_seman));
+					while (!instructions[--i].LoadsField(seman)) ;
+					instructions.Insert(i + 2, new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(FixupItemLevelForEquipmentStatusEffects), nameof(FetchItem))));
 					break;
 				}
 			}
