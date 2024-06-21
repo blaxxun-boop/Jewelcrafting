@@ -237,7 +237,7 @@ public static class EquipmentDrops
 			{
 				Stats.socketedEquipmentDropped.Increment();
 				return Utils.DropPrefabItem(prefab, character).GetComponent<ItemDrop>().m_itemData;
-			}));
+			}, Jewelcrafting.LootSystem.EquipmentDrops));
 		}
 	}
 
@@ -253,15 +253,15 @@ public static class EquipmentDrops
 		EnsureDropCache();
 
 		Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
-		if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.GetMaxHealth() < lowHp[biome] ? Jewelcrafting.lootLowHpChance : Jewelcrafting.lootDefaultChance).Value / 100f)
+		if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.GetMaxHealth() < lowHp[biome] ? Jewelcrafting.lootConfigs[lootSystem].lootLowHpChance : Jewelcrafting.lootConfigs[lootSystem].lootDefaultChance).Value / 100f)
 		{
 			callback(biome, character, drops);
 		}
 	}
 
-	public static float SpawnEquipment(Heightmap.Biome biome, Character character, List<Recipe> drops, Func<GameObject, ItemDrop.ItemData> instantiate)
+	public static float SpawnEquipment(Heightmap.Biome biome, Character character, List<Recipe> drops, Func<GameObject, ItemDrop.ItemData> instantiate, Jewelcrafting.LootSystem lootSystem)
 	{
-		List<GameObject> filteredDrops = drops.Where(recipe => Jewelcrafting.lootRestriction.Value switch
+		List<GameObject> filteredDrops = drops.Where(recipe => Jewelcrafting.lootConfigs[lootSystem].lootRestriction.Value switch
 		{
 			Jewelcrafting.LootRestriction.KnownStation => recipe.m_craftingStation is null || (Player.m_localPlayer.m_knownStations.TryGetValue(recipe.m_craftingStation.m_name, out int level) && recipe.m_minStationLevel <= level),
 			Jewelcrafting.LootRestriction.KnownRecipe => Player.m_localPlayer.m_knownRecipes.Contains(recipe.m_item.m_itemData.m_shared.m_name),
@@ -275,7 +275,7 @@ public static class EquipmentDrops
 
 		ItemInfo info = instantiate(filteredDrops[Random.Range(0, filteredDrops.Count)]).Data();
 
-		if (Jewelcrafting.unsocketDroppedItems.Value == Jewelcrafting.Toggle.Off)
+		if (Jewelcrafting.lootConfigs[lootSystem].unsocketDroppedItems.Value == Jewelcrafting.Toggle.Off)
 		{
 			info["SocketsLock"] = "";
 		}
@@ -292,7 +292,7 @@ public static class EquipmentDrops
 		const int repetitions = 4;
 		for (int i = 0; i < repetitions; ++i)
 		{
-			worthFactor += (Random.value > Jewelcrafting.lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
+			worthFactor += (Random.value > Jewelcrafting.lootConfigs[lootSystem].lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
 		}
 		worthFactor = Mathf.Clamp01(worthFactor);
 

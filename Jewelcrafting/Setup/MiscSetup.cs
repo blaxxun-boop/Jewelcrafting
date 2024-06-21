@@ -22,6 +22,7 @@ public static class MiscSetup
 	public static InventoryBag jewelryBag = null!;
 	private static GameObject divinityOrbPrefab = null!;
 	public static string divinityOrbName = null!;
+	public static List<Recipe> vanillaGemCraftingRecipes = new();
 
 	public static void initializeMisc(AssetBundle assets)
 	{
@@ -244,6 +245,68 @@ public static class MiscSetup
 			{
 				__instance.m_inventory.AddItem(divinityOrbPrefab, 1);
 			}
+		}
+	}
+
+	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
+	private static class AddRecipes
+	{
+		private static void Postfix(ObjectDB __instance)
+		{
+			if (__instance.GetItemPrefab("Wood") == null)
+			{
+				return;
+			}
+			
+			vanillaGemCraftingRecipes.Clear();
+			
+			Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
+			recipe.name = "Emerald_To_Jade";
+			recipe.m_amount = 1;
+			recipe.m_resources = new[]
+			{
+				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Green_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
+			};
+			recipe.m_item = __instance.GetItemPrefab("GemstoneGreen").GetComponent<ItemDrop>();
+			recipe.m_craftingStation = BuildingPiecesSetup.gemcuttersTable.GetComponent<CraftingStation>();
+			recipe.m_minStationLevel = 4;
+			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
+			
+			__instance.m_recipes.Add(recipe);
+			vanillaGemCraftingRecipes.Add(recipe);
+			
+			recipe = ScriptableObject.CreateInstance<Recipe>();
+			recipe.name = "Ruby_To_Bloodstone";
+			recipe.m_amount = 1;
+			recipe.m_resources = new[]
+			{
+				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Red_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
+			};
+			recipe.m_item = __instance.GetItemPrefab("GemstoneRed").GetComponent<ItemDrop>();
+			recipe.m_craftingStation = BuildingPiecesSetup.gemcuttersTable.GetComponent<CraftingStation>();
+			recipe.m_minStationLevel = 4;
+			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
+			
+			__instance.m_recipes.Add(recipe);
+			vanillaGemCraftingRecipes.Add(recipe);
+			
+			recipe = ScriptableObject.CreateInstance<Recipe>();
+			recipe.name = "Sapphire_To_Iolite";
+			recipe.m_amount = 1;
+			recipe.m_resources = new[]
+			{
+				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Blue_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
+			};
+			recipe.m_item = __instance.GetItemPrefab("GemstoneBlue").GetComponent<ItemDrop>();
+			recipe.m_craftingStation = BuildingPiecesSetup.gemcuttersTable.GetComponent<CraftingStation>();
+			recipe.m_minStationLevel = 4;
+			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
+			
+			__instance.m_recipes.Add(recipe);
+			vanillaGemCraftingRecipes.Add(recipe);
 		}
 	}
 }

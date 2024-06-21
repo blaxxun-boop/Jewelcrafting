@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.26";
+	private const string ModVersion = "1.5.27";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -119,11 +119,17 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> wishboneGem = null!;
 	public static ConfigEntry<LootSystem> lootSystem = null!;
 	public static ConfigEntry<Toggle> lootBeams = null!;
-	public static ConfigEntry<float> lootSkew = null!;
-	public static ConfigEntry<float> lootLowHpChance = null!;
-	public static ConfigEntry<float> lootDefaultChance = null!;
-	public static ConfigEntry<LootRestriction> lootRestriction = null!;
-	public static ConfigEntry<Toggle> unsocketDroppedItems = null!;
+	public static readonly Dictionary<LootSystem, LootConfigs> lootConfigs = new();
+
+	public class LootConfigs
+	{
+		public ConfigEntry<float> lootSkew = null!;
+		public ConfigEntry<float> lootLowHpChance = null!;
+		public ConfigEntry<float> lootDefaultChance = null!;
+		public ConfigEntry<LootRestriction> lootRestriction = null!;
+		public ConfigEntry<Toggle> unsocketDroppedItems = null!;
+	}
+
 	public static ConfigEntry<int> gemChestMinGems = null!;
 	public static ConfigEntry<int> gemChestMaxGems = null!;
 	public static ConfigEntry<int> gemChestAllowedAmount = null!;
@@ -141,6 +147,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> pixelateTextures = null!;
 	public static ConfigEntry<int> divinityOrbDropChance = null!;
 	public static ConfigEntry<Toggle> randomPowerRanges = null!;
+	public static ConfigEntry<Toggle> vanillaGemCrafting = null!;
+	public static ConfigEntry<float> bigGemstoneFormationChance = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -440,11 +448,20 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				}
 			}
 		};
-		lootSkew = config("5 - Loot System", "Drop Skew", 20f, new ConfigDescription("Can be used to skew the worth of loot that is dropped.", new AcceptableValueRange<float>(0f, 100f), new ConfigurationManagerAttributes { Order = --order }));
-		lootDefaultChance = config("5 - Loot System", "Drop Chance", 20f, new ConfigDescription("Chance for loot to be dropped.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		lootLowHpChance = config("5 - Loot System", "Drop Low HP Chance", 7f, new ConfigDescription("Chance for loot to be dropped from low HP creatures.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-		lootRestriction = config("5 - Loot System", "Loot Restriction", LootRestriction.KnownRecipe, new ConfigDescription("None: No restrictions for item drops.\nKnown Station: You can only drop items that can be crafted on crafting stations that you know.\nKnown Recipe: You can only drop items that you know the recipe of.", null, new ConfigurationManagerAttributes { Order = --order }));
-		unsocketDroppedItems = config("5 - Loot System", "Unsocket Dropped Items", Toggle.Off, new ConfigDescription("If on, gems can be removed from dropped equipment items.", null, new ConfigurationManagerAttributes { Order = --order }));
+		foreach (LootSystem system in (LootSystem[])Enum.GetValues(typeof(LootSystem)))
+		{
+			lootConfigs[system] = new LootConfigs
+			{
+				lootSkew = config("5 - Loot System", $"{system} - Drop Skew", 20f, new ConfigDescription("Can be used to skew the worth of loot that is dropped.", new AcceptableValueRange<float>(0f, 100f), new ConfigurationManagerAttributes { Order = --order })),
+				lootDefaultChance = config("5 - Loot System", $"{system} - Drop Chance", 20f, new ConfigDescription("Chance for loot to be dropped.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order })),
+				lootLowHpChance = config("5 - Loot System", $"{system} - Drop Low HP Chance", 7f, new ConfigDescription("Chance for loot to be dropped from low HP creatures.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order })),
+				lootRestriction = config("5 - Loot System", $"{system} - Loot Restriction", LootRestriction.KnownRecipe, new ConfigDescription("None: No restrictions for item drops.\nKnown Station: You can only drop items that can be crafted on crafting stations that you know.\nKnown Recipe: You can only drop items that you know the recipe of.", null, new ConfigurationManagerAttributes { Order = --order })),
+			};
+			if ((system & (LootSystem.EquipmentDrops | LootSystem.EquipmentChests)) != 0)
+			{
+				lootConfigs[system].unsocketDroppedItems = config("5 - Loot System", $"{system} - Unsocket Dropped Items", Toggle.Off, new ConfigDescription("If on, gems can be removed from dropped equipment items.", null, new ConfigurationManagerAttributes { Order = --order }));
+			}
+		}
 		gemChestMinGems = config("5 - Loot System", "Minimum Gems Gem Chest", 2, new ConfigDescription("Minimum amount of gems inside a dropped gem chest. Needs to be less than the maximum.", new AcceptableValueRange<int>(2, 8), new ConfigurationManagerAttributes { Order = --order }));
 		gemChestMinGems.SettingChanged += (_, _) =>
 		{
@@ -596,6 +613,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		};
 		gemstoneFormations = config("6 - Other", "Gemstone Formations", Toggle.On, new ConfigDescription("Can be used to disable the gemstone formations in the world.", null, new ConfigurationManagerAttributes { Order = --order }));
+		bigGemstoneFormationChance = config("6 - Other", "Giant Gemstone Formation Chance", 3f, new ConfigDescription("Chance for giant gemstone formations to spawn.", new AcceptableValueRange<float>(0f, 100f), new ConfigurationManagerAttributes { Order = --order }));
 		gemstoneFormationHealth = config("6 - Other", "Gemstone Formation Health", 20f, new ConfigDescription("Sets the health of the gemstone formations found in the world.", null, new ConfigurationManagerAttributes { Order = --order }));
 		gemstoneFormationHealth.SettingChanged += (_, _) =>
 		{
@@ -610,7 +628,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			{
 				if (spawner.netView.GetZDO()?.GetZDOID("spawn gem") is { } gemId && gemId != ZDOID.None && ZNetScene.instance.FindInstance(gemId) is { } existingDestructible && DestructibleSetup.hpModifiableTypes.Contains(global::Utils.GetPrefabName(existingDestructible)))
 				{
-					existingDestructible.GetComponent<Destructible>().m_health = gemstoneFormationHealth.Value;
+					existingDestructible.GetComponent<Destructible>().m_health = (existingDestructible.GetComponent<DestructibleSetup.ScaledDestructible>()?.destructibleDrops ?? 1) * gemstoneFormationHealth.Value;
 				}
 			}
 		};
@@ -632,8 +650,16 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		};
 		pixelateTextures = config("6 - Other", "Pixelate Textures", Toggle.Off, new ConfigDescription("If on, all Jewelcrafting textures will be slightly pixelate. Some people think this makes it look more vanilla. Needs a reload of the objects visuals to take effect, e.g. by leaving the area or unequipping items.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		divinityOrbDropChance = config("6 - Other", "Divinity Orb Drop Chance", 1, new ConfigDescription("Chance to obtain an Orb of Divinity from a treasure chest. Has no effect, if there are no gem effect powers that use value ranges.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
-
+		divinityOrbDropChance = config("6 - Other", "Divinity Orb Drop Chance", 5, new ConfigDescription("Chance to obtain an Orb of Divinity from a treasure chest. Has no effect, if there are no gem effect powers that use value ranges.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
+		vanillaGemCrafting = config("6 - Other", "Vanilla Gem Crafting", Toggle.On, new ConfigDescription("If on, the recipes for crafting vanilla gems are enabled.", null, new ConfigurationManagerAttributes { Order = --order }));
+		vanillaGemCrafting.SettingChanged += (_, _) =>
+		{
+			foreach (Recipe recipe in MiscSetup.vanillaGemCraftingRecipes)
+			{
+				recipe.m_enabled = vanillaGemCrafting.Value == Toggle.On;
+			}
+		};
+		
 		warmthStaminaRegen = config("Ruby Ring of Warmth", "Stamina Regen", 10, new ConfigDescription("Stamina regen increase for the Ruby Ring of Warmth effect.", new AcceptableValueRange<int>(0, 100)));
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));

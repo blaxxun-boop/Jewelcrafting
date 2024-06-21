@@ -45,11 +45,11 @@ public static class BossDied
 
 				if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(__instance.gameObject), out GameObject bossDrop))
 				{
-					if ((Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique || Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.GuaranteedFirst) && SetBossFlag.firstKill)
+					if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique && SetBossFlag.firstKill)
 					{
 						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, 1));
 					}
-					else if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.TrulyUnique && Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f + CreatureLevelControl.API.GetWorldLevel() * Jewelcrafting.uniqueGemDropChanceIncreasePerWorldLevel.Value / 100f)
+					else if ((Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.GuaranteedFirst && SetBossFlag.firstKill) || (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.TrulyUnique && Random.value < Jewelcrafting.uniqueGemDropChance.Value / 100f + CreatureLevelControl.API.GetWorldLevel() * Jewelcrafting.uniqueGemDropChanceIncreasePerWorldLevel.Value / 100f))
 					{
 						__result.Add(new KeyValuePair<GameObject, int>(bossDrop, Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? Player.GetPlayersInRangeXZ(__instance.m_character.transform.position, 100) : 1));
 					}

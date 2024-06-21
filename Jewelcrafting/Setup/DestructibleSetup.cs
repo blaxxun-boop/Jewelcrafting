@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using HarmonyLib;
@@ -39,11 +40,46 @@ public static class DestructibleSetup
 			},
 		};
 		prefab.AddComponent<CountDestructibleDestruction>();
+		prefab.AddComponent<ScaledDestructible>();
 		prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
 
 		if (prefab.transform.Find("Orbs") is { } orbs)
 		{
 			orbs.gameObject.SetActive(Jewelcrafting.gemstoneFormationParticles.Value == Jewelcrafting.Toggle.On);
+		}
+	}
+
+	public class ScaledDestructible : MonoBehaviour
+	{
+		public int destructibleDrops = 1;
+
+		public static HashSet<GameObject> activeDestructibles = new();
+		
+		public void Awake()
+		{
+			activeDestructibles.Add(gameObject);
+			
+			Random.State state = Random.state;
+			Random.InitState(transform.position.magnitude.ToString(CultureInfo.InvariantCulture).GetStableHashCode());
+
+			if (Jewelcrafting.bigGemstoneFormationChance.Value / 100f > Random.value)
+			{
+				destructibleDrops = Math.Min(Random.Range(2, 11), Random.Range(2, 11));
+				transform.localScale *= destructibleDrops / 1.8f;
+				List<DropTable.DropData> drops = GetComponent<DropOnDestroyed>().m_dropWhenDestroyed.m_drops;
+				DropTable.DropData drop = drops[0];
+				drop.m_stackMin *= destructibleDrops;
+				drop.m_stackMax *= destructibleDrops;
+				drops[0] = drop;
+				GetComponent<Destructible>().m_health *= destructibleDrops;
+			}
+			
+			Random.state = state;
+		}
+
+		public void OnDestroy()
+		{
+			activeDestructibles.Remove(gameObject);
 		}
 	}
 
@@ -242,17 +278,32 @@ public static class DestructibleSetup
 	{
 		public static void Prefix(ZoneSystem __instance)
 		{
-			__instance.m_vegetation.Add(new ZoneSystem.ZoneVegetation
+			ZoneSystem.ZoneVegetation template() => new()
 			{
-				m_biome = (Heightmap.Biome)(-1),
-				m_groupRadius = 6f,
+				m_groupRadius = 7f,
 				m_groupSizeMin = 2,
 				m_groupSizeMax = 6,
 				m_minAltitude = 0,
 				m_forcePlacement = true,
-				m_max = 2,
+				m_max = 4,
 				m_prefab = gemSpawner,
-			});
+			};
+
+			ZoneSystem.ZoneVegetation generic = template();
+			generic.m_biome = ~Heightmap.Biome.AshLands;
+			__instance.m_vegetation.Add(generic);
+
+			ZoneSystem.ZoneVegetation ashlandsBorder = template();
+			ashlandsBorder.m_biome = Heightmap.Biome.AshLands;
+			ashlandsBorder.m_biomeArea = Heightmap.BiomeArea.Edge;
+			__instance.m_vegetation.Add(ashlandsBorder);
+
+			ZoneSystem.ZoneVegetation ashlandsNoLava = template();
+			ashlandsNoLava.m_biome = Heightmap.Biome.AshLands;
+			ashlandsNoLava.m_biomeArea = Heightmap.BiomeArea.Median;
+			ashlandsNoLava.m_maxVegetation = 0.5f;
+			ashlandsNoLava.m_max += 1;
+			__instance.m_vegetation.Add(ashlandsNoLava);
 		}
 	}
 }

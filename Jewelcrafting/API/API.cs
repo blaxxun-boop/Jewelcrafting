@@ -8,10 +8,8 @@ using System.Diagnostics;
 using System.Linq;
 using ItemDataManager;
 using Jewelcrafting.GemEffects;
-using Jewelcrafting.WorldBosses;
 using LocalizationManager;
 using YamlDotNet.Serialization;
-using Jewelcrafting.LootSystem;
 using Debug = UnityEngine.Debug;
 #endif
 

@@ -38,6 +38,15 @@ public static class BuildingPiecesSetup
 		piece.Prefab.AddComponent<RingInTheBox>();
 		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
 
+		piece = new BuildPiece(assets, "JC_CrystalBall_Ext");
+		piece.RequiredItems.Add("Blackwood", 20, true);
+		piece.RequiredItems.Add("GemstoneGreen", 1, true);
+		piece.RequiredItems.Add("GemstoneRed", 1, true);
+		piece.RequiredItems.Add("GemstoneBlue", 1, true);
+		piece.Category.Set(BuildPieceCategory.Crafting);
+		piece.Prefab.AddComponent<BallOnAStick>();
+		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
+		
 		piece = new BuildPiece(assets, "JC_Gemstone_Furnace");
 		piece.RequiredItems.Add("Thunderstone", 1, true);
 		piece.RequiredItems.Add("SurtlingCore", 5, true);
@@ -131,6 +140,33 @@ public static class BuildingPiecesSetup
 			{
 				GetComponent<StationExtension>().m_maxStationDistance = zdo.GetString("item") == "" ? 0 : stationMaxDistance;
 				transform.Find("_enabled").gameObject.SetActive(zdo.GetString("item") != "");
+			}
+		}
+	}
+	
+	private class BallOnAStick : MonoBehaviour
+	{
+		private float stationMaxDistance;
+
+		public void Awake()
+		{
+			stationMaxDistance = GetComponent<StationExtension>().m_maxStationDistance;
+		}
+
+		public void Update()
+		{
+			if (GetComponent<ZNetView>()?.GetZDO() is not null)
+			{
+				if (ShieldGenerator.IsInsideShield(transform.position))
+				{
+					GetComponent<StationExtension>().m_maxStationDistance = stationMaxDistance;
+					transform.Find("particles").gameObject.SetActive(true);
+				}
+				else
+				{
+					GetComponent<StationExtension>().m_maxStationDistance = 0;
+					transform.Find("particles").gameObject.SetActive(false);
+				}
 			}
 		}
 	}

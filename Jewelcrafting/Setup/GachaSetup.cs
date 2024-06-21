@@ -99,6 +99,8 @@ public static class GachaSetup
 		celestialItemsConfigs["JC_Reaper_Sword"].mistlands.m_blockPower = 48;
 		celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_damages.m_slash = 145;
 		celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_damages.m_fire = 10;
+		celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_damages.m_frost = 0;
+		celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_damagesPerLevel.m_frost = 0;
 		celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_damagesPerLevel.m_fire = 6;
 		celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_damagesPerLevel.m_slash = 5;
 		celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_attack = Utils.Clone(celestialItemsConfigs["JC_Reaper_Sword"].ashlands.m_attack);

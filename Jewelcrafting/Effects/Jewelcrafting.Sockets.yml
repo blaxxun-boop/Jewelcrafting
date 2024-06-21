@@ -420,8 +420,8 @@ apotheosis:
   gem: queen
   power:
     eitr reduction: 100
-    min cooldown: 180
-    max cooldown: 240
+    min cooldown: 150
+    max cooldown: 210
     duration: 8
     magic damage increase: 15
     attack speed: 20
@@ -444,58 +444,58 @@ lizard friendship:
 
 gems:
   meadows:
-    green: 0.82
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.41
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   black forest:
-    green: 0.03
-    black: 0.82
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.41
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   swamp:
-    green: 0.03
-    black: 0.03
-    purple: 0.82
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.41
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   mountain:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.82
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.41
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   plains:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.82
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.41
+    red: 0.015
+    orange: 0.015
   ash lands:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.82
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.41
+    orange: 0.015
   mistlands:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.82
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.41

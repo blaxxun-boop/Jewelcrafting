@@ -78,7 +78,7 @@ public static class Utils
 		return output;
 	}
 
-	private static float CalcRealEffectPower(float minConfig, float maxConfig, int fieldIndex, GemType type, GemLocation location, Dictionary<string, uint>? seeds)
+	private static float CalcRealEffectPower(float minConfig, float maxConfig, int fieldIndex, GemType type, Effect effect, Dictionary<string, uint>? seeds)
 	{
 		if (seeds?.TryGetValue(type.ToString(), out uint seed) != true)
 		{
@@ -86,7 +86,7 @@ public static class Utils
 		}
 
 		Random.State state = Random.state;
-		Random.InitState((int)(seed + fieldIndex * (uint)GemLocation.All + (Jewelcrafting.randomPowerRanges.Value == Jewelcrafting.Toggle.On ? (uint)location : 0)));
+		Random.InitState((int)(seed + fieldIndex * (uint)GemLocation.All + (Jewelcrafting.randomPowerRanges.Value == Jewelcrafting.Toggle.On ? (uint)effect : 0)));
 		seed = GenerateSocketSeed();
 		Random.state = state;
 
@@ -97,7 +97,7 @@ public static class Utils
 	{
 		float min = field is null ? power.MinPower : (float)field.GetValue(power.MinConfig);
 		float max = field is null ? power.MaxPower : (float)field.GetValue(power.MaxConfig);
-		return CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Location, seeds);
+		return CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Effect, seeds);
 	}
 
 	public static WaitForSeconds WaitEffect<T>(this Player player, Effect effect, Func<T, float> minWait, Func<T, float> maxWait) where T : struct
@@ -410,7 +410,7 @@ public static class Utils
 			return $"{FormatShortNumber(min)} - {FormatShortNumber(max)}";
 		}
 
-		return FormatShortNumber(CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Location, seeds));
+		return FormatShortNumber(CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Effect, seeds));
 	}
 
 	public static bool FindSpawnPoint(Vector3 center, float distance, out Vector3 point)

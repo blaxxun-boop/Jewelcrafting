@@ -268,6 +268,7 @@
         <Compile Include="Effects\GemEffects\Groups\SafeHaven.cs"/>
         <Compile Include="Effects\GemEffects\Groups\SharedHealing.cs"/>
         <Compile Include="Effects\GemEffects\Groups\TogetherForever.cs"/>
+        <Compile Include="Effects\JewelryEffects\Attunement.cs"/>
         <Compile Include="Effects\JewelryEffects\Lumberjacking.cs"/>
         <Compile Include="Effects\JewelryEffects\ModersBlessing.cs"/>
         <Compile Include="Effects\JewelryEffects\NightWarmth.cs"/>
@@ -303,6 +304,7 @@
         <Compile Include="Sockets.cs"/>
         <Compile Include="Stats.cs"/>
         <Compile Include="TerminalCommands.cs"/>
+        <Compile Include="KeepSockets.cs"/>
         <Compile Include="BossDied.cs"/>
         <Compile Include="Utils.cs"/>
         <Compile Include="SocketsBackground.cs"/>

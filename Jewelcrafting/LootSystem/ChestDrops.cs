@@ -168,7 +168,8 @@ public static class ChestDrops
 			if (character.m_baseAI is MonsterAI ai && (Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemChests) != 0 && !character.IsTamed())
 			{
 				Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
-				if (config.biomeConfig.TryGetValue(biome, out GemDropBiome drops) && drops.distribution is IDictionary { Count: > 0 } && Random.value < (character.GetMaxHealth() < drops.lowHp!.Value ? Jewelcrafting.lootLowHpChance : Jewelcrafting.lootDefaultChance).Value / 100f)
+				Jewelcrafting.LootConfigs lootConfigs = Jewelcrafting.lootConfigs[Jewelcrafting.LootSystem.GemChests];
+				if (config.biomeConfig.TryGetValue(biome, out GemDropBiome drops) && drops.distribution is IDictionary { Count: > 0 } && Random.value < (character.GetMaxHealth() < drops.lowHp!.Value ? lootConfigs.lootLowHpChance : lootConfigs.lootDefaultChance).Value / 100f)
 				{
 					// between 0 and 1
 					float hpFactor = (Mathf.Pow(Mathf.Clamp(character.GetMaxHealth() / drops.highHp!.Value, 0.125f, 8), 1 / 3f) - 0.5f) / 1.5f;
@@ -178,7 +179,7 @@ public static class ChestDrops
 					const int repetitions = 4;
 					for (int i = 0; i < repetitions; ++i)
 					{
-						worthFactor += (Random.value > Jewelcrafting.lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
+						worthFactor += (Random.value > lootConfigs.lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
 					}
 					worthFactor = Mathf.Clamp01(worthFactor);
 					int gemDelta = Jewelcrafting.gemChestMaxGems.Value - Jewelcrafting.gemChestMinGems.Value + 1;
@@ -288,7 +289,7 @@ public static class ChestDrops
 						ItemDrop.ItemData item = prefab.GetComponent<ItemDrop>().m_itemData.Clone();
 						items.Add(item);
 						return item;
-					}));
+					}, Jewelcrafting.LootSystem.EquipmentChests));
 				}
 
 				if (worth < 0)
