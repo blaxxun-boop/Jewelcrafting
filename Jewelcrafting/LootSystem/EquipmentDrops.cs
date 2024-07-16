@@ -279,6 +279,10 @@ public static class EquipmentDrops
 		{
 			info["SocketsLock"] = "";
 		}
+		if (Jewelcrafting.lootConfigs[lootSystem].addSocketToDroppedItem.Value == Jewelcrafting.Toggle.Off)
+		{
+			info["SocketSlotsLock"] = "";
+		}
 
 		Sockets sockets = info.GetOrCreate<Sockets>();
 

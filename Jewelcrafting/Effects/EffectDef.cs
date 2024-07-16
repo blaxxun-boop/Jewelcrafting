@@ -5,11 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using HarmonyLib;
 using JetBrains.Annotations;
 using Jewelcrafting.LootSystem;
 using Jewelcrafting.WorldBosses;
 using ServerSync;
 using UnityEngine;
+using Object = System.Object;
 
 namespace Jewelcrafting.GemEffects;
 
@@ -62,6 +64,7 @@ public enum Effect
 	Avoidance,
 	Magnetic,
 	Hercules,
+	Extensiveembrace,
 	Vampire,
 	Bloodthirsty,
 	Masterarcher,
@@ -73,9 +76,12 @@ public enum Effect
 	Ninja,
 	Inconspicuous,
 	Nimble,
+	Windwalk,
 	Mirror,
 	Echo,
 	Momentum,
+	Fastreaction,
+	Vampiricparry,
 	Ricochet,
 	Elementalchaos,
 	Resonatingechoes,
@@ -192,6 +198,8 @@ public class EffectDef
 	public static readonly Dictionary<GemType, string> GemTypeNames = ValidGemTypes.ToDictionary(kv => kv.Value, kv => kv.Key);
 	public static readonly Dictionary<Effect, string> EffectNames = ValidEffects.ToDictionary(kv => kv.Value, kv => kv.Key);
 
+	private static MethodInfo MemberwiseCloneInfo = AccessTools.DeclaredMethod(typeof(Object), nameof(MemberwiseClone));
+		
 	public static Dictionary<string, object?> castDictToStringDict(Dictionary<object, object?> dict) => new(dict.ToDictionary(kv => kv.Key.ToString(), kv => kv.Value), StringComparer.InvariantCultureIgnoreCase);
 
 	public struct ParseResult
@@ -924,6 +932,11 @@ public class EffectDef
 			Jewelcrafting.GemsUsingPowerRanges.Clear();
 			foreach (KeyValuePair<Effect, List<EffectDef>> kv in Jewelcrafting.SocketEffects)
 			{
+				if (!ConfigTypes.TryGetValue(kv.Key, out Type configType))
+				{
+					configType = typeof(DefaultPower);
+				}
+
 				foreach (EffectDef def in kv.Value)
 				{
 					if ((def.Type == GemType.Wisplight && Jewelcrafting.wisplightGem.Value == Jewelcrafting.Toggle.Off) || (def.Type == GemType.Wishbone && Jewelcrafting.wishboneGem.Value == Jewelcrafting.Toggle.Off))
@@ -945,11 +958,29 @@ public class EffectDef
 							{
 								power = Jewelcrafting.EffectPowers[hash] = new Dictionary<GemLocation, List<EffectPower>>();
 							}
+
+							Object minPower = def.MinPower[i];
+							Object maxPower = def.MaxPower[i];
+
+							if (def is { Unique: not Uniqueness.All, UsesPowerRanges: false } && Jewelcrafting.effectPowerStandardDeviation.Value != 0)
+							{
+								Jewelcrafting.GemsUsingPowerRanges.Add(def.Type);
+
+								minPower = MemberwiseCloneInfo.Invoke(minPower, Array.Empty<Object>());
+								maxPower = MemberwiseCloneInfo.Invoke(maxPower, Array.Empty<Object>());
+
+								foreach (FieldInfo field in configType.GetFields())
+								{
+									field.SetValue(minPower, (float)field.GetValue(minPower) * (1 - Jewelcrafting.effectPowerStandardDeviation.Value / 100f));
+									field.SetValue(maxPower, (float)field.GetValue(maxPower) * (1 + Jewelcrafting.effectPowerStandardDeviation.Value / 100f));
+								}
+							}
+
 							EffectPower effectPower = new()
 							{
 								Effect = kv.Key,
-								MinConfig = def.MinPower[i],
-								MaxConfig = def.MaxPower[i],
+								MinConfig = minPower,
+								MaxConfig = maxPower,
 								Unique = def.Unique,
 								Type = def.Type,
 							};
@@ -980,6 +1011,7 @@ public class EffectDef
 					}
 
 					ApplyToGems(GemStoneSetup.Gems[def.Type].Select(g => g.Prefab).ToList());
+
 					foreach (KeyValuePair<GemType, Dictionary<GemType, GameObject[]>> mergedGem in MergedGemStoneSetup.mergedGems)
 					{
 						foreach (KeyValuePair<GemType, GameObject[]> mergedKv in mergedGem.Value)

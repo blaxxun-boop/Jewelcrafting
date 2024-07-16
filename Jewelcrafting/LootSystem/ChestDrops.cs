@@ -27,7 +27,7 @@ public class GemDropDef
 
 public static class ChestDrops
 {
-	private static GemDropDef config = null!;
+	public static GemDropDef config = null!;
 
 	public static GemDropDef? Parse(object? drops, List<string> errors)
 	{
@@ -157,6 +157,22 @@ public static class ChestDrops
 		ChestDrops.config = config;
 	}
 
+	public static GemType SelectGem(Dictionary<GemType, float> distribution)
+	{
+		GemType selected = GemType.Green;
+		float total = Random.Range(0, distribution.Values.Sum());
+		foreach (KeyValuePair<GemType, float> kv in distribution)
+		{
+			total -= kv.Value;
+			if (total <= 0.00001f)
+			{
+				selected = kv.Key;
+				break;
+			}
+		}
+		return selected;
+	}
+
 	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.OnDeath))]
 	private static class AddGemChestDrop
 	{
@@ -209,21 +225,12 @@ public static class ChestDrops
 						Dictionary<GemType, float> distribution = new(drops.distribution);
 						foreach (GemType type in skip)
 						{
-							distribution.Remove(type);
-						}
-
-						GemType selected = GemType.Green;
-						float total = Random.Range(0, distribution.Values.Sum());
-						foreach (KeyValuePair<GemType, float> kv in distribution)
-						{
-							total -= kv.Value;
-							if (total <= 0.00001f)
+							if (!Jewelcrafting.GemsUsingPowerRanges.Contains(type))
 							{
-								selected = kv.Key;
-								break;
+								distribution.Remove(type);
 							}
 						}
-						return selected;
+						return SelectGem(distribution);
 					}
 
 					int totalGems = numTiers.Sum();
@@ -235,7 +242,7 @@ public static class ChestDrops
 						selectedGems[i] = selected;
 						for (int j = 0; j < i; ++j)
 						{
-							if (selectedGems[i] == selected)
+							if (selectedGems[j] == selected)
 							{
 								preferForUpgrade.Add(j);
 								selectedGems[i] = Select(selectedGems.Take(i));
@@ -244,6 +251,7 @@ public static class ChestDrops
 						}
 					}
 
+						
 					List<int> indexOrder = preferForUpgrade.GroupBy(v => v).OrderByDescending(g => g.Count()).Select(g => g.Key).ToList();
 					int indexOrderIndex = 0;
 					indexOrder.AddRange(Enumerable.Range(0, totalGems).Except(indexOrder));
@@ -256,17 +264,32 @@ public static class ChestDrops
 						}
 					}
 
+					Dictionary<GemType, int> dropRepetitions = selectedGems.GroupBy(g => g).ToDictionary(g => g.Key, g => g.Count());
 					ItemInfo info = Utils.DropPrefabItem(prefab, character).GetComponent<ItemDrop>().m_itemData.Data();
 					DropChest chest = info.GetOrCreate<DropChest>();
 					chest.removableItemAmount = Jewelcrafting.gemChestAllowedAmount.Value;
 					Inventory chestInventory = chest.ReadInventory();
 					chestInventory.m_height = 1;
-					chestInventory.m_width = choices.Count;
+					chestInventory.m_width = dropRepetitions.Sum(kv => kv.Value);
 
 					foreach (KeyValuePair<GemType, int> gem in choices)
 					{
-						List<GemDefinition> gemstone = GemStoneSetup.Gems[gem.Key];
-						chestInventory.AddItem(gemstone[Math.Min(gem.Value, gemstone.Count - 1)].Prefab, 1);
+						for (int i = 0; i < dropRepetitions[gem.Key]; ++i)
+						{
+							List<GemDefinition> gemstone = GemStoneSetup.Gems[gem.Key];
+							prefab = gemstone[Math.Min(gem.Value, gemstone.Count - 1)].Prefab;
+							if (Jewelcrafting.GemsUsingPowerRanges.Contains(gem.Key))
+							{
+								SocketSeed seed = prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<SocketSeed>(gem.Key.ToString())!;
+								seed.Seed = Utils.GenerateSocketSeed();
+								chestInventory.AddItem(prefab, 1);
+								seed.Info.Remove(seed);
+							}
+							else
+							{
+								chestInventory.AddItem(prefab, 1);
+							}
+						}
 					}
 
 					chest.Save();

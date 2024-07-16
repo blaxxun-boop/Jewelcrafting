@@ -22,7 +22,7 @@ public static class ParryMaster
 		[UsedImplicitly]
 		private static void Postfix(Humanoid __instance, ref float ___m_blockTimer, float __state)
 		{
-			if (__instance is Player player && player.GetEffect(Effect.Parrymaster) > 0 && ___m_blockTimer > -1)
+			if (__instance is Player && ___m_blockTimer > -1)
 			{
 				___m_blockTimer += __state / 1000;
 			}

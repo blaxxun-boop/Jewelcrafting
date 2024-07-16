@@ -30,17 +30,22 @@ archery mentor:
   slot: bow
   gem: cyan
   power: [20, 30, 40]
-  
+
 arbalist mentor:
   slot: crossbow
   gem: cyan
   power: [20, 30, 40]
-  
+
 dedicated tank:
   slot: shield
   gem: cyan
   power: [50, 60, 70]
-  
+
+extensive embrace:
+  item: StaffShield
+  gem: cyan
+  power: [2, 4, 6]
+
 together forever:
   slot: all
   gem: group
@@ -72,7 +77,7 @@ gems:
     cyan: 0.05
   mistlands:
     cyan: 0.05
-    
+
 # Synergies
 
 cyan is the most common color:

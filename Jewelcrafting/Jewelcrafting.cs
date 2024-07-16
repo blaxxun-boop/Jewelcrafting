@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.28";
+	private const string ModVersion = "1.5.29";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -128,6 +128,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		public ConfigEntry<float> lootDefaultChance = null!;
 		public ConfigEntry<LootRestriction> lootRestriction = null!;
 		public ConfigEntry<Toggle> unsocketDroppedItems = null!;
+		public ConfigEntry<Toggle> addSocketToDroppedItem = null!;
 	}
 
 	public static ConfigEntry<int> gemChestMinGems = null!;
@@ -140,6 +141,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<float> gemstoneFormationHealth = null!;
 	public static ConfigEntry<Toggle> featherGliding = null!;
 	public static ConfigEntry<int> featherGlidingBuff = null!;
+	public static ConfigEntry<Toggle> asksvinRunning = null!;
+	public static ConfigEntry<int> asksvinRunningBuff = null!;
 	public static ConfigEntry<Toggle> ringSlot = null!;
 	public static ConfigEntry<Toggle> necklaceSlot = null!;
 	public static ConfigEntry<Toggle> splitSockets = null!;
@@ -149,6 +152,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> randomPowerRanges = null!;
 	public static ConfigEntry<Toggle> vanillaGemCrafting = null!;
 	public static ConfigEntry<float> bigGemstoneFormationChance = null!;
+	public static ConfigEntry<int> effectPowerStandardDeviation = null!;
+	public static ConfigEntry<Toggle> gemReturnLockedGems = null!;
+	public static ConfigEntry<Toggle> disableUniqueGemsInBase = null!;
+	public static ConfigEntry<Toggle> gemDropBiomeDistribution = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -328,6 +335,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		config("2 - Socket System", "YAML Editor Anchor", 0, new ConfigDescription("Just ignore this.", null, new ConfigurationManagerAttributes { HideSettingName = true, HideDefaultButton = true, CustomDrawer = DrawYamlEditorButton }), false);
 		inventorySocketing = config("2 - Socket System", "Inventory Socketing", Toggle.On, "If enabled, you can press the interact key to change gems in your items from your inventory. If disabled, you have to use the Gemcutters Table, to change the gems in your items.");
 		socketCost = config("2 - Socket System", "Socket Cost", SocketCost.ItemMayBreak, "Item May Break: If adding a socket to the item fails, the item will be destroyed.\nCosts Items: Adding sockets to an item costs other items. Use the Jewelcrafting.SocketCosts.yml to configure this.\nBreak Or Cost: Successfully adding a socket spends the resources required for that socket. Failing to add a socket breaks the item.\nBreak And Cost: Successfully adding a socket spends the resources required for that socket. Failing to add a socket breaks the item and spends the resources.");
+		effectPowerStandardDeviation = config("2 - Socket System", "Effect Power Deviation", 0, new ConfigDescription("Can be used to apply a standard deviation in percent to all gem effects. E.g. putting 30 here, will turn an effect power of 10 into 7 - 13. Use 0 to disable this.", new AcceptableValueRange<int>(0, 75)));
+		effectPowerStandardDeviation.SettingChanged += (_, _) => ConfigLoader.TryReapplyConfig();
 		randomPowerRanges = config("2 - Socket System", "Random Power Ranges", Toggle.On, "If enabled, the effect powers for power ranges on gems are different for each effect on the gem.");
 		inventoryInteractBehaviour = config("2 - Socket System", "Interact Behaviour", InteractBehaviour.Hovering, "Disabled: Interact key is disabled, while the inventory is open.\nHovering: Interact key is disabled, while hovering an item with at least one socket.\nEnabled: Interact key is enabled. You will have to use the Gemcutters Table, to socket your items.", false);
 		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
@@ -357,6 +366,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		uniqueGemDropChanceIncreasePerWorldLevel = config("2 - Socket System", "Drop Chance Increase per World Level", 0, new ConfigDescription("If you have Creature Level & Loot Control installed, you can use this setting to increase the drop chance of Unique Gems per World Level. Additive, not multiplicative.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		uniqueGemDropOnePerPlayer = config("2 - Socket System", "Drop one Gem per Player", Toggle.On, new ConfigDescription("If bosses should drop one Unique Gem per player. Has no effect, if the drop system is not set to custom.", null, new ConfigurationManagerAttributes { Order = --order }));
 		allowUnsocketing = config("2 - Socket System", "Gems can be removed from items", Unsocketing.All, new ConfigDescription("All: All gems can be removed from items.\nUnique Only: Only unique gems can be removed from items.\nDisabled: No gems can be removed from items.\nDoes not affect gems without an effect.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gemReturnLockedGems = config("2 - Socket System", "Return locked gems", Toggle.Off, new ConfigDescription("If on, locked gems will be returned to the player, if the item breaks while adding a socket to it.", null, new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketSimple = config("2 - Socket System", "Simple Gem Break Chance", 0f, new ConfigDescription("Chance to break a simple gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketAdvanced = config("2 - Socket System", "Advanced Gem Break Chance", 0f, new ConfigDescription("Chance to break an advanced gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		breakChanceUnsocketPerfect = config("2 - Socket System", "Perfect Gem Break Chance", 0f, new ConfigDescription("Chance to break a perfect gem when trying to remove it from a socket. Does not affect gems without an effect.", new AcceptableValueRange<float>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
@@ -460,6 +470,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			if ((system & (LootSystem.EquipmentDrops | LootSystem.EquipmentChests)) != 0)
 			{
 				lootConfigs[system].unsocketDroppedItems = config("5 - Loot System", $"{system} - Unsocket Dropped Items", Toggle.Off, new ConfigDescription("If on, gems can be removed from dropped equipment items.", null, new ConfigurationManagerAttributes { Order = --order }));
+				lootConfigs[system].addSocketToDroppedItem = config("5 - Loot System", $"{system} - Socket Dropped Items", Toggle.Off, new ConfigDescription("If on, new sockets can be added to dropped equipment items.", null, new ConfigurationManagerAttributes { Order = --order }));
 			}
 		}
 		gemChestMinGems = config("5 - Loot System", "Minimum Gems Gem Chest", 2, new ConfigDescription("Minimum amount of gems inside a dropped gem chest. Needs to be less than the maximum.", new AcceptableValueRange<int>(2, 8), new ConfigurationManagerAttributes { Order = --order }));
@@ -634,7 +645,10 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		};
 		featherGliding = config("6 - Other", "Feather Fall", Toggle.On, new ConfigDescription("Can be used to disable Feather Fall on the Feather Cape and replace it with a buff for Gliding instead.", null, new ConfigurationManagerAttributes { Order = --order }));
 		featherGliding.SettingChanged += ToggleFeatherFall;
-		featherGlidingBuff = config("6 - Other", "Feather Fall Buff", 20, new ConfigDescription("Increases the duration of Gliding. Percentage. Only active, when Feather Fall is disabled.", null, new ConfigurationManagerAttributes { Order = --order }));
+		featherGlidingBuff = config("6 - Other", "Feather Fall Buff", 30, new ConfigDescription("Increases the duration of Gliding. Percentage. Only active, when Feather Fall is disabled.", null, new ConfigurationManagerAttributes { Order = --order }));
+		asksvinRunning = config("6 - Other", "Wind Run", Toggle.On, new ConfigDescription("Can be used to disable Wind Run on the Asksvin Cloak and replace it with a buff for Windwalk instead.", null, new ConfigurationManagerAttributes { Order = --order }));
+		asksvinRunning.SettingChanged += ToggleWindRun;
+		asksvinRunningBuff = config("6 - Other", "Wind Run Buff", 30, new ConfigDescription("Increases the effect of Windwalk. Percentage. Only active, when Wind Run is disabled.", null, new ConfigurationManagerAttributes { Order = --order }));
 		ringSlot = config("6 - Other", "Ring Slot", Toggle.On, new ConfigDescription("If on, the Jewelcrafting rings do not go into the utility slot, but get a special dedicated ring slot.", null, new ConfigurationManagerAttributes { Order = --order }));
 		ringSlot.SettingChanged += (_, _) => Visual.HandleSettingChanged(ringSlot);
 		Visual.HandleSettingChanged(ringSlot);
@@ -659,6 +673,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				recipe.m_enabled = vanillaGemCrafting.Value == Toggle.On;
 			}
 		};
+		disableUniqueGemsInBase = config("6 - Other", "Unique gems in base", Toggle.On, new ConfigDescription("If off, unique gems cannot trigger while in whatever Valheim considers to be a player base.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		
 		warmthStaminaRegen = config("Ruby Ring of Warmth", "Stamina Regen", 10, new ConfigDescription("Stamina regen increase for the Ruby Ring of Warmth effect.", new AcceptableValueRange<int>(0, 100)));
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
@@ -950,6 +965,27 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		}
 	}
+	
+	private static void ToggleWindRun(object sender, EventArgs e)
+	{
+		if (ObjectDB.instance && ObjectDB.instance.GetItemPrefab("CapeAsksvin") is { } cape && ObjectDB.instance.GetStatusEffect("WindRun".GetStableHashCode()) is { } statusEffect)
+		{
+			StatusEffect? value = asksvinRunning.Value == Toggle.Off ? null : statusEffect;
+			Item.ApplyToAllInstances(cape, data => data.m_shared.m_equipStatusEffect = value);
+
+			if (Player.m_localPlayer is { } player && player.m_shoulderItem?.m_shared.m_name == "$item_cape_asksvin")
+			{
+				if (asksvinRunning.Value == Toggle.On)
+				{
+					player.GetSEMan().AddStatusEffect(statusEffect);
+				}
+				else
+				{
+					player.GetSEMan().RemoveStatusEffect(statusEffect);
+				}
+			}
+		}
+	}
 
 	private static void AddBossBoxProgressConfig(string name, float[] progress)
 	{
@@ -1026,6 +1062,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		private static void Postfix()
 		{
 			ToggleFeatherFall(null!, null!);
+			ToggleWindRun(null!, null!);
 		}
 	}
 

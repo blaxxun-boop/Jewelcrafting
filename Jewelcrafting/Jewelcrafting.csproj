@@ -208,6 +208,7 @@
         <Compile Include="Effects\GemEffects\Energetic.cs"/>
         <Compile Include="Effects\GemEffects\Explorer.cs"/>
         <Compile Include="Effects\GemEffects\Fade.cs"/>
+        <Compile Include="Effects\GemEffects\FastReaction.cs"/>
         <Compile Include="Effects\GemEffects\FieryDoom.cs"/>
         <Compile Include="Effects\GemEffects\FireStarter.cs"/>
         <Compile Include="Effects\GemEffects\Frenzy.cs"/>
@@ -257,12 +258,15 @@
         <Compile Include="Effects\GemEffects\Unbreakable.cs"/>
         <Compile Include="Effects\GemEffects\Unfazed.cs"/>
         <Compile Include="Effects\GemEffects\Vampire.cs"/>
+        <Compile Include="Effects\GemEffects\VampiricParry.cs"/>
         <Compile Include="Effects\GemEffects\Vitality.cs"/>
+        <Compile Include="Effects\GemEffects\Windwalk.cs"/>
         <Compile Include="Effects\GemEffects\Wishbone.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArcheryMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\Cowardice.cs"/>
         <Compile Include="Effects\GemEffects\Groups\DedicatedTank.cs"/>
+        <Compile Include="Effects\GemEffects\Groups\ExtensiveEmbrace.cs"/>
         <Compile Include="Effects\GemEffects\Groups\FleetingLife.cs"/>
         <Compile Include="Effects\GemEffects\Groups\LeadingWolf.cs"/>
         <Compile Include="Effects\GemEffects\Groups\SafeHaven.cs"/>

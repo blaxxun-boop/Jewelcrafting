@@ -392,6 +392,11 @@ public static class GemStones
 			return true;
 		}
 
+		if (item.Data()["SocketSlotsLock"] is not null)
+		{
+			return false;
+		}
+
 		if (Jewelcrafting.limitSocketsByTableLevel.Value == Jewelcrafting.Toggle.On && Player.m_localPlayer.GetCurrentCraftingStation() is { } craftingStation && global::Utils.GetPrefabName(craftingStation.gameObject) == BuildingPiecesSetup.gemcuttersTable.name)
 		{
 			return ((container as Sockets)?.socketedGems.Count ?? int.MaxValue) < Jewelcrafting.maxSocketsTableLevel[Math.Min(2, craftingStation.GetLevel() - 1)].Value;
@@ -594,7 +599,7 @@ public static class GemStones
 
 				if (Jewelcrafting.socketCost.Value != Jewelcrafting.SocketCost.CostsItems)
 				{
-					if (socketedItem.Data().Get<Sockets>() is { } sockets)
+					if (socketedItem.Data().Get<Sockets>() is { } sockets && (Jewelcrafting.gemReturnLockedGems.Value == Jewelcrafting.Toggle.On || socketedItem.Data()["SocketsLock"] is null))
 					{
 						Inventory itemInventory = sockets.ReadInventory();
 
@@ -810,7 +815,7 @@ public static class GemStones
 									}
 									else
 									{
-										text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, tier, gem.Effect, gem.MinConfig.GetType().GetFields().Select((p, i) => Utils.DisplayGemEffectPower(gem, p, i, socket.Seed)).ToArray()) : $" {Utils.DisplayGemEffectPower(gem, null, 0, socket.Seed)}")));
+										text = string.Join("\n", allEffectPowers.Select(gem => $"$jc_effect_{EffectDef.EffectNames[gem.Effect].ToLower()}" + (displayAdvanced ? " - " + Utils.LocalizeDescDetail(Player.m_localPlayer!, tier, gem.Effect, gem.MinConfig.GetType().GetFields().Select((p, i) => Utils.DisplayGemEffectPower(gem, p, i, socket.Seed, true)).ToArray()) : $" {Utils.DisplayGemEffectPower(gem, null, 0, socket.Seed)}")));
 									}
 								}
 								else
@@ -926,7 +931,7 @@ public static class GemStones
 							}
 						}
 
-						sb.Append($"\n<color=orange>{name}:</color> {string.Join(", ", kv.Value.Select((effectPower, i) => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {Utils.DisplayGemEffectPower(effectPower, null, i, item.Data().GetAll<SocketSeed>() is { Count: > 0 } seeds ? seeds.ToDictionary(kv => kv.Key, kv => kv.Value.Seed) : null)}"))}");
+						sb.Append($"\n<color=orange>{name}:</color> {string.Join(", ", kv.Value.Select((effectPower, i) => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {Utils.DisplayGemEffectPower(effectPower, null, i, item.Data().GetAll<SocketSeed>() is { Count: > 0 } seeds ? seeds.ToDictionary(kv => kv.Key, kv => kv.Value.Seed) : null, true)}"))}");
 					}
 
 					string flavorText = $"{item.m_shared.m_description.Substring(1)}_flavor";
@@ -981,10 +986,14 @@ public static class GemStones
 						__result += sb.ToString();
 					}
 				}
-				if (prefab.name == "CapeFeather" && Jewelcrafting.featherGliding.Value == Jewelcrafting.Toggle.Off)
-				{
-					__result += Localization.instance.Localize("\n\n$jc_feather_cape_gliding_buff_description", Jewelcrafting.featherGlidingBuff.Value.ToString());
-				}
+			}
+			if (item.m_shared.m_name == "$item_cape_feather" && Jewelcrafting.featherGliding.Value == Jewelcrafting.Toggle.Off)
+			{
+				__result += Localization.instance.Localize("\n\n$jc_feather_cape_gliding_buff_description", Jewelcrafting.featherGlidingBuff.Value.ToString());
+			}
+			if (item.m_shared.m_name == "$item_cape_asksvin" && Jewelcrafting.asksvinRunning.Value == Jewelcrafting.Toggle.Off)
+			{
+				__result += Localization.instance.Localize("\n\n$jc_asksvin_cape_windwalk_buff_description", Jewelcrafting.asksvinRunningBuff.Value.ToString());
 			}
 		}
 	}
@@ -1293,7 +1302,7 @@ public static class GemStones
 		bool socketingFrame = container.m_shared.m_name == MiscSetup.chanceFrameName || container.m_shared.m_name == MiscSetup.chaosFrameName;
 
 		Sockets? existingSockets = item.Data().Get<Sockets>();
-		if (socketingFrame && !Utils.IsSocketableItem(item))
+		if (socketingFrame && (!Utils.IsSocketableItem(item) || item.Data()["SocketSlotsLock"] is not null))
 		{
 			Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_frame_not_socketable");
 		}

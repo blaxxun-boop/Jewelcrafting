@@ -32,14 +32,14 @@ shadow hit:
   # Optional Configs:
   # - range (default: 5)
   # - amount (default: 1)
-  
+
 vampire:
   slot: [weapon, elementalmagic]
   gem: yellow
   power: [6, 8, 10]
   # Optional Configs:
   # - max heal (default: 6)
-  
+
 berserk:
   slot: [weapon, magic]
   gem: purple
@@ -102,14 +102,14 @@ mirror:
   power: [2, 4, 6]
   # Optional Configs:
   # - damage reflected (default: 100)
-  
+
 fade:
   slot: chest
   gem: orange
   power: [1, 2, 3]
   # Optional Configs:
   # - damage threshold (default: 30)
-  
+
 # Legs
 
 sprinter:
@@ -254,7 +254,7 @@ master arbalist:
   slot: crossbow
   gem: purple
   power: [4, 6, 8]
-  
+
 quick load:
   slot: crossbow
   gem: black
@@ -268,28 +268,28 @@ echo:
   power: [2, 3, 4]
   # Optional Configs:
   # - bonus projectiles (default: 1)
-  
+
 necromancer:
   slot: [bow, crossbow]
   gem: green
   power: [3, 5, 7]
   # Optional Configs:
   # - duration (default: 10)
-  
+
 ricochet:
   slot: [bow, crossbow]
   gem: orange
   power: [3, 5, 7]
   # Optional Configs:
   # - range (default: 15)
-  
+
 elemental chaos:
   slot: [bow, crossbow]
   gem: blue
   power: [10, 15, 20]
   # Optional Configs:
   # - chance (default: 20)
-  
+
 # Cloak
 
 glider:
@@ -298,7 +298,7 @@ glider:
   power: [3, 5, 7]
   # Optional Configs:
   # - required height (default: 3.5)
-  
+
 inconspicuous:
   slot: cloak
   gem: black
@@ -308,6 +308,11 @@ turtle shell:
   slot: cloak
   gem: yellow
   power: [8, 10, 12]
+
+wind walk:
+  slot: cloak
+  gem: purple
+  power: [5, 10, 15]
 
 # Shield
 
@@ -336,6 +341,18 @@ tank:
 pain tolerance:
   slot: shield
   gem: red
+  power: [1, 2, 3]
+
+fast reaction:
+  slot: shield
+  gem: orange
+  power:
+    parry frame decrease: [50, 85, 120]
+    parry power increase: [10, 20, 30]
+
+vampiric parry:
+  slot: shield
+  gem: green
   power: [1, 2, 3]
 
 # Tool
@@ -426,7 +443,7 @@ apotheosis:
     magic damage increase: 15
     attack speed: 20
   unique: all
-  
+
 lizard friendship:
   slot: all
   gem: fader

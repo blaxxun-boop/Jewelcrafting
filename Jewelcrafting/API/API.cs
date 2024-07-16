@@ -490,6 +490,20 @@ public static class API
 #endif
 	}
 
+	public static void SetSocketSlotsLock(ItemDrop.ItemData item, bool enabled)
+	{
+#if ! API
+		if (enabled)
+		{
+			item.Data()["SocketSlotsLock"] = "";
+		}
+		else
+		{
+			item.Data().Remove("SocketSlotsLock");
+		}
+#endif
+	}
+
 	public delegate bool GemBreakHandler(ItemDrop.ItemData? container, ItemDrop.ItemData gem, int count = 1);
 
 	public delegate bool ItemBreakHandler(ItemDrop.ItemData? container);

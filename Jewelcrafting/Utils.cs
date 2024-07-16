@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using Groups;
 using HarmonyLib;
 using ItemDataManager;
@@ -249,7 +250,8 @@ public static class Utils
 				return desc;
 			}
 		}
-		return Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_{tier}_detail") ? $"_{tier}" : "") + "_detail", numbers);
+		string descStr = Localization.instance.Localize($"$jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc" + (Localization.instance.m_translations.ContainsKey($"jc_effect_{EffectDef.EffectNames[effect].ToLower()}_desc_{tier}_detail") ? $"_{tier}" : "") + "_detail", numbers);
+		return Regex.Replace(descStr, @"([\d.]+) \(([\d.]+) - ([\d.]+)\)(\S)\b", "$1$4 ($2$4 - $3$4)");
 	}
 
 	public static ItemDrop? getRandomGem(int tier = 0, GemType? type = null, HashSet<ItemDrop>? blackList = null)
@@ -297,7 +299,7 @@ public static class Utils
 		return item;
 	}
 
-	public static bool SkipBossPower() => Player.m_localPlayer.m_rightItem?.m_shared.m_buildPieces is not null;
+	public static bool SkipBossPower() => (Jewelcrafting.disableUniqueGemsInBase.Value == Jewelcrafting.Toggle.Off && Player.m_localPlayer.GetBaseValue() > 0) || Player.m_localPlayer.m_rightItem?.m_shared.m_buildPieces is not null;
 
 	private static readonly Dictionary<string, ItemDrop> items = new(StringComparer.InvariantCultureIgnoreCase);
 	private static readonly Dictionary<GemLocation, ItemDrop> itemsByGemLocation = new();
@@ -395,7 +397,7 @@ public static class Utils
 
 	public static Dictionary<string, uint> GenerateSocketSeedForItem(string item) => GetAllGemInfos(item).ToDictionary(i => i.Type.ToString(), _ => GenerateSocketSeed());
 
-	public static string DisplayGemEffectPower(EffectPower power, FieldInfo? field, int fieldIndex, Dictionary<string, uint>? seeds)
+	public static string DisplayGemEffectPower(EffectPower power, FieldInfo? field, int fieldIndex, Dictionary<string, uint>? seeds, bool forceRange = false)
 	{
 		float min = field is null ? power.MinPower : (float)field.GetValue(power.MinConfig);
 		float max = field is null ? power.MaxPower : (float)field.GetValue(power.MaxConfig);
@@ -405,12 +407,13 @@ public static class Utils
 			return FormatShortNumber(min);
 		}
 
+		string range = $"{FormatShortNumber(min)} - {FormatShortNumber(max)}";
 		if (seeds is null)
 		{
-			return $"{FormatShortNumber(min)} - {FormatShortNumber(max)}";
+			return range;
 		}
 
-		return FormatShortNumber(CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Effect, seeds));
+		return FormatShortNumber(CalcRealEffectPower(min, max, fieldIndex, power.Type, power.Effect, seeds)) + (forceRange ? $" ({range})" : "");
 	}
 
 	public static bool FindSpawnPoint(Vector3 center, float distance, out Vector3 point)

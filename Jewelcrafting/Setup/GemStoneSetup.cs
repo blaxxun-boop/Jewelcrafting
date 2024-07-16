@@ -3,6 +3,7 @@ using BepInEx.Configuration;
 using ItemManager;
 using UnityEngine;
 using UnityEngine.UI;
+using Toggle = ItemManager.Toggle;
 
 namespace Jewelcrafting;
 
@@ -70,6 +71,7 @@ public static class GemStoneSetup
 		{ GemType.Black, "StoneBlack" },
 		{ GemType.Blue, "StoneBlue" },
 		{ GemType.Green, "StoneGreen" },
+		{ GemType.Orange, "StoneOrange" },
 		{ GemType.Purple, "StonePurple" },
 		{ GemType.Red, "StoneRed" },
 		{ GemType.Yellow, "StoneYellow" },
@@ -242,6 +244,7 @@ public static class GemStoneSetup
 			Colors.Add(GemType.Cyan, new MaterialColor { Color = Color.cyan });
 		}
 
+		Jewelcrafting.gemDropBiomeDistribution = Jewelcrafting.config("Gem Drops", "Use biome distribution", Jewelcrafting.Toggle.Off, new ConfigDescription("If on, gem drops will follow the biome distribution defined in the YAML."));
 		foreach (KeyValuePair<GemType, MaterialColor> gemType in Colors)
 		{
 			string shardAssetName = customGemShardPrefab.name.Replace("Custom", gemType.Key.ToString());
