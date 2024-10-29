@@ -449,11 +449,11 @@ public static class GemStones
 					}
 				}
 
-				__instance.m_availableRecipes.Clear();
+				
 				foreach (InventoryGui.RecipeDataPair recipe in __instance.m_availableRecipes)
 				{
 					Object.Destroy(recipe.InterfaceElement);
-				}
+				}__instance.m_availableRecipes.Clear();
 				
 				foreach (ItemDrop.ItemData itemData in socketItems)
 				{
