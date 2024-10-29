@@ -62,6 +62,7 @@ public partial class Visual
 			}
 		}
 
+		// TODO: Need to fix this for Bog Witch.
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable, ILGenerator ilg)
 		{
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
