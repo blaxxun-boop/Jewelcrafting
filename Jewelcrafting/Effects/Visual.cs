@@ -62,8 +62,7 @@ public partial class Visual
 			}
 		}
 
-		// TODO: Need to fix this for Bog Witch.
-		/*private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable, ILGenerator ilg)
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable, ILGenerator ilg)
 		{
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
 			List<CodeInstruction> patched = PatchProcessor.GetOriginalInstructions(AccessTools.DeclaredMethod(typeof(ApplyStatusEffects), nameof(ApplyStatusEffects.CollectEffects)), ilg);
@@ -126,7 +125,7 @@ public partial class Visual
 			instructions.InsertRange(2, patched);
 
 			return instructions;
-		}*/
+		}
 	}
 
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.GetSetCount))]
