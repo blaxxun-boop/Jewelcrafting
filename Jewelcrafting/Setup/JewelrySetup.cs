@@ -172,7 +172,7 @@ public static class JewelrySetup
 		}
 	}
 
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
 	private static class DisplayUtilityArmor
 	{
 		private static void Postfix(ItemDrop.ItemData item, int qualityLevel, float worldLevel, ref string __result)
@@ -186,7 +186,7 @@ public static class JewelrySetup
 
 	private static int OrangeNecklaceQuality() => Mathf.RoundToInt(Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * 100); 
 	
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
 	private static class SetOrangeNecklaceQualityInCraftMenu
 	{
 		private static void Prefix(ItemDrop.ItemData item, ref int qualityLevel)

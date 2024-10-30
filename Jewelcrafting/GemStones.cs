@@ -216,7 +216,7 @@ public static class GemStones
 			Button.ButtonClickedEvent buttonClick = new();
 			buttonClick.AddListener(() =>
 			{
-				OpenFakeSocketsContainer.Open(__instance, __instance.m_selectedRecipe.Value);
+				OpenFakeSocketsContainer.Open(__instance, __instance.m_selectedRecipe.ItemData);
 			});
 			socketingButton.onClick = buttonClick;
 			socketingButton.interactable = true;
@@ -254,7 +254,7 @@ public static class GemStones
 			{
 				socketIcon.SetActive(false);
 			}
-			if (__instance.m_selectedRecipe.Value?.Data().Get<ItemContainer>() is { } container)
+			if (__instance.m_selectedRecipe.ItemData?.Data().Get<ItemContainer>() is { } container)
 			{
 				if (container is Socketable sockets and not ItemBag)
 				{
@@ -282,11 +282,11 @@ public static class GemStones
 				AddSocketIcons.socketingButton.gameObject.SetActive(false);
 			}
 
-			if (AddSocketAddingTab.TabOpen() && __instance.m_selectedRecipe.Value is { } activeRecipe)
+			if (AddSocketAddingTab.TabOpen() && __instance.m_selectedRecipe.ItemData is { } activeRecipe)
 			{
 				__instance.m_craftButton.GetComponentInChildren<TMP_Text>().text = Localization.instance.Localize("$jc_add_socket_button");
-				bool canAfford = Player.m_localPlayer.NoCostCheat() || ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoCraftCost) || Player.m_localPlayer.HaveRequirementItems(__instance.m_selectedRecipe.Key, false, 1);
-				__instance.m_craftButton.interactable = __instance.m_selectedRecipe.Key.m_enabled && CanAddMoreSockets(activeRecipe) && canAfford;
+				bool canAfford = Player.m_localPlayer.NoCostCheat() || ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoCraftCost) || Player.m_localPlayer.HaveRequirementItems(__instance.m_selectedRecipe.Recipe, false, 1);
+				__instance.m_craftButton.interactable = __instance.m_selectedRecipe.Recipe.m_enabled && CanAddMoreSockets(activeRecipe) && canAfford;
 				__instance.m_craftButton.GetComponent<UITooltip>().m_text = canAfford ? "" : Localization.instance.Localize("$msg_missingrequirement");
 				if (Jewelcrafting.socketCost.Value == Jewelcrafting.SocketCost.ItemMayBreak)
 				{
@@ -341,7 +341,7 @@ public static class GemStones
 
 				__instance.m_recipeRequirementList[0].transform.parent.gameObject.SetActive(true);
 
-				if (__instance.m_selectedRecipe.Key is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources.Length > 0 && recipe.m_resources[0].m_amount == recipe.m_amount)
+				if (__instance.m_selectedRecipe.Recipe is { } recipe && Jewelcrafting.gemUpgradeChances.TryGetValue(recipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> chance) && recipe.m_resources.Length > 0 && recipe.m_resources[0].m_amount == recipe.m_amount)
 				{
 					float successChance = chance.Value / 100f;
 					float skillChance = Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f;
@@ -439,39 +439,40 @@ public static class GemStones
 					}
 				}
 				
-				List<KeyValuePair<Recipe, ItemDrop.ItemData>> recipes = new();
-				foreach (KeyValuePair<Recipe, ItemDrop.ItemData> recipe in __instance.m_availableRecipes)
+				List<InventoryGui.RecipeDataPair> recipes = new();
+				foreach (InventoryGui.RecipeDataPair recipe in __instance.m_availableRecipes)
 				{
-					if (recipe.Key.m_item && socketItems.Remove(recipe.Value))
+					if (recipe.Recipe.m_item && socketItems.Remove(recipe.ItemData))
 					{
 						recipes.Add(recipe);
-						UpdateRecipeSocketingCosts(recipe.Key, recipe.Value);
+						UpdateRecipeSocketingCosts(recipe.Recipe, recipe.ItemData);
 					}
 				}
 
-				__instance.m_availableRecipes.Clear();
-				foreach (GameObject recipe in __instance.m_recipeList)
+				
+				foreach (InventoryGui.RecipeDataPair recipe in __instance.m_availableRecipes)
 				{
-					Object.Destroy(recipe);
+					Object.Destroy(recipe.InterfaceElement);
 				}
-
-				__instance.m_recipeList.Clear();
+				__instance.m_availableRecipes.Clear();
+				
 				foreach (ItemDrop.ItemData itemData in socketItems)
 				{
 					ItemDrop component = Utils.Clone(itemData.m_dropPrefab.GetComponent<ItemDrop>());
 					component.m_itemData = itemData;
 					Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
 					recipe.m_item = component;
-					recipes.Add(new KeyValuePair<Recipe, ItemDrop.ItemData>(recipe, itemData));
+					bool canCraft = itemData.m_quality < itemData.m_shared.m_maxQuality && Player.m_localPlayer.HaveRequirements(recipe, false, itemData.m_quality + 1) | ZoneSystem.instance.GetGlobalKey(GlobalKeys.NoCraftCost);
+					recipes.Add(new InventoryGui.RecipeDataPair(recipe, itemData, null, canCraft));
 					UpdateRecipeSocketingCosts(recipe, itemData);
 				}
 
-				foreach (KeyValuePair<Recipe, ItemDrop.ItemData> recipe in recipes)
+				foreach (InventoryGui.RecipeDataPair recipe in recipes)
 				{
-					__instance.AddRecipeToList(Player.m_localPlayer, recipe.Key, recipe.Value, recipe.Key.m_enabled && CanAddMoreSockets(recipe.Value));
+					__instance.AddRecipeToList(Player.m_localPlayer, recipe.Recipe, recipe.ItemData, recipe.Recipe.m_enabled && CanAddMoreSockets(recipe.ItemData));
 				}
 
-				__instance.m_recipeListRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(__instance.m_recipeListBaseSize, __instance.m_recipeList.Count * __instance.m_recipeListSpace));
+				__instance.m_recipeListRoot.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, Mathf.Max(__instance.m_recipeListBaseSize, __instance.m_availableRecipes.Count * __instance.m_recipeListSpace));
 
 				return false;
 			}
@@ -901,7 +902,7 @@ public static class GemStones
 		return locations;
 	}
 
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
 	private class DisplayEffectsOnGems
 	{
 		private static void Postfix(ItemDrop.ItemData item, ref string __result)

@@ -56,7 +56,7 @@ public static class BossSpawn
 						int remainingTime = int.MaxValue - 1;
 						while (oldRemainingTime > remainingTime || oldRemainingTime > 50)
 						{
-							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y < 1 + (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.instance.GetZone).ToList();
+							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y < 1 + (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.GetZone).ToList();
 
 							if (locationsToRemove.Count > 0)
 							{
@@ -159,7 +159,7 @@ public static class BossSpawn
 			if (__instance.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 			{
 				__instance.m_nview.GetZDO().GetVec3("Jewelcrafting World Boss spawn position", out Vector3 spawn_pos);
-				Vector2i sector = ZoneSystem.instance.GetZone(spawn_pos);
+				Vector2i sector = ZoneSystem.GetZone(spawn_pos);
 				if (ZNet.instance.IsServer())
 				{
 					HandleBossDeath(sector);
@@ -323,7 +323,7 @@ public static class BossSpawn
 			}
 
 			int baseValue = 0;
-			Vector2i sector = ZoneSystem.instance.GetZone(point);
+			Vector2i sector = ZoneSystem.GetZone(point);
 
 			if (ZoneSystem.instance.m_locationInstances.ContainsKey(sector))
 			{

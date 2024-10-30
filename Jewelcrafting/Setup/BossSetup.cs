@@ -129,7 +129,7 @@ public static class BossSetup
 						zdo.Set("Jewelcrafting World Boss", destruction);
 						zdo.Set("Jewelcrafting World Boss spawn position", transform.position);
 					}
-					Vector2i sector = ZoneSystem.instance.GetZone(transform.position);
+					Vector2i sector = ZoneSystem.GetZone(transform.position);
 					if (ZoneSystem.instance.m_locationInstances.TryGetValue(sector, out ZoneSystem.LocationInstance location))
 					{
 						location.m_position.y = destruction + (spawned - 1) * 0.25f;
