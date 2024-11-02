@@ -1,0 +1,83 @@
+# Resource map is taken from the Loot yaml
+
+# Use "3: disabled" to allow items from a specific biome to only have 2 sockets, for example.
+# If you leave out a number, it will take the resource cost of the previous socket.
+
+socket cost:
+  meadows:
+    1:
+      flint: 3
+      leather scraps: 5
+    2:
+      flint: 5
+      deer hide: 5
+    3:
+      flint: 10
+      BoneFragments: 5
+  black forest:
+    1:
+      bronze: 3
+      Yellow mushroom: 5
+    2:
+      bronze: 5
+      Greydwarf eye: 10
+    3:
+      bronze: 10
+      Ancient seed: 3
+  swamp:
+    1:
+      iron: 3
+      Ooze: 5
+    2:
+      iron: 5
+      Withered bone: 5
+    3:
+      iron: 10
+      Root: 5
+  ocean:
+    1:
+      chitin: 5
+    2:
+      chitin: 10
+    3:
+      chitin: 15
+  mountain:
+    1:
+      silver: 3
+      Wolf fang: 5
+    2:
+      silver: 5
+      Freeze gland: 5
+    3:
+      silver: 10
+      WolfHairBundle: 5
+  plains:
+    1:
+      Black metal: 3
+      Cloudberries: 5
+    2:
+      Black metal: 5
+      Needle: 5
+    3:
+      Black metal: 10
+      Lox pelt: 5
+  mistlands:
+    1:
+      Refined eitr: 3
+      Soft tissue: 5
+    2:
+      Refined eitr: 5
+      Carapace: 5
+    3:
+      Refined eitr: 10
+      Mandible: 5
+  ash lands:
+    1:
+      Flametal: 3
+      Asksvin Hide: 5
+    2:
+      Flametal: 5
+      Morgen Sinew: 3
+    3:
+      Flametal: 7
+      Morgen Heart: 1

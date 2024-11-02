@@ -1,8 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using HarmonyLib;
 using ItemDataManager;
 using ItemManager;
 using Jewelcrafting.GemEffects;
+using SkillManager;
 using UnityEngine;
 
 namespace Jewelcrafting;
@@ -13,7 +18,9 @@ public static class JewelrySetup
 	
 	private static GameObject customNecklacePrefab = null!;
 	private static GameObject customRingPrefab = null!;
+	private static ItemDrop orangeNecklace = null!;
 	private static Item purpleRing = null!;
+	public static Sprite gemstoneFormationIcon = null!;
 
 	public static GameObject CreateRingFromTemplate(string colorName, MaterialColor color) => GemStoneSetup.CreateItemFromTemplate(customRingPrefab, colorName, $"jc_ring_{colorName.Replace(" ", "_").ToLower()}", color);
 	public static GameObject CreateNecklaceFromTemplate(string colorName, MaterialColor color) => GemStoneSetup.CreateItemFromTemplate(customNecklacePrefab, colorName, $"jc_necklace_{colorName.Replace(" ", "_").ToLower()}", color);
@@ -23,7 +30,8 @@ public static class JewelrySetup
 	{
 		customNecklacePrefab = assets.LoadAsset<GameObject>("JC_Custom_Necklace");
 		customRingPrefab = assets.LoadAsset<GameObject>("JC_Custom_Ring");
-
+		gemstoneFormationIcon = assets.LoadAsset<Sprite>("gemformationicon");
+		
 		Item item = new(assets, "JC_Necklace_Red");
 		item.Crafting.Add("op_transmution_table", 3);
 		item.RequiredItems.Add("Perfect_Red_Socket", 1);
@@ -68,6 +76,19 @@ public static class JewelrySetup
 		upgradeableJewelry.Add(purpleNecklaceShared.m_name);
 		purpleNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Guidance>(purpleNecklaceShared.m_equipStatusEffect);
 
+		item = new Item(assets, "JC_Necklace_Orange");
+		item.Crafting.Add("op_transmution_table", 3);
+		item.RequiredItems.Add("Perfect_Orange_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.RequiredItems.Add("Coins", 3000);
+		item.MaximumRequiredStationLevel = 3;
+		orangeNecklace = item.Prefab.GetComponent<ItemDrop>();
+		ItemDrop.ItemData.SharedData orangeNecklaceShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		upgradeableJewelry.Add(orangeNecklaceShared.m_name);
+		orangeNecklaceShared.m_armor = 4;
+		orangeNecklaceShared.m_armorPerLevel = 0;
+		orangeNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Attunement>(orangeNecklaceShared.m_equipStatusEffect);
+		
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Purple_Socket", 1);
@@ -107,6 +128,16 @@ public static class JewelrySetup
 		ItemDrop.ItemData.SharedData blueRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
 		upgradeableJewelry.Add(blueRingShared.m_name);
 		blueRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<ModersBlessing>(blueRingShared.m_equipStatusEffect);
+		
+		item = new Item(assets, "JC_Ring_Black");
+		item.Crafting.Add("op_transmution_table", 2);
+		item.RequiredItems.Add("Perfect_Black_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		ItemDrop.ItemData.SharedData blackRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		upgradeableJewelry.Add(blackRingShared.m_name);
+		blackRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Legacy>(blackRingShared.m_equipStatusEffect);
 	}
 
 	public static void SetPurpleRingSockets()
@@ -141,7 +172,7 @@ public static class JewelrySetup
 		}
 	}
 
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
 	private static class DisplayUtilityArmor
 	{
 		private static void Postfix(ItemDrop.ItemData item, int qualityLevel, float worldLevel, ref string __result)
@@ -150,6 +181,43 @@ public static class JewelrySetup
 			{
 				__result += $"\n$item_armor: <color=orange>{item.GetArmor(qualityLevel, worldLevel)}</color>";
 			}
+		}
+	}
+
+	private static int OrangeNecklaceQuality() => Mathf.RoundToInt(Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * 100); 
+	
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
+	private static class SetOrangeNecklaceQualityInCraftMenu
+	{
+		private static void Prefix(ItemDrop.ItemData item, ref int qualityLevel)
+		{
+			if (item == orangeNecklace.m_itemData)
+			{
+				qualityLevel = OrangeNecklaceQuality();
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
+	private static class UpdateQualityAfterOrangeNecklaceCraft
+	{
+		private static readonly MethodInfo AddItem = AccessTools.DeclaredMethod(typeof(Inventory), nameof(Inventory.AddItem), new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(long), typeof(string), typeof(Vector2i), typeof(bool) });
+
+		private static int SetQuality(int quality) => InventoryGui.instance.m_craftRecipe.m_item.gameObject == orangeNecklace.gameObject ? OrangeNecklaceQuality() : quality;
+		
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
+		{
+			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
+			for (int i = 0; i < instructions.Count; ++i)
+			{
+				if (instructions[i].Calls(AddItem))
+				{
+					while (instructions[--i].opcode != OpCodes.Ldloc_0) ;
+					instructions.Insert(i + 1, new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(UpdateQualityAfterOrangeNecklaceCraft), nameof(SetQuality))));
+					break;
+				}
+			}
+			return instructions;
 		}
 	}
 }

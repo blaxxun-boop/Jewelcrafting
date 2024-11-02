@@ -65,9 +65,9 @@ public static class Stats
 	};
 	public static readonly Stat gemsBroken = new("Gems Broken Unsocket");
 	public static readonly Stat socketAddSuccess = new("Sockets Added (Gemcutter Table)");
-	public static readonly Stat[] socketAddSuccessSlot = Enumerable.Range(1, 10).Select(i => new Stat($"Sockets Added {i}. Socket (Gemcutter Table)")).ToArray();
+	public static readonly Stat[] socketAddSuccessSlot = Enumerable.Range(1, Jewelcrafting.maxNumberOfSockets).Select(i => new Stat($"Sockets Added {i}. Socket (Gemcutter Table)")).ToArray();
 	public static readonly Stat socketAddFailure = new("Socket Adding Failed (Gemcutter Table)");
-	public static readonly Stat[] socketAddFailureSlot = Enumerable.Range(1, 10).Select(i => new Stat($"Socket Adding Failed {i}. Socket (Gemcutter Table)")).ToArray();
+	public static readonly Stat[] socketAddFailureSlot = Enumerable.Range(1, Jewelcrafting.maxNumberOfSockets).Select(i => new Stat($"Socket Adding Failed {i}. Socket (Gemcutter Table)")).ToArray();
 	public static readonly Stat chanceFramesUsed = new("Chance Frames Used");
 	public static readonly Stat chanceFrameSocketsAdded = new("Sockets Added (Chance Frames)");
 	public static readonly Stat chanceFrameSocketsLoss = new("Sockets Removed (Chance Frames)");

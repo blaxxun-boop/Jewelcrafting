@@ -36,7 +36,7 @@ public static class RootedRevenge
 	private class RootedEffect : StatusEffect
 	{
 		// ReSharper disable once RedundantAssignment
-		public override void ModifySpeed(float baseSpeed, ref float speed)
+		public override void ModifySpeed(float baseSpeed, ref float speed, Character character, Vector3 dir)
 		{
 			speed = 0;
 		}
@@ -44,7 +44,7 @@ public static class RootedRevenge
 		public override void OnDamaged(HitData hit, Character attacker)
 		{
 			base.OnDamaged(hit, attacker);
-			if (attacker is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.rootedRevenge.name))
+			if (attacker is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.rootedRevenge.name.GetStableHashCode()))
 			{
 				hit.m_damage.Modify(1 + player.GetEffect<Config>(Effect.Rootedrevenge).BonusDamage / 100f);
 			}

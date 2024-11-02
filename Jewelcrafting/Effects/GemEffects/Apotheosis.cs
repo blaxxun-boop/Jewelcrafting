@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using System.Runtime.InteropServices;
 using HarmonyLib;
 using UnityEngine;
@@ -10,9 +11,9 @@ public static class Apotheosis
 	static Apotheosis()
 	{
 		EffectDef.ConfigTypes.Add(Effect.Apotheosis, typeof(Config));
-		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name) ? player.GetEffect<Config>(Effect.Apotheosis).AttackSpeed / 100f : 0);
+		ApplyAttackSpeed.Modifiers.Add(player => player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name.GetStableHashCode()) ? player.GetEffect<Config>(Effect.Apotheosis).AttackSpeed / 100f : 0);
 	}
-	
+
 	[StructLayout(LayoutKind.Sequential)]
 	private struct Config
 	{
@@ -23,7 +24,7 @@ public static class Apotheosis
 		[MultiplicativePercentagePower] public readonly float MagicDamageIncrease;
 		[MultiplicativePercentagePower] public readonly float AttackSpeed;
 	}
-	
+
 	[HarmonyPatch(typeof(Player), nameof(Player.SetLocalPlayer))]
 	private class StartCoroutineForEffect
 	{
@@ -42,14 +43,16 @@ public static class Apotheosis
 			if (config.Duration > 0 && !player.IsDead() && !Utils.SkipBossPower())
 			{
 				player.m_seman.AddStatusEffect(GemEffectSetup.apotheosisStart);
-				
+
 				yield return new WaitForSeconds(4);
-				
+
 				GemEffectSetup.apotheosis.m_ttl = config.Duration;
 				if (player.m_seman.AddStatusEffect(GemEffectSetup.apotheosis) is SE_Stats statusEffect)
 				{
 					statusEffect.m_damageModifier = 1 + config.MagicDamageIncrease / 100f;
 					statusEffect.m_modifyAttackSkill = Skills.SkillType.ElementalMagic;
+
+					player.m_eitr = player.m_maxEitr;
 				}
 			}
 		}
@@ -61,9 +64,23 @@ public static class Apotheosis
 	{
 		private static void Postfix(Attack __instance, ref float __result)
 		{
-			if (__instance.m_character is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name))
+			if (__instance.m_character is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name.GetStableHashCode()))
 			{
 				__result *= 1 - player.GetEffect<Config>(Effect.Apotheosis).EitrReduction / 100f;
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Player), nameof(Player.QueueReloadAction))]
+	private class ReduceEitrUsageDundr
+	{
+		private static void Prefix(Player __instance, out int __state) => __state = __instance.m_actionQueue.Count;
+
+		private static void Postfix(Player __instance, int __state)
+		{
+			if (__state < __instance.m_actionQueue.Count && __instance.m_seman.HaveStatusEffect(GemEffectSetup.apotheosis.name.GetStableHashCode()))
+			{
+				__instance.m_actionQueue.Last().m_eitrDrain *= 1 - __instance.GetEffect<Config>(Effect.Apotheosis).EitrReduction / 100f;
 			}
 		}
 	}

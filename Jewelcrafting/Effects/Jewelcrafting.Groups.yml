@@ -22,22 +22,30 @@ cowardice:
   slot: legs
   gem: cyan
   power: [3, 4, 5]
+  # Optional Configs:
+  # - duration (default: 20)
+  # - max stacks (default: 5)
 
 archery mentor:
   slot: bow
   gem: cyan
   power: [20, 30, 40]
-  
+
 arbalist mentor:
   slot: crossbow
   gem: cyan
   power: [20, 30, 40]
-  
+
 dedicated tank:
   slot: shield
   gem: cyan
   power: [50, 60, 70]
-  
+
+extensive embrace:
+  item: StaffShield
+  gem: cyan
+  power: [2, 4, 6]
+
 together forever:
   slot: all
   gem: group
@@ -56,20 +64,20 @@ together forever:
 
 gems:
   meadows:
-    cyan: 0.06
+    cyan: 0.03
   black forest:
-    cyan: 0.08
+    cyan: 0.04
   swamp:
-    cyan: 0.1
+    cyan: 0.05
   mountain:
-    cyan: 0.12
+    cyan: 0.06
   plains:
-    cyan: 0.14
+    cyan: 0.07
   ash lands:
-    cyan: 0.1
+    cyan: 0.05
   mistlands:
-    cyan: 0.1
-    
+    cyan: 0.05
+
 # Synergies
 
 cyan is the most common color:

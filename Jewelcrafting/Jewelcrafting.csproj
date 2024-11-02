@@ -11,7 +11,7 @@
         <AssemblyName>Jewelcrafting</AssemblyName>
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
-        <LangVersion>11</LangVersion>
+        <LangVersion>12</LangVersion>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <NoWarn>0649</NoWarn>
@@ -116,6 +116,9 @@
         <Reference Include="SkillManager">
             <HintPath>Libs\SkillManager.dll</HintPath>
         </Reference>
+        <Reference Include="SoftReferenceableAssets">
+            <HintPath>$(GamePath)\valheim_Data\Managed\publicized_assemblies\SoftReferenceableAssets_publicized.dll</HintPath>
+        </Reference>
         <Reference Include="StatManager">
             <HintPath>Libs\StatManager.dll</HintPath>
         </Reference>
@@ -156,9 +159,6 @@
         <Reference Include="UnityEngine.PhysicsModule">
             <HintPath>$(GamePath)\valheim_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
         </Reference>
-        <Reference Include="UnityEngine.TextCoreModule">
-            <HintPath>$(GamePath)\valheim_Data\Managed\UnityEngine.TextCoreModule.dll</HintPath>
-        </Reference>
         <Reference Include="UnityEngine.TextRenderingModule">
             <HintPath>$(GamePath)\valheim_Data\Managed\UnityEngine.TextRenderingModule.dll</HintPath>
         </Reference>
@@ -175,6 +175,7 @@
     <ItemGroup>
         <Compile Include="API\API.cs"/>
         <Compile Include="API\PowerAttribute.cs"/>
+        <Compile Include="API\Visual.cs"/>
         <Compile Include="API\VisualEffectCondition.cs"/>
     </ItemGroup>
     <ItemGroup Condition="'$(Configuration)|$(Platform)' != 'API|AnyCPU'">
@@ -198,6 +199,7 @@
         <Compile Include="Effects\GemEffects\Comfortable.cs"/>
         <Compile Include="Effects\GemEffects\Daring.cs"/>
         <Compile Include="Effects\GemEffects\Defender.cs"/>
+        <Compile Include="Effects\GemEffects\DungeonGuide.cs"/>
         <Compile Include="Effects\GemEffects\Echo.cs"/>
         <Compile Include="Effects\GemEffects\EitrSurge.cs"/>
         <Compile Include="Effects\GemEffects\ElementalChaos.cs"/>
@@ -206,6 +208,7 @@
         <Compile Include="Effects\GemEffects\Energetic.cs"/>
         <Compile Include="Effects\GemEffects\Explorer.cs"/>
         <Compile Include="Effects\GemEffects\Fade.cs"/>
+        <Compile Include="Effects\GemEffects\FastReaction.cs"/>
         <Compile Include="Effects\GemEffects\FieryDoom.cs"/>
         <Compile Include="Effects\GemEffects\FireStarter.cs"/>
         <Compile Include="Effects\GemEffects\Frenzy.cs"/>
@@ -216,8 +219,10 @@
         <Compile Include="Effects\GemEffects\IceHeart.cs"/>
         <Compile Include="Effects\GemEffects\IcyProtection.cs"/>
         <Compile Include="Effects\GemEffects\Inconspicuous.cs"/>
+        <Compile Include="Effects\JewelryEffects\Legacy.cs"/>
         <Compile Include="Effects\GemEffects\Lifeguard.cs"/>
         <Compile Include="Effects\GemEffects\LightningSpeed.cs"/>
+        <Compile Include="Effects\GemEffects\LizardFriendship.cs"/>
         <Compile Include="Effects\GemEffects\MagicalBargain.cs"/>
         <Compile Include="Effects\GemEffects\Magnetic.cs"/>
         <Compile Include="Effects\GemEffects\Marathon.cs"/>
@@ -236,6 +241,8 @@
         <Compile Include="Effects\GemEffects\PoisonousDrain.cs"/>
         <Compile Include="Effects\GemEffects\PowerRecovery.cs"/>
         <Compile Include="Effects\GemEffects\PreciousBlood.cs"/>
+        <Compile Include="Effects\GemEffects\QuickDraw.cs"/>
+        <Compile Include="Effects\GemEffects\QuickLoad.cs"/>
         <Compile Include="Effects\GemEffects\Regeneration.cs"/>
         <Compile Include="Effects\GemEffects\Resilience.cs"/>
         <Compile Include="Effects\GemEffects\Ricochet.cs"/>
@@ -251,17 +258,21 @@
         <Compile Include="Effects\GemEffects\Unbreakable.cs"/>
         <Compile Include="Effects\GemEffects\Unfazed.cs"/>
         <Compile Include="Effects\GemEffects\Vampire.cs"/>
+        <Compile Include="Effects\GemEffects\VampiricParry.cs"/>
         <Compile Include="Effects\GemEffects\Vitality.cs"/>
+        <Compile Include="Effects\GemEffects\Windwalk.cs"/>
         <Compile Include="Effects\GemEffects\Wishbone.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArcheryMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\Cowardice.cs"/>
         <Compile Include="Effects\GemEffects\Groups\DedicatedTank.cs"/>
+        <Compile Include="Effects\GemEffects\Groups\ExtensiveEmbrace.cs"/>
         <Compile Include="Effects\GemEffects\Groups\FleetingLife.cs"/>
         <Compile Include="Effects\GemEffects\Groups\LeadingWolf.cs"/>
         <Compile Include="Effects\GemEffects\Groups\SafeHaven.cs"/>
         <Compile Include="Effects\GemEffects\Groups\SharedHealing.cs"/>
         <Compile Include="Effects\GemEffects\Groups\TogetherForever.cs"/>
+        <Compile Include="Effects\JewelryEffects\Attunement.cs"/>
         <Compile Include="Effects\JewelryEffects\Lumberjacking.cs"/>
         <Compile Include="Effects\JewelryEffects\ModersBlessing.cs"/>
         <Compile Include="Effects\JewelryEffects\NightWarmth.cs"/>
@@ -286,15 +297,18 @@
         <Compile Include="Setup\MergedGemStoneSetup.cs"/>
         <Compile Include="Setup\MiscSetup.cs"/>
         <Compile Include="Setup\VisualEffectSetup.cs"/>
+        <Compile Include="Setup\VisualSetup.cs"/>
         <Compile Include="WorldBosses\BossHud.cs"/>
         <Compile Include="WorldBosses\BossMechanics.cs"/>
         <Compile Include="WorldBosses\BossSpawn.cs"/>
         <Compile Include="WorldBosses\GachaChest.cs"/>
         <Compile Include="WorldBosses\GachaDef.cs"/>
         <Compile Include="WorldBosses\GemStoneInteract.cs"/>
+        <Compile Include="Socketing.cs"/>
         <Compile Include="Sockets.cs"/>
         <Compile Include="Stats.cs"/>
         <Compile Include="TerminalCommands.cs"/>
+        <Compile Include="KeepSockets.cs"/>
         <Compile Include="BossDied.cs"/>
         <Compile Include="Utils.cs"/>
         <Compile Include="SocketsBackground.cs"/>
@@ -322,6 +336,7 @@
         <EmbeddedResource Include="Effects\Jewelcrafting.Sockets.yml"/>
         <EmbeddedResource Include="Synergy\Jewelcrafting.Synergy.yml"/>
         <EmbeddedResource Include="WorldBosses\Jewelcrafting.Gacha.yml"/>
+        <EmbeddedResource Include="Setup\Jewelcrafting.SocketCosts.yml"/>
         <EmbeddedResource Include="icons\gem_cursor.png"/>
         <EmbeddedResource Include="assets\jewelcrafting"/>
         <EmbeddedResource Include="assets\jc_ui_additions"/>
@@ -369,9 +384,6 @@
     </ItemGroup>
     <ItemGroup>
         <None Include="packages.config"/>
-    </ItemGroup>
-    <ItemGroup>
-        <Folder Include="API\"/>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
     <Import Project="..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')"/>

@@ -6,7 +6,6 @@ using HarmonyLib;
 using ItemDataManager;
 using Jewelcrafting.GemEffects;
 using UnityEngine;
-using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
 namespace Jewelcrafting.LootSystem;
@@ -68,7 +67,7 @@ public static class EquipmentDrops
 							}
 							else
 							{
-								errors.Add($"Found invalid item in 'blacklist' of 'equipment' section. Got unexpected {itemObj?.GetType().ToString() ?? "empty string (null)"}.");
+								errors.Add($"Found invalid item or creature in 'blacklist' of 'equipment' section. Got unexpected {itemObj?.GetType().ToString() ?? "empty string (null)"}.");
 							}
 						}
 					}
@@ -166,7 +165,7 @@ public static class EquipmentDrops
 	private static readonly Dictionary<Heightmap.Biome, float> lowHp = new();
 	private static readonly Dictionary<Heightmap.Biome, float> highHp = new();
 	private static readonly Dictionary<Heightmap.Biome, string[]> biomeResourceMap = new();
-	private static string[] dropBlacklist = Array.Empty<string>();
+	public static string[] dropBlacklist = Array.Empty<string>();
 	private static Dictionary<Heightmap.Biome, int> biomeOrder = new();
 
 	public static void Apply(EquipmentDropDef dropDefs)
@@ -184,6 +183,7 @@ public static class EquipmentDrops
 	}
 
 	private static readonly Dictionary<Heightmap.Biome, List<Recipe>> dropCache = new();
+	public static readonly Dictionary<string, Heightmap.Biome> biomeAssignments = new();
 
 	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
 	private static class ClearDropCache
@@ -191,7 +191,7 @@ public static class EquipmentDrops
 		private static void Prefix() => dropCache.Clear();
 	}
 
-	private static void EnsureDropCache()
+	public static void EnsureDropCache()
 	{
 		if (dropCache.Count > 0)
 		{
@@ -214,6 +214,10 @@ public static class EquipmentDrops
 					}
 				}
 			}
+			foreach (Recipe recipe in drops)
+			{
+				biomeAssignments[recipe.m_item.name] = kv.Key;
+			}
 			dropCache.Add(kv.Key, drops);
 		}
 	}
@@ -224,11 +228,16 @@ public static class EquipmentDrops
 		[HarmonyPriority(Priority.VeryLow - 1)]
 		private static void Postfix(CharacterDrop __instance)
 		{
+			if (dropBlacklist.Contains(global::Utils.GetPrefabName(__instance.m_character.gameObject).ToLower()) || dropBlacklist.Contains(Localization.instance.Localize(__instance.m_character.m_name).ToLower()) || dropBlacklist.Contains(Jewelcrafting.english.Localize(__instance.m_character.m_name).ToLower()))
+			{
+				return;
+			}
+			
 			DoDrop(__instance, Jewelcrafting.LootSystem.EquipmentDrops, (biome, character, drops) => SpawnEquipment(biome, character, drops, prefab =>
 			{
 				Stats.socketedEquipmentDropped.Increment();
 				return Utils.DropPrefabItem(prefab, character).GetComponent<ItemDrop>().m_itemData;
-			}));
+			}, Jewelcrafting.LootSystem.EquipmentDrops));
 		}
 	}
 
@@ -244,15 +253,15 @@ public static class EquipmentDrops
 		EnsureDropCache();
 
 		Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
-		if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.GetMaxHealth() < lowHp[biome] ? Jewelcrafting.lootLowHpChance : Jewelcrafting.lootDefaultChance).Value / 100f)
+		if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.GetMaxHealth() < lowHp[biome] ? Jewelcrafting.lootConfigs[lootSystem].lootLowHpChance : Jewelcrafting.lootConfigs[lootSystem].lootDefaultChance).Value / 100f)
 		{
 			callback(biome, character, drops);
 		}
 	}
 
-	public static float SpawnEquipment(Heightmap.Biome biome, Character character, List<Recipe> drops, Func<GameObject, ItemDrop.ItemData> instantiate)
+	public static float SpawnEquipment(Heightmap.Biome biome, Character character, List<Recipe> drops, Func<GameObject, ItemDrop.ItemData> instantiate, Jewelcrafting.LootSystem lootSystem)
 	{
-		List<GameObject> filteredDrops = drops.Where(recipe => Jewelcrafting.lootRestriction.Value switch
+		List<GameObject> filteredDrops = drops.Where(recipe => Jewelcrafting.lootConfigs[lootSystem].lootRestriction.Value switch
 		{
 			Jewelcrafting.LootRestriction.KnownStation => recipe.m_craftingStation is null || (Player.m_localPlayer.m_knownStations.TryGetValue(recipe.m_craftingStation.m_name, out int level) && recipe.m_minStationLevel <= level),
 			Jewelcrafting.LootRestriction.KnownRecipe => Player.m_localPlayer.m_knownRecipes.Contains(recipe.m_item.m_itemData.m_shared.m_name),
@@ -266,9 +275,13 @@ public static class EquipmentDrops
 
 		ItemInfo info = instantiate(filteredDrops[Random.Range(0, filteredDrops.Count)]).Data();
 
-		if (Jewelcrafting.unsocketDroppedItems.Value == Jewelcrafting.Toggle.Off)
+		if (Jewelcrafting.lootConfigs[lootSystem].unsocketDroppedItems.Value == Jewelcrafting.Toggle.Off)
 		{
 			info["SocketsLock"] = "";
+		}
+		if (Jewelcrafting.lootConfigs[lootSystem].addSocketToDroppedItem.Value == Jewelcrafting.Toggle.Off)
+		{
+			info["SocketSlotsLock"] = "";
 		}
 
 		Sockets sockets = info.GetOrCreate<Sockets>();
@@ -283,7 +296,7 @@ public static class EquipmentDrops
 		const int repetitions = 4;
 		for (int i = 0; i < repetitions; ++i)
 		{
-			worthFactor += (Random.value > Jewelcrafting.lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
+			worthFactor += (Random.value > Jewelcrafting.lootConfigs[lootSystem].lootSkew.Value / 100f ? Random.Range(0, hpFactor) : Random.Range(hpFactor, 1)) / repetitions;
 		}
 		worthFactor = Mathf.Clamp01(worthFactor);
 
@@ -330,6 +343,7 @@ public static class EquipmentDrops
 			GemType primaryType = randomGemType();
 
 			string gem;
+			Dictionary<string, uint> seed = new();
 			if (isMergedGem)
 			{
 				GemType secondaryType = randomGemType();
@@ -340,13 +354,15 @@ public static class EquipmentDrops
 				}
 
 				gem = MergedGemStoneSetup.mergedGems[primaryType][secondaryType][socketTiers[i] / 2 - 1].name;
+				seed[secondaryType.ToString()] = Utils.GenerateSocketSeed();
 			}
 			else
 			{
 				gem = GemStoneSetup.Gems[primaryType][socketTiers[i] - 1].Prefab.name;
 			}
+			seed[primaryType.ToString()] = Utils.GenerateSocketSeed();
 
-			sockets.socketedGems.Add(new SocketItem(gem));
+			sockets.socketedGems.Add(new SocketItem(gem, seed));
 		}
 
 		sockets.Save();

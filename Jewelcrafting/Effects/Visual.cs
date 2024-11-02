@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 
 namespace Jewelcrafting;
 
-public class Visual
+public partial class Visual
 {
 	public static readonly Dictionary<VisEquipment, Visual> visuals = new();
 
@@ -62,15 +62,68 @@ public class Visual
 			}
 		}
 
-		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable, ILGenerator ilg)
 		{
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
-			instructions.InsertRange(2, new[]
+			List<CodeInstruction> patched = PatchProcessor.GetOriginalInstructions(AccessTools.DeclaredMethod(typeof(ApplyStatusEffects), nameof(ApplyStatusEffects.CollectEffects)), ilg);
+			int ldloc = 3;
+			foreach (CodeInstruction instruction in patched)
 			{
-				new CodeInstruction(OpCodes.Ldarg_0),
-				new CodeInstruction(OpCodes.Ldloc_0),
-				new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(ApplyStatusEffects), nameof(CollectEffects))),
-			});
+				if (instruction.opcode == OpCodes.Ldloc_S || instruction.opcode == OpCodes.Ldloc)
+				{
+					ldloc = Math.Max(((LocalBuilder)instruction.operand).LocalIndex, ldloc);
+				}
+			}
+			foreach (CodeInstruction instruction in patched)
+			{
+				if (instruction.IsLdloc() && instruction.opcode != OpCodes.Ldloca && instruction.opcode != OpCodes.Ldloca_S)
+				{
+					if (instruction.opcode == OpCodes.Ldloc_0)
+					{
+						instruction.operand = ldloc + 1;
+					}
+					if (instruction.opcode == OpCodes.Ldloc_1)
+					{
+						instruction.operand = ldloc + 2;
+					}
+					if (instruction.opcode == OpCodes.Ldloc_2)
+					{
+						instruction.operand = ldloc + 3;
+					}
+					if (instruction.opcode == OpCodes.Ldloc_3)
+					{
+						instruction.operand = ldloc + 4;
+					}
+					instruction.opcode = OpCodes.Ldloc;
+				}
+				if (instruction.IsStloc())
+				{
+					if (instruction.opcode == OpCodes.Stloc_0)
+					{
+						instruction.operand = ldloc + 1;
+					}
+					if (instruction.opcode == OpCodes.Stloc_1)
+					{
+						instruction.operand = ldloc + 2;
+					}
+					if (instruction.opcode == OpCodes.Stloc_2)
+					{
+						instruction.operand = ldloc + 3;
+					}
+					if (instruction.opcode == OpCodes.Stloc_3)
+					{
+						instruction.operand = ldloc + 4;
+					}
+					instruction.opcode = OpCodes.Stloc;
+				}
+				if (instruction.opcode == OpCodes.Ldarg_1)
+				{
+					instruction.opcode = OpCodes.Ldloc_0;
+				}
+			}
+			patched[patched.Count - 1].opcode = OpCodes.Nop; // remove ret
+			instructions.InsertRange(2, patched);
+
 			return instructions;
 		}
 	}
@@ -256,20 +309,10 @@ public class Visual
 		}
 	}
 
-	private readonly VisEquipment visEquipment;
-	public ItemDrop.ItemData? equippedFingerItem;
-	public ItemDrop.ItemData? equippedNeckItem;
 	private string fingerItem = "";
 	private string neckItem = "";
 	private List<GameObject> fingerItemInstances = new();
 	private List<GameObject> neckItemInstances = new();
-	public int currentFingerItemHash;
-	public int currentNeckItemHash;
-
-	private Visual(VisEquipment visEquipment)
-	{
-		this.visEquipment = visEquipment;
-	}
 
 	private int getHash(string zdoKey, string equippedItem)
 	{

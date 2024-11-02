@@ -17,12 +17,12 @@ public static class Pyromaniac
 		[InverseMultiplicativePercentagePower] public float Power;
 	}
 
-	private static string? setFirestarterDesc(Player player, ref float[] numbers)
+	private static string? setFirestarterDesc(Player player, ref string[] numbers)
 	{
 		if (player.GetEffect(Effect.Pyromaniac) > 0)
 		{
 			// chance
-			numbers[1] += numbers[1] * player.GetEffect(Effect.Pyromaniac) / 100;
+			numbers[1] = Utils.FormatShortNumber(float.Parse(numbers[1]) * (1 + player.GetEffect(Effect.Pyromaniac) / 100));
 		}
 		return null;
 	}

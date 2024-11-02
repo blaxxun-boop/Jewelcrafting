@@ -23,7 +23,7 @@ public static class ConfigLoader
 		List<string> ErrorCheck(object? yaml);
 		void ApplyConfig();
 		void ValidateRuntime(List<string> warnings);
-		List<string> ProcessConfig(string key, object? yaml);
+		List<string> ProcessConfig(string key, object? yaml, bool global = false);
 		void Reset();
 		string FilePattern { get; }
 		string EditButtonName { get; }
@@ -111,7 +111,7 @@ public static class ConfigLoader
 			void Load(string path, string key)
 			{
 				object builtinConfig = new DeserializerBuilder().Build().Deserialize<object>(Encoding.UTF8.GetString(Utils.ReadEmbeddedFileBytes(path)));
-				List<string> builtinConfigErrors = loader.ProcessConfig(key, builtinConfig);
+				List<string> builtinConfigErrors = loader.ProcessConfig(key, builtinConfig, true);
 				if (builtinConfigErrors.Count > 0)
 				{
 					Debug.LogError($"Found {Jewelcrafting.ModName} config errors in built-in {key} config. Please report the issue:\n{string.Join("\n", builtinConfigErrors)}");
@@ -119,6 +119,7 @@ public static class ConfigLoader
 			}
 			Load("Effects.Jewelcrafting.Sockets.yml", "");
 			Load("Synergy.Jewelcrafting.Synergy.yml", "Synergies");
+			Load("Setup.Jewelcrafting.SocketCosts.yml", "SocketCosts");
 			Load("WorldBosses.Jewelcrafting.Gacha.yml", "Gacha");
 			Load("LootSystem.Jewelcrafting.Loot.yml", "Loot");
 			if (Groups.API.IsLoaded())

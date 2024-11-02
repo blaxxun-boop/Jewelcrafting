@@ -51,23 +51,24 @@ public class TrackEquipmentChanges
 
 		Dictionary<Effect, object> effects = new();
 
-		void ApplyEffectPowers(List<EffectPower> effectPowers, float multiplier = 1)
+		void ApplyEffectPowers(List<EffectPower> effectPowers, Dictionary<string, uint>? seed = null, float multiplier = 1)
 		{
 			foreach (EffectPower effectPower in effectPowers)
 			{
+				int fieldIndex = 0;
 				if (!effects.TryGetValue(effectPower.Effect, out object effectValue))
 				{
-					effectValue = effects[effectPower.Effect] = Utils.Clone(effectPower.Config);
-					foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+					effectValue = effects[effectPower.Effect] = Utils.Clone(effectPower.MinConfig);
+					foreach (FieldInfo field in effectPower.MinConfig.GetType().GetFields())
 					{
-						field.SetValue(effectValue, (float)field.GetValue(effectValue) * multiplier);
+						field.SetValue(effectValue, Utils.GetRealEffectPower(effectPower, field, fieldIndex++, seed) * multiplier);
 					}
 				}
 				else
 				{
-					foreach (FieldInfo field in effectPower.Config.GetType().GetFields())
+					foreach (FieldInfo field in effectPower.MinConfig.GetType().GetFields())
 					{
-						field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), (float)field.GetValue(effectPower.Config) * multiplier));
+						field.SetValue(effectValue, field.GetCustomAttribute<PowerAttribute>().Add((float)field.GetValue(effectValue), Utils.GetRealEffectPower(effectPower, field, fieldIndex++, seed) * multiplier));
 					}
 				}
 			}
@@ -82,17 +83,17 @@ public class TrackEquipmentChanges
 				GemLocation itemLocation = Utils.GetItemGemLocation(item);
 				float multiplier = item == player.m_rightItem || item == player.m_leftItem || item == player.m_hiddenRightItem || item == player.m_hiddenRightItem ? weaponMultiplier : 1;
 
-				foreach (string socket in itemSockets.socketedGems.Select(i => i.Name).Where(s => s != "").Take(active.Sockets(item)))
+				foreach (SocketItem socket in itemSockets.socketedGems.Where(s => s.Name != "").Take(active.Sockets(item)))
 				{
-					if (Jewelcrafting.EffectPowers.TryGetValue(socket.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
+					if (Jewelcrafting.EffectPowers.TryGetValue(socket.Name.GetStableHashCode(), out Dictionary<GemLocation, List<EffectPower>> locationPowers))
 					{
 						if (locationPowers.TryGetValue(location, out List<EffectPower> effectPowers))
 						{
-							ApplyEffectPowers(effectPowers, multiplier);
+							ApplyEffectPowers(effectPowers, socket.Seed, multiplier);
 						}
 						if (locationPowers.TryGetValue(itemLocation, out effectPowers))
 						{
-							ApplyEffectPowers(effectPowers, multiplier);
+							ApplyEffectPowers(effectPowers, socket.Seed, multiplier);
 						}
 					}
 				}

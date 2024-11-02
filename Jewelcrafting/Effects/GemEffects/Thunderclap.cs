@@ -13,7 +13,7 @@ public static class Thunderclap
 			if (hit.GetAttacker() is Player player && player.GetEffect(Effect.Thunderclap) is { } thunder and > 0)
 			{
 				float explosiveDmg = 0;
-				if (__instance.GetSEMan().HaveStatusEffect(GemEffectSetup.thunderclapMark.name))
+				if (__instance.GetSEMan().HaveStatusEffect(GemEffectSetup.thunderclapMark.name.GetStableHashCode()))
 				{
 					explosiveDmg = __instance.m_nview.GetZDO().GetFloat("Jewelcrafting Thunderclap");
 				}
@@ -29,7 +29,7 @@ public static class Thunderclap
 	{
 		private static void Postfix(Character __instance, HitData hit)
 		{
-			if (__instance.GetSEMan().HaveStatusEffect(GemEffectSetup.thunderclapMark.name) && !__instance.IsDead())
+			if (__instance.GetSEMan().HaveStatusEffect(GemEffectSetup.thunderclapMark.name.GetStableHashCode()) && !__instance.IsDead())
 			{
 				float explosiveDmg = __instance.m_nview.GetZDO().GetFloat("Jewelcrafting Thunderclap");
 				float damageScale = Game.instance.GetDifficultyDamageScaleEnemy(__instance.transform.position);

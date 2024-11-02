@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
+using SoftReferenceableAssets;
 using TMPro;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -14,6 +15,7 @@ public static class BossSpawn
 {
 	private static readonly HashSet<int> playerBasePieces = new();
 	private static readonly Dictionary<string, Location> locations = new();
+	private static Dictionary<string, SoftReference<GameObject>> locationReferences = new();
 	public static readonly Dictionary<string, Sprite> bossIcons = new();
 	public static readonly List<Vector3> currentBossPositions = new();
 	private static TextMeshProUGUI bossTimer = null!;
@@ -33,6 +35,11 @@ public static class BossSpawn
 	{
 		private static void Postfix(ZoneSystem __instance)
 		{
+			if (locationReferences.Count == 0)
+			{
+				locationReferences = locations.ToDictionary(kv => kv.Key, kv => LocationManager.Location.PrefabManager.AddLoadedSoftReferenceAsset(kv.Value.gameObject));
+			}
+
 			if (ZNet.instance.IsServer())
 			{
 				IEnumerator Check()
@@ -49,7 +56,7 @@ public static class BossSpawn
 						int remainingTime = int.MaxValue - 1;
 						while (oldRemainingTime > remainingTime || oldRemainingTime > 50)
 						{
-							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y < 1 + (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.instance.GetZone).ToList();
+							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y < 1 + (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.GetZone).ToList();
 
 							if (locationsToRemove.Count > 0)
 							{
@@ -152,7 +159,7 @@ public static class BossSpawn
 			if (__instance.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 			{
 				__instance.m_nview.GetZDO().GetVec3("Jewelcrafting World Boss spawn position", out Vector3 spawn_pos);
-				Vector2i sector = ZoneSystem.instance.GetZone(spawn_pos);
+				Vector2i sector = ZoneSystem.GetZone(spawn_pos);
 				if (ZNet.instance.IsServer())
 				{
 					HandleBossDeath(sector);
@@ -267,7 +274,7 @@ public static class BossSpawn
 			{
 				m_iconAlways = true,
 				m_prefabName = locations[boss].name,
-				m_location = locations[boss],
+				m_prefab = locationReferences[boss],
 			}, pos with { y = despawnTime }, true);
 
 			ZDO zdo = ZDOMan.instance.CreateNewZDO(pos, boss.GetStableHashCode());
@@ -316,7 +323,7 @@ public static class BossSpawn
 			}
 
 			int baseValue = 0;
-			Vector2i sector = ZoneSystem.instance.GetZone(point);
+			Vector2i sector = ZoneSystem.GetZone(point);
 
 			if (ZoneSystem.instance.m_locationInstances.ContainsKey(sector))
 			{

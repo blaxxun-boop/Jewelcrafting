@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using ItemDataManager;
 using ItemManager;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
 
@@ -17,6 +20,9 @@ public static class MiscSetup
 	public static readonly List<GameObject> framePrefabs = new();
 	private static SocketBag socketBag = null!;
 	public static InventoryBag jewelryBag = null!;
+	private static GameObject divinityOrbPrefab = null!;
+	public static string divinityOrbName = null!;
+	public static List<Recipe> vanillaGemCraftingRecipes = new();
 
 	public static void initializeMisc(AssetBundle assets)
 	{
@@ -39,20 +45,40 @@ public static class MiscSetup
 		jewelryBag = item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<InventoryBag>()!;
 		gemBoxName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 
-		item = new Item(assets, "Blue_Crystal_Frame");
+		item = new Item(assets, "Blue_Crystal_Frame")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		framePrefabs.Add(item.Prefab);
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chaosFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		item = new Item(assets, "Black_Crystal_Frame");
+		item = new Item(assets, "Black_Crystal_Frame")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		framePrefabs.Add(item.Prefab);
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chanceFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		item = new Item(assets, "JC_Blessed_Crystal_Mirror");
+		item = new Item(assets, "JC_Blessed_Crystal_Mirror")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		blessedMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-		item = new Item(assets, "JC_Celestial_Crystal_Mirror");
+		item = new Item(assets, "JC_Celestial_Crystal_Mirror")
+		{
+			Configurable = Configurability.Recipe,
+		};
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		celestialMirrorName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+
+		item = new Item(assets, "JC_Orb_of_Divinity")
+		{
+			Configurable = Configurability.Recipe,
+		};
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
+		divinityOrbPrefab = item.Prefab;
+		divinityOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 	}
 
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.Pickup))]
@@ -64,9 +90,9 @@ public static class MiscSetup
 			{
 				return true;
 			}
-			
+
 			int originalAmount = itemDrop.m_itemData.m_stack;
-			itemDrop.m_itemData.m_dropPrefab ??= ObjectDB.instance.GetItemPrefab(global::Utils.GetPrefabName(itemDrop.gameObject)); 
+			itemDrop.m_itemData.m_dropPrefab ??= ObjectDB.instance.GetItemPrefab(global::Utils.GetPrefabName(itemDrop.gameObject));
 			if (Do(player.m_inventory, itemDrop.m_itemData))
 			{
 				ZNetScene.instance.Destroy(go);
@@ -102,29 +128,34 @@ public static class MiscSetup
 						}
 					}
 
-					for (int i = 0; i < socketBag.socketedGems.Count; ++i)
+					Dictionary<string, uint> seed = item.Data().GetAll<SocketSeed>().ToDictionary(kv => kv.Key, kv => kv.Value.Seed);
+
+					if (seed.Count == 0)
 					{
-						SocketItem slot = socketBag.socketedGems[i];
-						if (slot.Name == item.m_dropPrefab.name)
+						for (int i = 0; i < socketBag.socketedGems.Count; ++i)
 						{
-							bool canFillLastItem = item.m_shared.m_maxStackSize - slot.Count >= remainingStack;
-							if (canFillLastItem)
+							SocketItem slot = socketBag.socketedGems[i];
+							if (slot.Name == item.m_dropPrefab.name && slot.Seed is null)
 							{
-								slot.Count += remainingStack;
-							}
-							else
-							{
-								remainingStack -= item.m_shared.m_maxStackSize - slot.Count;
-								slot.Count = item.m_shared.m_maxStackSize;
-							}
-							if (!dryRun)
-							{
-								socketBag.socketedGems[i] = slot;
-							}
-							if (canFillLastItem)
-							{
-								FinishPickup();
-								return true;
+								bool canFillLastItem = item.m_shared.m_maxStackSize - slot.Count >= remainingStack;
+								if (canFillLastItem)
+								{
+									slot.Count += remainingStack;
+								}
+								else
+								{
+									remainingStack -= item.m_shared.m_maxStackSize - slot.Count;
+									slot.Count = item.m_shared.m_maxStackSize;
+								}
+								if (!dryRun)
+								{
+									socketBag.socketedGems[i] = slot;
+								}
+								if (canFillLastItem)
+								{
+									FinishPickup();
+									return true;
+								}
 							}
 						}
 					}
@@ -135,7 +166,7 @@ public static class MiscSetup
 						{
 							if (!dryRun)
 							{
-								socketBag.socketedGems[i] = new SocketItem(item.m_dropPrefab.name, remainingStack);
+								socketBag.socketedGems[i] = new SocketItem(item.m_dropPrefab.name, count: remainingStack, seed: seed);
 							}
 							FinishPickup();
 							return true;
@@ -145,7 +176,7 @@ public static class MiscSetup
 					if (!dryRun)
 					{
 						socketBag.Save();
-						if (GemStones.AddFakeSocketsContainer.openEquipment == socketBag.Info)
+						if (GemStones.AddFakeSocketsContainer.openEquipment == socketBag.Info && seed.Count == 0)
 						{
 							GemStones.AddFakeSocketsContainer.openInventory!.AddItem(item.m_dropPrefab, startingAmount - remainingStack);
 						}
@@ -185,11 +216,97 @@ public static class MiscSetup
 	public static void UpdateGemBagSize()
 	{
 		socketBag.socketedGems.Clear();
-		
+
 		for (int i = 0; i < Jewelcrafting.gemBagSlotsRows.Value * Jewelcrafting.gemBagSlotsColumns.Value; ++i)
 		{
 			socketBag.socketedGems.Add(new SocketItem(""));
 		}
 		socketBag.Save();
+	}
+
+	[HarmonyPatch(typeof(Container), nameof(Container.RPC_OpenRespons))]
+	private static class DropDivinityOrb
+	{
+		private static void Prefix(Container __instance, bool granted)
+		{
+			if (!Player.m_localPlayer || !granted || Jewelcrafting.GemsUsingPowerRanges.Count == 0 || !__instance.name.StartsWith("TreasureChest_", StringComparison.Ordinal))
+			{
+				return;
+			}
+
+			if (__instance.m_nview.GetZDO().GetBool("Jewelcrafting Treasure Looted"))
+			{
+				return;
+			}
+
+			__instance.m_nview.GetZDO().Set("Jewelcrafting Treasure Looted", true);
+
+			if (Random.value < Jewelcrafting.divinityOrbDropChance.Value / 100f)
+			{
+				__instance.m_inventory.AddItem(divinityOrbPrefab, 1);
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
+	private static class AddRecipes
+	{
+		private static void Postfix(ObjectDB __instance)
+		{
+			if (__instance.GetItemPrefab("Wood") == null)
+			{
+				return;
+			}
+			
+			vanillaGemCraftingRecipes.Clear();
+			
+			Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
+			recipe.name = "Emerald_To_Jade";
+			recipe.m_amount = 1;
+			recipe.m_resources = new[]
+			{
+				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Green_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
+			};
+			recipe.m_item = __instance.GetItemPrefab("GemstoneGreen").GetComponent<ItemDrop>();
+			recipe.m_craftingStation = BuildingPiecesSetup.gemcuttersTable.GetComponent<CraftingStation>();
+			recipe.m_minStationLevel = 4;
+			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
+			
+			__instance.m_recipes.Add(recipe);
+			vanillaGemCraftingRecipes.Add(recipe);
+			
+			recipe = ScriptableObject.CreateInstance<Recipe>();
+			recipe.name = "Ruby_To_Bloodstone";
+			recipe.m_amount = 1;
+			recipe.m_resources = new[]
+			{
+				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Red_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
+			};
+			recipe.m_item = __instance.GetItemPrefab("GemstoneRed").GetComponent<ItemDrop>();
+			recipe.m_craftingStation = BuildingPiecesSetup.gemcuttersTable.GetComponent<CraftingStation>();
+			recipe.m_minStationLevel = 4;
+			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
+			
+			__instance.m_recipes.Add(recipe);
+			vanillaGemCraftingRecipes.Add(recipe);
+			
+			recipe = ScriptableObject.CreateInstance<Recipe>();
+			recipe.name = "Sapphire_To_Iolite";
+			recipe.m_amount = 1;
+			recipe.m_resources = new[]
+			{
+				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Blue_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
+			};
+			recipe.m_item = __instance.GetItemPrefab("GemstoneBlue").GetComponent<ItemDrop>();
+			recipe.m_craftingStation = BuildingPiecesSetup.gemcuttersTable.GetComponent<CraftingStation>();
+			recipe.m_minStationLevel = 4;
+			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
+			
+			__instance.m_recipes.Add(recipe);
+			vanillaGemCraftingRecipes.Add(recipe);
+		}
 	}
 }

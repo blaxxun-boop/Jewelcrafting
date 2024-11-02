@@ -1,5 +1,9 @@
 # Weapon
 
+# All power values can take a value range:
+# power: [5-10, 10-15, 15-20]
+# means a perfect gem rolls its power randomly between 15 and 20.
+
 fire starter:
   slot: [weapon, elementalmagic]
   gem: red
@@ -27,14 +31,15 @@ shadow hit:
   power: [2, 3, 4]
   # Optional Configs:
   # - range (default: 5)
-  
+  # - amount (default: 1)
+
 vampire:
   slot: [weapon, elementalmagic]
   gem: yellow
   power: [6, 8, 10]
   # Optional Configs:
   # - max heal (default: 6)
-  
+
 berserk:
   slot: [weapon, magic]
   gem: purple
@@ -97,14 +102,14 @@ mirror:
   power: [2, 4, 6]
   # Optional Configs:
   # - damage reflected (default: 100)
-  
+
 fade:
   slot: chest
   gem: orange
   power: [1, 2, 3]
   # Optional Configs:
   # - damage threshold (default: 30)
-  
+
 # Legs
 
 sprinter:
@@ -163,6 +168,11 @@ glowing spirit:
   slot: utility
   gem: blue
   power: [4, 6, 8]
+
+dungeon guide:
+  slot: utility
+  gem: black
+  power: [2, 4, 6]
 
 daring:
   slot: utility
@@ -223,10 +233,15 @@ master archer:
   gem: purple
   power: [4, 6, 8]
 
-stealth archer:
+stealth archer: unset
+#  slot: bow
+#  gem: black
+#  power: [20, 35, 50]
+
+quick draw:
   slot: bow
   gem: black
-  power: [20, 35, 50]
+  power: [3, 5, 7]
 
 # Crossbow
 
@@ -240,6 +255,11 @@ master arbalist:
   gem: purple
   power: [4, 6, 8]
 
+quick load:
+  slot: crossbow
+  gem: black
+  power: [3, 5, 7]
+
 # Bow and Crossbow
 
 echo:
@@ -248,28 +268,28 @@ echo:
   power: [2, 3, 4]
   # Optional Configs:
   # - bonus projectiles (default: 1)
-  
+
 necromancer:
   slot: [bow, crossbow]
   gem: green
   power: [3, 5, 7]
   # Optional Configs:
   # - duration (default: 10)
-  
+
 ricochet:
   slot: [bow, crossbow]
   gem: orange
   power: [3, 5, 7]
   # Optional Configs:
   # - range (default: 15)
-  
+
 elemental chaos:
   slot: [bow, crossbow]
   gem: blue
   power: [10, 15, 20]
   # Optional Configs:
   # - chance (default: 20)
-  
+
 # Cloak
 
 glider:
@@ -278,7 +298,7 @@ glider:
   power: [3, 5, 7]
   # Optional Configs:
   # - required height (default: 3.5)
-  
+
 inconspicuous:
   slot: cloak
   gem: black
@@ -288,6 +308,11 @@ turtle shell:
   slot: cloak
   gem: yellow
   power: [8, 10, 12]
+
+wind walk:
+  slot: cloak
+  gem: purple
+  power: [5, 10, 15]
 
 # Shield
 
@@ -316,6 +341,18 @@ tank:
 pain tolerance:
   slot: shield
   gem: red
+  power: [1, 2, 3]
+
+fast reaction:
+  slot: shield
+  gem: orange
+  power:
+    parry frame decrease: [50, 85, 120]
+    parry power increase: [10, 20, 30]
+
+vampiric parry:
+  slot: shield
+  gem: green
   power: [1, 2, 3]
 
 # Tool
@@ -400,69 +437,82 @@ apotheosis:
   gem: queen
   power:
     eitr reduction: 100
-    min cooldown: 180
-    max cooldown: 240
+    min cooldown: 150
+    max cooldown: 210
     duration: 8
     magic damage increase: 15
     attack speed: 20
+  unique: all
+
+lizard friendship:
+  slot: all
+  gem: fader
+  power:
+    movement damage: 100
+    min cooldown: 420
+    max cooldown: 600
+    duration: 30
+    speed increase: 15
+    health increase: 200
+    spawn range: 20
   unique: all
 
 # Gem Spawn
 
 gems:
   meadows:
-    green: 0.82
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.41
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   black forest:
-    green: 0.03
-    black: 0.82
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.41
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   swamp:
-    green: 0.03
-    black: 0.03
-    purple: 0.82
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.41
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   mountain:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.82
-    yellow: 0.03
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.41
+    yellow: 0.015
+    red: 0.015
+    orange: 0.015
   plains:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.82
-    red: 0.03
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.41
+    red: 0.015
+    orange: 0.015
   ash lands:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.82
-    orange: 0.03
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.41
+    orange: 0.015
   mistlands:
-    green: 0.03
-    black: 0.03
-    purple: 0.03
-    blue: 0.03
-    yellow: 0.03
-    red: 0.03
-    orange: 0.82
+    green: 0.015
+    black: 0.015
+    purple: 0.015
+    blue: 0.015
+    yellow: 0.015
+    red: 0.015
+    orange: 0.41

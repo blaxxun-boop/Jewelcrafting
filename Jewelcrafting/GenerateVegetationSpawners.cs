@@ -42,7 +42,7 @@ public static class GenerateVegetationSpawners
 				zoneSystem.m_vegetation = new List<ZoneSystem.ZoneVegetation>();
 				DestructibleSetup.AddDestructiblesToZoneSystem.Prefix(zoneSystem);
 
-				Vector3 zonePos = zoneSystem.GetZonePos(zone);
+				Vector3 zonePos = ZoneSystem.GetZonePos(zone);
 				GameObject root = Object.Instantiate(zoneSystem.m_zonePrefab, zonePos, Quaternion.identity);
 				tempSpawnedObjects.Add(root);
 				zoneSystem.PlaceVegetation(zone, zonePos, root.transform, root.GetComponentInChildren<Heightmap>(), new List<ZoneSystem.ClearArea>(), ZoneSystem.SpawnMode.Ghost, tempSpawnedObjects);

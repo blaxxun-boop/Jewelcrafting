@@ -55,7 +55,8 @@ public class GachaChest : Container, Hoverable
 							sockets.Clear();
 							foreach (string socket in prize.Sockets)
 							{
-								sockets.Add(new SocketItem(socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)!.name));
+								string socketItem = socket.ToLower() == "empty" ? "" : GachaDef.getItem(socket)?.name ?? "";
+								sockets.Add(new SocketItem(socketItem, socketItem == "" ? null : Utils.GenerateSocketSeedForItem(socketItem)));
 							}
 							itemData.Data().Save();
 						}

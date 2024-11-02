@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -76,6 +77,31 @@ public static class TogetherForever
 			}
 		}
 		// ReSharper disable once IteratorNeverReturns
+	}
+	
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetWeaponLoadingTime))]
+	private static class IncreaseLoadSpeed
+	{
+		private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
+		{
+			if (Player.m_localPlayer.m_seman.HaveStatusEffect(GemEffectSetup.friendship.name.GetStableHashCode()) && __instance.m_shared.m_attack.m_requiresReload)
+			{
+				__result /= 1 + Player.m_localPlayer.GetEffect<Config>(Effect.Togetherforever).AttackSpeed / 100f;
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.GetAttackDrawPercentage))]
+	private static class IncreaseDrawSpeed
+	{
+		private static void Postfix(Humanoid __instance, ref float __result)
+		{
+			if (__instance is Player player && player.m_seman.HaveStatusEffect(GemEffectSetup.friendship.name.GetStableHashCode()))
+			{
+				__result *= 1 + player.GetEffect<Config>(Effect.Togetherforever).AttackSpeed / 100f;
+				__result = Math.Min(__result, 1f);
+			}
+		}
 	}
 
 	public class LonelinessEffect : SE_Stats
