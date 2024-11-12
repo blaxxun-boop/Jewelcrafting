@@ -11,14 +11,14 @@ public static class Glider
 	{
 		EffectDef.ConfigTypes.Add(Effect.Glider, typeof(Config));
 	}
-	
+
 	[PublicAPI]
 	private struct Config
 	{
 		[AdditivePower] public float Power;
 		[MinPower] [OptionalPower(3.5f)] public float RequiredHeight;
 	}
-	
+
 	[HarmonyPatch(typeof(Character), nameof(Character.UpdateGroundContact))]
 	public static class DisableFallDamage
 	{
@@ -34,7 +34,10 @@ public static class Glider
 
 			if (__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name.GetStableHashCode()) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name.GetStableHashCode()))
 			{
-				___m_maxAirAltitude = Mathf.Min(3.49f + __instance.transform.position.y, ___m_maxAirAltitude);
+				if (Jewelcrafting.glidingFallDamagePrevention.Value == Jewelcrafting.Toggle.On)
+				{
+					___m_maxAirAltitude = Mathf.Min(3.49f + __instance.transform.position.y, ___m_maxAirAltitude);
+				}
 				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.gliding.NameHash(), true);
 				__instance.m_seman.RemoveStatusEffect(GemEffectSetup.glidingDark.NameHash(), true);
 			}
@@ -50,7 +53,7 @@ public static class Glider
 		[UsedImplicitly]
 		private static void Postfix(Player __instance)
 		{
-			if (!__instance.IsOnGround() && !__instance.IsSwimming() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, __instance.GetEffect<Config>(Effect.Glider).RequiredHeight, Character.s_groundRayMask))
+			if (__instance == Player.m_localPlayer && !__instance.IsOnGround() && !__instance.IsSwimming() && !Physics.SphereCast(__instance.transform.position + Vector3.up, __instance.GetComponent<CapsuleCollider>().radius, Vector3.down, out RaycastHit _, __instance.GetEffect<Config>(Effect.Glider).RequiredHeight, Character.s_groundRayMask))
 			{
 				float effect = __instance.GetEffect(Effect.Glider) * (Jewelcrafting.featherGliding.Value == Jewelcrafting.Toggle.Off && __instance.m_shoulderItem?.m_shared.m_name == "$item_cape_feather" ? 1 + Jewelcrafting.featherGlidingBuff.Value / 100f : 1);
 				if (!glidingUsed && effect > 0)
@@ -81,9 +84,12 @@ public static class Glider
 	[HarmonyPatch(typeof(Character), nameof(Character.Jump))]
 	private static class ToggleGliding
 	{
-		private static void Prefix()
+		private static void Prefix(Character __instance)
 		{
-			GlideInsteadOfFalling.gliding = !GlideInsteadOfFalling.gliding;
+			if (__instance == Player.m_localPlayer)
+			{
+				GlideInsteadOfFalling.gliding = !GlideInsteadOfFalling.gliding;
+			}
 		}
 	}
 }

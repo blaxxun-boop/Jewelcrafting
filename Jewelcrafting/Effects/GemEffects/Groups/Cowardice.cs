@@ -36,7 +36,7 @@ public static class Cowardice
 					SE_Stats coward = (SE_Stats)player.m_seman.GetStatusEffect(GemEffectSetup.cowardice.name.GetStableHashCode());
 					coward.m_speedModifier += player.GetEffect(Effect.Cowardice) / 100f;
 					coward.m_speedModifier = Math.Min(player.GetEffect(Effect.Cowardice) / 100f * (int)player.GetEffect<Config>(Effect.Cowardice).MaxStacks, coward.m_speedModifier);
-					coward.m_time = player.GetEffect<Config>(Effect.Cowardice).Duration;
+					coward.m_ttl = player.GetEffect<Config>(Effect.Cowardice).Duration;
 				}
 			}
 		}
