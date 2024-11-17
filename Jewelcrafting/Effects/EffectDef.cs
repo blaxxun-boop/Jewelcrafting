@@ -131,6 +131,7 @@ public enum Effect
 	Quickload,
 	Wisplight,
 	Wishbone,
+	Airdried,
 }
 
 public enum Uniqueness

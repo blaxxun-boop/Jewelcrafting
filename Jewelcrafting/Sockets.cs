@@ -101,7 +101,7 @@ public abstract class Socketable : ItemContainer
 		}
 	}
 
-	protected Dictionary<string, uint>? loadSeed(string[] socketInfo, int index)
+	protected Dictionary<string, uint>? loadSeed(string[] socketInfo, int index, bool generateSeeds = true)
 	{
 		Dictionary<string, uint>? seeds = null;
 		if (socketInfo.Length > index && ulong.TryParse(socketInfo[index], out ulong seed))
@@ -119,7 +119,7 @@ public abstract class Socketable : ItemContainer
 				seeds = new Dictionary<string, uint> { [info.Type.ToString()] = (uint)seed };
 			}
 		}
-		else
+		else if (generateSeeds)
 		{
 			foreach (GemInfo info in Utils.GetAllGemInfos(socketInfo[0]))
 			{
@@ -220,7 +220,7 @@ public class SocketBag : Socketable, ItemBag
 		socketedGems = Value.Split(',').Select(s =>
 		{
 			string[] split = s.Split(':');
-			return new SocketItem(split[0], count: split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0, seed: loadSeed(split, 2));
+			return new SocketItem(split[0], count: split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0, seed: loadSeed(split, 2, false));
 		}).ToList();
 	}
 }

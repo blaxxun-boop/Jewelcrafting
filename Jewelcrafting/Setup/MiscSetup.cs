@@ -22,7 +22,7 @@ public static class MiscSetup
 	public static InventoryBag jewelryBag = null!;
 	private static GameObject divinityOrbPrefab = null!;
 	public static string divinityOrbName = null!;
-	public static List<Recipe> vanillaGemCraftingRecipes = new();
+	public static readonly List<Recipe> vanillaGemCraftingRecipes = new();
 
 	public static void initializeMisc(AssetBundle assets)
 	{

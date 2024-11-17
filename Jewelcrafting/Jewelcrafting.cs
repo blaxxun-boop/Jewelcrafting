@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.29";
+	private const string ModVersion = "1.5.30";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -62,7 +62,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static readonly ConfigEntry<float>[] crystalFusionBoxMergeActivityProgress = new ConfigEntry<float>[FusionBoxSetup.Boxes.Length];
 	public static ConfigEntry<int> maximumNumberSockets = null!;
 	public static ConfigEntry<Toggle> limitSocketsByTableLevel = null!;
-	public static readonly ConfigEntry<int>[] maxSocketsTableLevel = new ConfigEntry<int>[3];
+	public static readonly ConfigEntry<int>[] maxSocketsTableLevel = new ConfigEntry<int>[4];
 	public static ConfigEntry<int> gemRespawnRate = null!;
 	public static ConfigEntry<int> upgradeChanceIncrease = null!;
 	public static ConfigEntry<Toggle> additiveSkillBonus = null!;
@@ -156,6 +156,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> gemReturnLockedGems = null!;
 	public static ConfigEntry<Toggle> disableUniqueGemsInBase = null!;
 	public static ConfigEntry<Toggle> gemDropBiomeDistribution = null!;
+	public static ConfigEntry<Toggle> glidingFallDamagePrevention = null!;
 
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
@@ -674,7 +675,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		};
 		disableUniqueGemsInBase = config("6 - Other", "Unique gems in base", Toggle.On, new ConfigDescription("If off, unique gems cannot trigger while in whatever Valheim considers to be a player base.", null, new ConfigurationManagerAttributes { Order = --order }), false);
-		
+		glidingFallDamagePrevention = config("6 - Other", "Gliding Status Fall Damage Prevention", Toggle.On, new ConfigDescription("If on, the gliding status prevents fall damage. If off, only actually gliding prevents fall damage.", null, new ConfigurationManagerAttributes { Order = --order }));
+
 		warmthStaminaRegen = config("Ruby Ring of Warmth", "Stamina Regen", 10, new ConfigDescription("Stamina regen increase for the Ruby Ring of Warmth effect.", new AcceptableValueRange<int>(0, 100)));
 		awarenessRange = config("Ruby Necklace of Awareness", "Detection Range", 30, new ConfigDescription("Creature detection range for the Ruby Necklace of Awareness.", new AcceptableValueRange<int>(1, 50)));
 		rigidDamageReduction = config("Sturdy Spinel Ring", "Damage Reduction", 5, new ConfigDescription("Damage reduction for the Sturdy Spinel Ring.", new AcceptableValueRange<int>(0, 100)));

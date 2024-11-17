@@ -53,7 +53,7 @@ public static class DestructibleSetup
 	{
 		public int destructibleDrops = 1;
 
-		public static HashSet<GameObject> activeDestructibles = new();
+		public static readonly HashSet<GameObject> activeDestructibles = new();
 		
 		public void Awake()
 		{

@@ -193,6 +193,7 @@
         <Compile Include="Effects\ConfigEditor.cs"/>
         <Compile Include="Effects\ConfigLoader.cs"/>
         <Compile Include="Effects\EffectDef.cs"/>
+        <Compile Include="Effects\GemEffects\AirDried.cs" />
         <Compile Include="Effects\GemEffects\Avoidance.cs"/>
         <Compile Include="Effects\GemEffects\Apotheosis.cs"/>
         <Compile Include="Effects\GemEffects\Berserk.cs"/>

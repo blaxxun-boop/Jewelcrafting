@@ -932,7 +932,7 @@ public static class GemStones
 							}
 						}
 
-						sb.Append($"\n<color=orange>{name}:</color> {string.Join(", ", kv.Value.Select((effectPower, i) => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {Utils.DisplayGemEffectPower(effectPower, null, i, item.Data().GetAll<SocketSeed>() is { Count: > 0 } seeds ? seeds.ToDictionary(kv => kv.Key, kv => kv.Value.Seed) : null, true)}"))}");
+						sb.Append($"\n<color=orange>{name}:</color> {string.Join(", ", kv.Value.Select(effectPower => $"$jc_effect_{EffectDef.EffectNames[effectPower.Effect].ToLower()} {Utils.DisplayGemEffectPower(effectPower, null, 0, item.Data().GetAll<SocketSeed>() is { Count: > 0 } seeds ? seeds.ToDictionary(kv => kv.Key, kv => kv.Value.Seed) : null, true)}"))}");
 					}
 
 					string flavorText = $"{item.m_shared.m_description.Substring(1)}_flavor";
@@ -1125,9 +1125,12 @@ public static class GemStones
 				}
 
 				RectTransform takeAllButton = (RectTransform)__instance.m_takeAllButton.transform;
-				Vector2 anchoredPosition = takeAllButton.anchoredPosition;
-				anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
-				takeAllButton.anchoredPosition = anchoredPosition;
+				if (AddFakeSocketsContainer.openEquipment.Get<ItemBag>() is null)
+				{
+					Vector2 anchoredPosition = takeAllButton.anchoredPosition;
+					anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
+					takeAllButton.anchoredPosition = anchoredPosition;
+				}
 				takeAllButton.gameObject.SetActive(true);
 				__instance.m_stackAllButton.gameObject.SetActive(true);
 
@@ -1156,9 +1159,12 @@ public static class GemStones
 				}
 
 				RectTransform takeAllButton = (RectTransform)invGui.m_takeAllButton.transform;
-				Vector2 anchoredPosition = takeAllButton.anchoredPosition;
-				anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
-				takeAllButton.anchoredPosition = anchoredPosition;
+				if (sockets is not ItemBag)
+				{
+					Vector2 anchoredPosition = takeAllButton.anchoredPosition;
+					anchoredPosition = new Vector2(anchoredPosition.x, -anchoredPosition.y);
+					takeAllButton.anchoredPosition = anchoredPosition;
+				}
 
 				if (sockets is Box)
 				{

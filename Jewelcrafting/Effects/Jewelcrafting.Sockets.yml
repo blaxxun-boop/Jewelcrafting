@@ -314,6 +314,11 @@ wind walk:
   gem: purple
   power: [5, 10, 15]
 
+air dried:
+  slot: cloak
+  gem: blue
+  power: [10, 20, 30]
+
 # Shield
 
 unfazed:
