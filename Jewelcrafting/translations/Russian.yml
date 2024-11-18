@@ -1,4 +1,4 @@
-## RUSSIAN TRANSLATION || AMORAKI || For Jewelcrafting v1.5.30 || Last update 17.11.24##
+## RUSSIAN TRANSLATION || AMORAKI || For Jewelcrafting v1.5.30 || Last update 18.11.2024##
 
 jc_jewelcrafting_skill_name: "Ювелирное дело"
 jc_jewelcrafting_skill_description: "Искусство огранки самоцветов без их разрушения."
@@ -374,7 +374,7 @@ jc_effect_unbreakable_desc: "Уменьшает потерю прочности.
 jc_effect_unbreakable_desc_detail: "Снижение потери прочности на $1%."
 jc_effect_energetic: "Энергичный"
 jc_effect_energetic_desc: "Уменьшает расход выносливости."
-jc_effect_energetic_desc_detail: "Снижение расхода выносливости на 1%."
+jc_effect_energetic_desc_detail: "Снижение расхода выносливости на $1%."
 jc_effect_mountaingoat: "Скалолаз"
 jc_effect_mountaingoat_desc: "Взбираться на более крутые склоны."
 jc_effect_mountaingoat_desc_detail: "Поднимайтесь по склонам крутизной $1% не соскальзывая."
@@ -383,7 +383,7 @@ jc_effect_windwalk_desc: "Беги по ветру."
 jc_effect_windwalk_desc_detail: "Увеличивает скорость передвижения до $1%, если в игрока дует попутный ветер."
 jc_effect_echo: "Эхо"
 jc_effect_echo_desc: "Шанс выпустить несколько стрел или болтов."
-jc_effect_echo_desc_detail: "$1% шанс выпустить 2 дополнительные стрелы или болта без затрат."
+jc_effect_echo_desc_detail: "$1% шанс выпустить $2 дополнительные стрелы или болта без затрат."
 jc_effect_ricochet: "Рикошет"
 jc_effect_ricochet_desc: "Шанс поразить вторую ближайшую цель."
 jc_effect_ricochet_desc_detail: "$1% шанс что ваша стрела или болт срикошетит от цели, поразив второго противника в радиусе $2m."
