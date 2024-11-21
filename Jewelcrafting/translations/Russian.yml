@@ -1,4 +1,4 @@
-## RUSSIAN TRANSLATION || AMORAKI || For Jewelcrafting v1.5.30 || Last update 18.11.2024##
+## RUSSIAN TRANSLATION || AMORAKI || For Jewelcrafting v1.5.30 || Last update 21.11.2024##
 
 jc_jewelcrafting_skill_name: "Ювелирное дело"
 jc_jewelcrafting_skill_description: "Искусство огранки самоцветов без их разрушения."
@@ -230,10 +230,10 @@ jc_effect_powerrecovery_desc: "Сокращено время перезаряд�
 jc_effect_powerrecovery_desc_detail: "Сокращено время перезарядки 'Силы Павшего' на $1%."
 jc_effect_endlessarrows: "Бесконечные стрелы"
 jc_effect_endlessarrows_desc: "Расход боеприпасов уменьшен."
-jc_effect_endlessarrows_desc_detail: "1% шанс не израсходовать ни одной стрелы."
+jc_effect_endlessarrows_desc_detail: "$1% шанс не израсходовать ни одной стрелы."
 jc_effect_endlessbolts: "Бесконечные болты"
 jc_effect_endlessbolts_desc: "Снижен расход боеприпасов."
-jc_effect_endlessbolts_desc_detail: "1% шанс не израсходовать ни одного болта."
+jc_effect_endlessbolts_desc_detail: "$1% шанс не израсходовать ни одного болта."
 jc_effect_explorer: "Исследователь"
 jc_effect_explorer_desc: "Радиус обнаружения увеличен."
 jc_effect_explorer_desc_detail: "Радиус обнаружения увеличен на $1%."
@@ -317,7 +317,7 @@ jc_effect_hercules_desc: "Увеличивает переносимый вес."
 jc_effect_hercules_desc_detail: "Переносимый вес увеличивается на $1%."
 jc_effect_vampire: "Вампир"
 jc_effect_vampire_desc: "Шанс украсть жизнь при атаке."
-jc_effect_vampire_desc_detail: "1% шанс украсть до $2 жизни при атаке."
+jc_effect_vampire_desc_detail: "$1% шанс украсть до $2 жизни при атаке."
 jc_effect_momentum: "Мгновение"
 jc_effect_momentum_desc: "Восполняет выносливость при убийстве."
 jc_effect_momentum_desc_detail: "Восполняет $1 выносливости при убийстве."
