@@ -36,13 +36,14 @@ public static class GemStones
 		{
 			if (Jewelcrafting.gemUpgradeChances.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out ConfigEntry<float> upgradeChance) && __instance.m_craftRecipe.m_resources.Length > 0 && __instance.m_craftRecipe.m_resources[0].m_amount == __instance.m_craftRecipe.m_amount)
 			{
-				player.RaiseSkill("Jewelcrafting", __instance.m_craftRecipe.m_amount);
+				int totalCrafting = __instance.m_craftRecipe.m_amount * (__instance.m_multiCrafting ? __instance.m_multiCraftAmount : 1);
+				player.RaiseSkill("Jewelcrafting", totalCrafting);
 
-				int successCount = __instance.m_craftRecipe.m_amount;
+				int successCount = totalCrafting;
 
 				if (!Player.m_localPlayer.m_noPlacementCost && player.HaveRequirements(__instance.m_craftRecipe, false, 1))
 				{
-					for (int i = 0; i < __instance.m_craftRecipe.m_amount; ++i)
+					for (int i = 0; i < totalCrafting; ++i)
 					{
 						float successChance = upgradeChance.Value / 100f;
 						float skillChance = Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * Jewelcrafting.upgradeChanceIncrease.Value / 100f;
@@ -62,38 +63,49 @@ public static class GemStones
 						}
 					}
 
-					if (__instance.m_craftRecipe.m_amount > successCount)
+					if (totalCrafting > successCount)
 					{
 						foreach (API.GemBreakHandler handler in GemBreakHandlers)
 						{
-							if (!handler(null, __instance.m_craftRecipe.m_resources[0].m_resItem.m_itemData, __instance.m_craftRecipe.m_amount - successCount))
+							if (!handler(null, __instance.m_craftRecipe.m_resources[0].m_resItem.m_itemData, totalCrafting - successCount))
 							{
-								successCount = __instance.m_craftRecipe.m_amount;
+								successCount = totalCrafting;
 								break;
 							}
 						}
 					}
 
 					Stats.gemsCut.Increment(successCount);
-					Stats.cutsFailed.Increment(__instance.m_craftRecipe.m_amount - successCount);
+					Stats.cutsFailed.Increment(totalCrafting - successCount);
 					if (GemStoneSetup.GemInfos.TryGetValue(__instance.m_craftRecipe.m_item.m_itemData.m_shared.m_name, out GemInfo info))
 					{
 						Stats.tieredGemsCut[info.Tier - 1].Increment(successCount);
-						Stats.tieredCutsFailed[info.Tier - 1].Increment(__instance.m_craftRecipe.m_amount - successCount);
+						Stats.tieredCutsFailed[info.Tier - 1].Increment(totalCrafting - successCount);
 					}
-
+					
 					if (successCount == 0)
 					{
-						player.m_inventory.AddItem(gemToShard[__instance.m_craftRecipe.m_item.name], __instance.m_craftRecipe.m_amount);
+						int totalShards = totalCrafting;
+						float skillFactor = Player.m_localPlayer.GetSkillFactor(Skills.SkillType.Crafting);
+						for (int index = 0; index < totalCrafting; ++index)
+						{
+							if (Random.value < skillFactor * __instance.m_craftBonusChance)
+							{
+								totalShards += __instance.m_craftBonusAmount;
+							}
+						}
+						
+						player.m_inventory.AddItem(gemToShard[__instance.m_craftRecipe.m_item.name], totalShards);
 						__instance.UpdateCraftingPanel();
 						player.Message(MessageHud.MessageType.Center, "$jc_gemstone_cut_fail");
 						return false;
 					}
 				}
 
-				if (successCount < __instance.m_craftRecipe.m_amount)
+				if (successCount < totalCrafting)
 				{
-					__state = new Tuple<int, Recipe>(__instance.m_craftRecipe.m_amount - successCount, __instance.m_craftRecipe);
+					__state = new Tuple<int, Recipe>(totalCrafting - successCount, __instance.m_craftRecipe);
+					__instance.m_multiCrafting = false;
 					__instance.m_craftRecipe = ScriptableObject.CreateInstance<Recipe>();
 					__instance.m_craftRecipe.m_item = __state.Item2.m_item;
 					__instance.m_craftRecipe.m_craftingStation = __state.Item2.m_craftingStation;
@@ -118,13 +130,23 @@ public static class GemStones
 				__instance.m_craftRecipe = __state.Item2;
 				GameObject shard = gemToShard[__instance.m_craftRecipe.m_item.name];
 				int shards = __state.Item1;
-				if (player.m_inventory.CanAddItem(shard, shards))
+				
+				int totalShards = shards;
+				float skillFactor = Player.m_localPlayer.GetSkillFactor(Skills.SkillType.Crafting);
+				for (int index = 0; index < shards; ++index)
 				{
-					player.m_inventory.AddItem(shard, shards);
+					if (Random.value < skillFactor * __instance.m_craftBonusChance)
+					{
+						totalShards += __instance.m_craftBonusAmount;
+					}
+				}
+				if (player.m_inventory.CanAddItem(shard, totalShards))
+				{
+					player.m_inventory.AddItem(shard, totalShards);
 				}
 				else
 				{
-					Utils.DropPlayerItems(shard.GetComponent<ItemDrop>().m_itemData, shards);
+					Utils.DropPlayerItems(shard.GetComponent<ItemDrop>().m_itemData, totalShards);
 				}
 			}
 		}
@@ -1616,7 +1638,7 @@ public static class GemStones
 		}
 	}
 
-	private static List<GemDefinition> EnumerateUniqueGemsToCheckAgainst(string socketName, HashSet<Uniqueness> uniquePowers, out List<string> errorType)
+	private static List<GemDefinition> EnumerateUniqueGemsToCheckAgainst(GemInfo info, HashSet<Uniqueness> uniquePowers, out List<string> errorType)
 	{
 		List<GemDefinition> checkAgainst;
 		errorType = new List<string>();
@@ -1627,14 +1649,12 @@ public static class GemStones
 		}
 		else if (uniquePowers.Contains(Uniqueness.Gem))
 		{
-			GemInfo info = GemStoneSetup.GemInfos[socketName];
 			checkAgainst = GemStoneSetup.Gems[info.Type];
 			errorType.Add("$jc_equipped_unique_error_gem");
 			errorType.Add(Localization.instance.Localize((GemStoneSetup.uncutGems.TryGetValue(info.Type, out GameObject uncutGem) ? uncutGem : GemStoneSetup.Gems[info.Type][info.Tier - 1].Prefab).GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
 		}
 		else if (uniquePowers.Contains(Uniqueness.Tier))
 		{
-			GemInfo info = GemStoneSetup.GemInfos[socketName];
 			checkAgainst = new List<GemDefinition> { GemStoneSetup.Gems[info.Type][info.Tier - 1] };
 			errorType.Add("$jc_equipped_unique_error_tier");
 			errorType.Add(Localization.instance.Localize(GemStoneSetup.Gems[info.Type][info.Tier - 1].Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name));
@@ -1667,7 +1687,7 @@ public static class GemStones
 			{
 				string socketName = individualSocket.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 				HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
-				List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(socketName, uniquePowers, out List<string> errorType);
+				List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(GemStoneSetup.GemInfos[socketName], uniquePowers, out List<string> errorType);
 				if (IsEquippedItem(Player.m_localPlayer, targetItem.ItemData) && HasEquippedAnyUniqueGem(Player.m_localPlayer, checkAgainst, AddFakeSocketsContainer.openEquipment) is { } otherUnique)
 				{
 					return FormatUniqueSocketError(errorType, otherUnique);
@@ -1761,11 +1781,12 @@ public static class GemStones
 	private static string? HasEquippedUniqueGem(Player player, string gem, ItemInfo? ignoreContainer)
 	{
 		string?[] alreadyEquipped = new string[1];
+		GemStoneSetup.GemInfos.TryGetValue(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo gemInfo);
 		Utils.ApplyToAllPlayerItems(player, slot =>
 		{
 			if (slot.Data() != ignoreContainer && slot?.Data().Get<Sockets>() is { } itemSockets)
 			{
-				if (itemSockets.socketedGems.Contains(new SocketItem(gem)))
+				if (itemSockets.socketedGems.Any(s => gem == s.Name || (MergedGemStoneSetup.mergedGemContents.TryGetValue(s.Name, out List<GemInfo> info) && info.Any(info => info.Type == gemInfo.Type && info.Tier == gemInfo.Tier))))
 				{
 					alreadyEquipped[0] = slot.m_shared.m_name;
 				}
@@ -1865,11 +1886,14 @@ public static class GemStones
 				bool IsValid(List<EffectPower> effectPowers)
 				{
 					HashSet<Uniqueness> uniquePowers = new(effectPowers.Select(e => e.Unique));
-					List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(ObjectDB.instance.GetItemPrefab(gem).GetComponent<ItemDrop>().m_itemData.m_shared.m_name, uniquePowers, out List<string> errorType);
-					if (HasEquippedAnyUniqueGem(player, checkAgainst, item.Data()) is { } equippedUnique)
+					foreach (GemInfo info in Utils.GetAllGemInfos(gem))
 					{
-						player.Message(MessageHud.MessageType.Center, FormatUniqueSocketError(errorType, equippedUnique));
-						return false;
+						List<GemDefinition> checkAgainst = EnumerateUniqueGemsToCheckAgainst(info, uniquePowers, out List<string> errorType);
+						if (HasEquippedAnyUniqueGem(player, checkAgainst, item.Data()) is { } equippedUnique)
+						{
+							player.Message(MessageHud.MessageType.Center, FormatUniqueSocketError(errorType, equippedUnique));
+							return false;
+						}
 					}
 					return true;
 				}
