@@ -119,6 +119,9 @@
         <Reference Include="SoftReferenceableAssets">
             <HintPath>$(GamePath)\valheim_Data\Managed\publicized_assemblies\SoftReferenceableAssets_publicized.dll</HintPath>
         </Reference>
+        <Reference Include="Splatform">
+          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\Splatform.dll</HintPath>
+        </Reference>
         <Reference Include="StatManager">
             <HintPath>Libs\StatManager.dll</HintPath>
         </Reference>
