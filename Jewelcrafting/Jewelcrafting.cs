@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.33";
+	private const string ModVersion = "1.5.34";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -150,6 +150,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> pixelateTextures = null!;
 	public static ConfigEntry<int> divinityOrbDropChance = null!;
 	public static ConfigEntry<Toggle> randomPowerRanges = null!;
+	public static ConfigEntry<float> gemPowerMultiplier = null!;
 	public static ConfigEntry<Toggle> vanillaGemCrafting = null!;
 	public static ConfigEntry<float> bigGemstoneFormationChance = null!;
 	public static ConfigEntry<int> effectPowerStandardDeviation = null!;
@@ -339,6 +340,8 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		effectPowerStandardDeviation = config("2 - Socket System", "Effect Power Deviation", 0, new ConfigDescription("Can be used to apply a standard deviation in percent to all gem effects. E.g. putting 30 here, will turn an effect power of 10 into 7 - 13. Use 0 to disable this.", new AcceptableValueRange<int>(0, 75)));
 		effectPowerStandardDeviation.SettingChanged += (_, _) => ConfigLoader.TryReapplyConfig();
 		randomPowerRanges = config("2 - Socket System", "Random Power Ranges", Toggle.On, "If enabled, the effect powers for power ranges on gems are different for each effect on the gem.");
+		gemPowerMultiplier = config("2 - Socket System", "Gem Power Multiplier", 1f, new ConfigDescription("This can be used to apply a multiplier to all gem effect powers. Please note that results may differ from your expectations. This is intended, since some gem powers are logarithmic.", new AcceptableValueRange<float>(0.1f, 5f)));
+		gemPowerMultiplier.SettingChanged += (_, _) => ConfigLoader.TryReapplyConfig();
 		inventoryInteractBehaviour = config("2 - Socket System", "Interact Behaviour", InteractBehaviour.Hovering, "Disabled: Interact key is disabled, while the inventory is open.\nHovering: Interact key is disabled, while hovering an item with at least one socket.\nEnabled: Interact key is enabled. You will have to use the Gemcutters Table, to socket your items.", false);
 		visualEffects = config("2 - Socket System", "Particle Effects", Toggle.On, "Enables or disables the particle effects for perfect gems.", false);
 		visualEffects.SettingChanged += (_, _) =>
@@ -967,7 +970,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		}
 	}
-	
+
 	private static void ToggleWindRun(object sender, EventArgs e)
 	{
 		if (ObjectDB.instance && ObjectDB.instance.GetItemPrefab("CapeAsksvin") is { } cape && ObjectDB.instance.GetStatusEffect("WindRun".GetStableHashCode()) is { } statusEffect)
@@ -1075,11 +1078,11 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		{
 			return itemStand.m_supportedTypes.Contains(ItemDrop.ItemData.ItemType.Misc) && Utils.ItemAllowedInGemBag(item);
 		}
-		
+
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
 		{
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
-			instructions.InsertRange(instructions.Count - 1, new []
+			instructions.InsertRange(instructions.Count - 1, new[]
 			{
 				new CodeInstruction(OpCodes.Ldarg_0),
 				new CodeInstruction(OpCodes.Ldarg_1),

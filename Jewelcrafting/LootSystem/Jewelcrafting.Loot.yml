@@ -14,6 +14,8 @@ equipment:
     resource map:
       - deer hide
       - flint
+    craftbench map:
+      - workbench
   black forest:
     low health: 30
     high health: 100
@@ -23,6 +25,8 @@ equipment:
       - tin
       - skeleton trophy
       - core wood
+    craftbench map:
+      - forge
   swamp:
     low health: 40
     high health: 150
@@ -44,6 +48,8 @@ equipment:
       - linen thread
       - black metal
       - lox pelt
+    craftbench map:
+      - artisan table
   mistlands:
     low health: 100
     high health: 800
@@ -54,6 +60,9 @@ equipment:
       - bilebag
       - mandible
       - carapace
+    craftbench map:
+      - black forge
+      - galdr table
   ocean:
     low health: 60
     high health: 150

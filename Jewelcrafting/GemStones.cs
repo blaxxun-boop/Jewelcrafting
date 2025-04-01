@@ -1798,9 +1798,15 @@ public static class GemStones
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.OnSelectedItem))]
 	private class PreventMovingInvalidItemsOrDestroyOnMove
 	{
-		private static bool Prefix(InventoryGrid grid, ref ItemDrop.ItemData? item, InventoryGrid.Modifier mod)
+		[HarmonyPriority(Priority.High)]
+		private static bool Prefix(InventoryGui __instance, InventoryGrid grid, ref ItemDrop.ItemData? item, InventoryGrid.Modifier mod)
 		{
-			if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory == grid.m_inventory)
+			if (item is null)
+			{
+				return true;
+			}
+			
+			if (AddFakeSocketsContainer.openInventory == grid.m_inventory && mod == InventoryGrid.Modifier.Move)
 			{
 				// Moving outside of container, into inventory
 				if (AddFakeSocketsContainer.openEquipment?.Get<ItemContainer>() is ItemBag)
@@ -1817,7 +1823,26 @@ public static class GemStones
 					item = null;
 				}
 			}
-			else if (item is not null && mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory is not null && AddFakeSocketsContainer.openInventory != grid.m_inventory)
+			else if (mod == InventoryGrid.Modifier.Select && AddFakeSocketsContainer.openInventory == __instance.m_dragInventory && __instance.m_dragItem is { } dragItem)
+			{
+				// Moving outside of container, into inventory
+				if (AddFakeSocketsContainer.openEquipment?.Get<ItemContainer>() is ItemBag)
+				{
+					return true;
+				}
+
+				if (!AllowsUnsocketing(dragItem))
+				{
+					return false;
+				}
+				if (ShallDestroyGem(dragItem, __instance.m_dragInventory))
+				{
+					item = null;
+					__instance.SetupDragItem(null, null, 1);
+					return false;
+				}
+			}
+			else if (mod == InventoryGrid.Modifier.Move && AddFakeSocketsContainer.openInventory is not null && AddFakeSocketsContainer.openInventory != grid.m_inventory)
 			{
 				// Moving into container
 				if (AddFakeSocketsContainer.openEquipment?.Get<DropChest>() is not null)

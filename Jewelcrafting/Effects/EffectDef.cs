@@ -972,8 +972,23 @@ public class EffectDef
 
 								foreach (FieldInfo field in configType.GetFields())
 								{
-									field.SetValue(minPower, (float)field.GetValue(minPower) * (1 - Jewelcrafting.effectPowerStandardDeviation.Value / 100f));
-									field.SetValue(maxPower, (float)field.GetValue(maxPower) * (1 + Jewelcrafting.effectPowerStandardDeviation.Value / 100f));
+									PowerAttribute attribute = field.GetCustomAttribute<PowerAttribute>();
+									float reduce = 1 - Jewelcrafting.effectPowerStandardDeviation.Value / 100f;
+									float increase = 1 - Jewelcrafting.effectPowerStandardDeviation.Value / 100f;
+									field.SetValue(minPower, attribute.Multiply((float)field.GetValue(minPower), attribute is MinPowerAttribute ? increase : reduce));
+									field.SetValue(maxPower, attribute.Multiply((float)field.GetValue(maxPower), attribute is MinPowerAttribute ? reduce : increase));
+								}
+							}
+
+							if (Jewelcrafting.gemPowerMultiplier.Value != 1)
+							{
+								minPower = MemberwiseCloneInfo.Invoke(minPower, Array.Empty<Object>());
+								maxPower = MemberwiseCloneInfo.Invoke(maxPower, Array.Empty<Object>());
+
+								foreach (FieldInfo field in configType.GetFields())
+								{
+									field.SetValue(minPower, field.GetCustomAttribute<PowerAttribute>().Multiply((float)field.GetValue(minPower), Jewelcrafting.gemPowerMultiplier.Value));
+									field.SetValue(maxPower, field.GetCustomAttribute<PowerAttribute>().Multiply((float)field.GetValue(maxPower), Jewelcrafting.gemPowerMultiplier.Value));
 								}
 							}
 

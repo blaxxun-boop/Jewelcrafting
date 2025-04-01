@@ -15,6 +15,7 @@ public class EquipmentDropBiome
 	public float? lowHp;
 	public float? highHp;
 	public List<string>? resourceMap;
+	public List<string>? craftbenchMap;
 }
 
 public class EquipmentDropDef
@@ -141,6 +142,29 @@ public static class EquipmentDrops
 							}
 						}
 
+						if (HasKey("craftbench map"))
+						{
+							if (dropDict["craftbench map"] is List<object?> craftbenchList)
+							{
+								dropBiome.craftbenchMap = new List<string>();
+								foreach (object? craftBenchObj in craftbenchList)
+								{
+									if (craftBenchObj is string craftbench)
+									{
+										dropBiome.craftbenchMap.Add(craftbench.ToLower());
+									}
+									else
+									{
+										errors.Add($"The craftbench map list must only contain names of crafting benches. Got unexpected {craftBenchObj?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+									}
+								}
+							}
+							else
+							{
+								errors.Add($"The craftbench map must be a list of names of crafting benches. Got unexpected {dropDict["craftbench map"]?.GetType().ToString() ?? "empty string (null)"}. {errorLocation}");
+							}
+						}
+
 						errors.AddRange(from key in dropDict.Keys where !knownKeys.Contains(key) select $"A drop definition may not contain a key '{key}'. {errorLocation}");
 						dropDef.biomeConfig[biome] = dropBiome;
 					}
@@ -165,6 +189,7 @@ public static class EquipmentDrops
 	private static readonly Dictionary<Heightmap.Biome, float> lowHp = new();
 	private static readonly Dictionary<Heightmap.Biome, float> highHp = new();
 	private static readonly Dictionary<Heightmap.Biome, string[]> biomeResourceMap = new();
+	private static readonly Dictionary<Heightmap.Biome, string[]> biomeCraftbenchMap = new();
 	public static string[] dropBlacklist = Array.Empty<string>();
 	private static Dictionary<Heightmap.Biome, int> biomeOrder = new();
 
@@ -174,7 +199,8 @@ public static class EquipmentDrops
 		{
 			lowHp[dropKv.Key] = dropKv.Value.lowHp!.Value;
 			highHp[dropKv.Key] = Mathf.Max(dropKv.Value.highHp!.Value, dropKv.Value.lowHp!.Value);
-			biomeResourceMap[dropKv.Key] = dropKv.Value.resourceMap!.ToArray();
+			biomeResourceMap[dropKv.Key] = dropKv.Value.resourceMap?.ToArray() ?? Array.Empty<string>();
+			biomeCraftbenchMap[dropKv.Key] = dropKv.Value.craftbenchMap?.ToArray() ?? Array.Empty<string>();
 		}
 		biomeOrder = dropDefs.biomeOrder.Select((s, i) => new KeyValuePair<Heightmap.Biome, int>(s, i)).ToDictionary(kv => kv.Key, kv => kv.Value);
 		dropBlacklist = dropDefs.blacklist!.ToArray();
@@ -201,13 +227,17 @@ public static class EquipmentDrops
 		Dictionary<Recipe, string> processedRecipes = new();
 		foreach (KeyValuePair<Heightmap.Biome, string[]> kv in biomeResourceMap.OrderByDescending(kv => biomeOrder.TryGetValue(kv.Key, out int order) ? order : 0))
 		{
+			string[] craftbenchMap = biomeCraftbenchMap[kv.Key];
 			List<Recipe> drops = new();
 			foreach (Recipe recipe in ObjectDB.instance.m_recipes)
 			{
-				bool matchLocalized(ICollection<string> list, ItemDrop item) => item && (list.Contains(item.name.ToLower()) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name).ToLower()));
-				if (recipe.m_resources.FirstOrDefault(r => matchLocalized(kv.Value, r.m_resItem)) is { } matchedRequirement && (!processedRecipes.TryGetValue(recipe, out string item) || matchedRequirement.m_resItem.name == item) && recipe.m_enabled && !matchLocalized(dropBlacklist, recipe.m_item))
+				bool matchLocalizedItem(ICollection<string> list, ItemDrop item) => item && (list.Contains(item.name.ToLower()) || list.Contains(Localization.instance.Localize(item.m_itemData.m_shared.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(item.m_itemData.m_shared.m_name).ToLower()));
+				Piece.Requirement? matchedRequirement = recipe.m_resources.FirstOrDefault(r => matchLocalizedItem(kv.Value, r.m_resItem));
+				bool matchLocalizedCraftbench(ICollection<string> list, CraftingStation crafting) => crafting && (list.Contains(crafting.name.ToLower()) || list.Contains(Localization.instance.Localize(crafting.m_name).ToLower()) || list.Contains(Jewelcrafting.english.Localize(crafting.m_name).ToLower()));
+				if ((matchedRequirement is not null && (!processedRecipes.TryGetValue(recipe, out string item) || matchedRequirement.m_resItem.name == item) && recipe.m_enabled && !matchLocalizedItem(dropBlacklist, recipe.m_item))
+					|| (matchLocalizedCraftbench(craftbenchMap, recipe.m_craftingStation) && (!processedRecipes.TryGetValue(recipe, out string craftbench) || recipe.m_craftingStation.name == craftbench) && recipe.m_enabled && !matchLocalizedItem(dropBlacklist, recipe.m_item)))
 				{
-					processedRecipes[recipe] = matchedRequirement.m_resItem.name;
+					processedRecipes[recipe] = matchedRequirement?.m_resItem.name ?? recipe.m_craftingStation.name;
 					if (Utils.IsSocketableItem(recipe.m_item.GetComponent<ItemDrop>()))
 					{
 						drops.Add(recipe);

@@ -598,4 +598,37 @@ public static class API
 #endif
 		return null;
 	}
+
+	public static Inventory? GetItemContainerInventory(ItemDrop.ItemData item)
+	{
+#if ! API
+		ItemInfo info = item.Data();
+		if (info.Get<ItemContainer>() is { } container)
+		{
+			if (GemStones.AddFakeSocketsContainer.openEquipment == info)
+			{
+				return GemStones.AddFakeSocketsContainer.openInventory;
+			}
+			Inventory inv = container.ReadInventory();
+			inv.m_onChanged += () =>
+			{
+				container.SaveSocketsInventory(inv);
+				info.Save();
+			};
+			return inv;
+		}
+#endif
+		return null;
+	}
+
+	public static bool IsFreelyAccessibleInventory(ItemDrop.ItemData item)
+	{
+#if ! API
+		if (item.Data().Get<ItemContainer>() is { } container)
+		{
+			return container is ItemBag;
+		}
+#endif
+		return false;
+	}
 }
