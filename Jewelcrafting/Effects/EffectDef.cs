@@ -974,7 +974,7 @@ public class EffectDef
 								{
 									PowerAttribute attribute = field.GetCustomAttribute<PowerAttribute>();
 									float reduce = 1 - Jewelcrafting.effectPowerStandardDeviation.Value / 100f;
-									float increase = 1 - Jewelcrafting.effectPowerStandardDeviation.Value / 100f;
+									float increase = 1 + Jewelcrafting.effectPowerStandardDeviation.Value / 100f;
 									field.SetValue(minPower, attribute.Multiply((float)field.GetValue(minPower), attribute is MinPowerAttribute ? increase : reduce));
 									field.SetValue(maxPower, attribute.Multiply((float)field.GetValue(maxPower), attribute is MinPowerAttribute ? reduce : increase));
 								}

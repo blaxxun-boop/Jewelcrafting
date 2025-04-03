@@ -120,7 +120,7 @@
             <HintPath>$(GamePath)\valheim_Data\Managed\publicized_assemblies\SoftReferenceableAssets_publicized.dll</HintPath>
         </Reference>
         <Reference Include="Splatform">
-          <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\Splatform.dll</HintPath>
+            <HintPath>$(GamePath)\valheim_Data\Managed\Splatform.dll</HintPath>
         </Reference>
         <Reference Include="StatManager">
             <HintPath>Libs\StatManager.dll</HintPath>
@@ -196,7 +196,7 @@
         <Compile Include="Effects\ConfigEditor.cs"/>
         <Compile Include="Effects\ConfigLoader.cs"/>
         <Compile Include="Effects\EffectDef.cs"/>
-        <Compile Include="Effects\GemEffects\AirDried.cs" />
+        <Compile Include="Effects\GemEffects\AirDried.cs"/>
         <Compile Include="Effects\GemEffects\Avoidance.cs"/>
         <Compile Include="Effects\GemEffects\Apotheosis.cs"/>
         <Compile Include="Effects\GemEffects\Berserk.cs"/>
@@ -387,7 +387,7 @@
         </Content>
     </ItemGroup>
     <ItemGroup>
-        <None Include="App.config" />
+        <None Include="App.config"/>
         <None Include="packages.config"/>
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
@@ -397,7 +397,7 @@
             <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
         </PropertyGroup>
         <Error Condition="!Exists('..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))"/>
-        <Error Condition="!Exists('..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets'))" />
+        <Error Condition="!Exists('..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets'))"/>
     </Target>
     <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
@@ -412,5 +412,5 @@
     <Target Name="Move" AfterTargets="Build" Condition="'$(Configuration)|$(Platform)' == 'API|AnyCPU'">
         <Exec Command="move &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(TargetDir)$(AssemblyName)API.dll&quot;"/>
     </Target>
-    <Import Project="..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets')" />
+    <Import Project="..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('..\..\..\..\..\NuGet\ILRepack.Lib.MSBuild.Task.2.0.40\build\ILRepack.Lib.MSBuild.Task.targets')"/>
 </Project>

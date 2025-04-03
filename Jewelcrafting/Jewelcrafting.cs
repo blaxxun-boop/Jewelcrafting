@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "1.5.34";
+	private const string ModVersion = "1.5.35";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -1090,6 +1090,18 @@ public partial class Jewelcrafting : BaseUnityPlugin
 				new CodeInstruction(OpCodes.Or),
 			});
 			return instructions;
+		}
+	}
+
+	[HarmonyPatch(typeof(Player), nameof(Player.ToggleEquipped))]
+	private static class ErrorOnGemEquip
+	{
+		private static void Postfix(Player __instance, ItemDrop.ItemData item)
+		{
+			if (!item.IsEquipable() && GemStones.socketableGemStones.Contains(item.m_shared.m_name))
+			{
+				__instance.Message(MessageHud.MessageType.Center, "$jc_cannot_equip_gem");
+			}
 		}
 	}
 }

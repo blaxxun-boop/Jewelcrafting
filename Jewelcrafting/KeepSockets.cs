@@ -20,14 +20,14 @@ public static class KeepSockets
 						if (Player.m_localPlayer.GetInventory().GetItem(req.m_resItem.m_itemData.m_shared.m_name) is { } item && item.Data().Get<Sockets>() is { } sockets && __instance.m_craftRecipe.m_item.m_itemData.Data().Add<Sockets>() is { } newSockets)
 						{
 							int flags = 0;
-							if (sockets.Info["SocketsLock"] is not null && item.Data()["SocketsLock"] is null)
+							if (sockets.Info["SocketsLock"] is not null && newSockets.Info["SocketsLock"] is null)
 							{
-								item.Data()["SocketsLock"] = "";
+								newSockets.Info["SocketsLock"] = "";
 								flags |= 1;
 							}
-							if (sockets.Info["SocketSlotsLock"] is not null && item.Data()["SocketSlotsLock"] is null)
+							if (sockets.Info["SocketSlotsLock"] is not null && newSockets.Info["SocketSlotsLock"] is null)
 							{
-								item.Data()["SocketSlotsLock"] = "";
+								newSockets.Info["SocketSlotsLock"] = "";
 								flags |= 2;
 							}
 							newSockets.Value = sockets.Value;
