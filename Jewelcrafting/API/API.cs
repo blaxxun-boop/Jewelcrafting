@@ -552,7 +552,7 @@ public static class API
 		Visual.visuals.TryGetValue(player.m_visEquipment, out Visual visual);
 		return visual;
 #else
-		return false;
+		return null;
 #endif
 	}
 

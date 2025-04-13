@@ -273,7 +273,7 @@ public class SynergyDef
 							{
 								++numberEnd;
 							}
-							if (float.TryParse(condition.Substring(idx, numberEnd - idx), out float number))
+							if (float.TryParse(condition.Substring(idx, numberEnd - idx), NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out float number) && !float.IsNaN(number))
 							{
 								idx = numberEnd;
 								operand = new Value(number);
