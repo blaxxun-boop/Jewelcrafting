@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using ItemDataManager;
 using ItemManager;
+using Jewelcrafting.LootSystem;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -33,11 +34,10 @@ public static class FusionBoxSetup
 			Boxes[tier].GetComponent<ItemDrop>().m_itemData.Data().GetOrCreate<Box>().Save();
 		}
 	}
-
-	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
-	private class AddFusionBoxToDrops
+	
+	static FusionBoxSetup()
 	{
-		private static void Postfix(CharacterDrop __instance, List<KeyValuePair<GameObject, int>> __result)
+		IEnumerable<CharacterDrop.Drop> drop(Character character)
 		{
 			for (int tier = 0; tier < Boxes.Length; ++tier)
 			{
@@ -45,12 +45,10 @@ public static class FusionBoxSetup
 				{
 					continue;
 				}
-				if (Random.value < 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(__instance.GetComponent<Character>().GetMaxHealth() / averageHealth, 1 / 3f))
-				{
-					__result.Add(new KeyValuePair<GameObject, int>(Boxes[tier], 1));
-				}
+				yield return LootAdder.Drop(Boxes[tier], 1f / Jewelcrafting.crystalFusionBoxDropRate[tier].Value * Mathf.Pow(character.GetMaxHealth() / averageHealth, 1 / 3f));
 			}
 		}
+		LootAdder.Loot.Add(drop);
 	}
 
 	public static void IncreaseBoxProgress(IEnumerable<float> progress)
@@ -135,6 +133,12 @@ public static class FusionBoxSetup
 					return;
 				}
 
+				if (gem1.GetComponent<ItemDrop>().m_itemData.Data()["Corrupted Item"] is not null || gem2.GetComponent<ItemDrop>().m_itemData.Data()["Corrupted Item"] is not null)
+				{
+					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_corrupted_merge_attempt"));
+					return;
+				}
+				
 				if (!GemStoneSetup.GemInfos.TryGetValue(gem1.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info1) || !GemStoneSetup.GemInfos.TryGetValue(gem2.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info2))
 				{
 					Player.m_localPlayer.Message(MessageHud.MessageType.Center, Localization.instance.Localize("$jc_gembox_seal_merged_gem"));

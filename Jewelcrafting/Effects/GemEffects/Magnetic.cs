@@ -42,7 +42,7 @@ public static class Magnetic
 				player.m_nview.InvokeRPC("Jewelcrafting Magnet", item.m_nview.GetZDO().m_uid);
 			}
 
-			return item;
+			return item!;
 		}
 
 		private static readonly MethodInfo ItemDropper = AccessTools.DeclaredMethod(typeof(ItemDrop), nameof(ItemDrop.DropItem));

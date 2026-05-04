@@ -39,7 +39,7 @@ public static class Daring
 		List<Player> players = new();
 		while (!string.IsNullOrEmpty(character.m_nview.GetZDO()?.GetString("Jewelcrafting Daring")))
 		{
-			if (character.m_nview.IsOwner())
+			if (character.m_nview.IsOwner() && (!character.IsBoss() || Jewelcrafting.daringAffectsBosses.Value == Jewelcrafting.Toggle.On))
 			{
 				List<string> daring = character.m_nview.GetZDO().GetString("Jewelcrafting Daring").Split(',').ToList();
 

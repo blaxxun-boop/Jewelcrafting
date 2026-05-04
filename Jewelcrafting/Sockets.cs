@@ -9,11 +9,12 @@ using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
 
-public struct SocketItem(string name, Dictionary<string, uint>? seed = null, int count = 1)
+public struct SocketItem(string name, Dictionary<string, uint>? seed = null, int count = 1, bool corrupted = false)
 {
 	public readonly string Name = name;
 	public int Count = name == "" ? 0 : count;
-	public readonly Dictionary<string, uint>? Seed = seed?.Count > 0 ? seed : null;
+	public Dictionary<string, uint>? Seed = seed?.Count > 0 ? seed : null;
+	public bool Corrupted = corrupted;
 
 	public override int GetHashCode()
 	{
@@ -29,7 +30,7 @@ public struct SocketItem(string name, Dictionary<string, uint>? seed = null, int
 	{
 		if (Seed is null)
 		{
-			return "";
+			return Corrupted ? "+" : "";
 		}
 
 		if (MergedGemStoneSetup.mergedGemContents.TryGetValue(Name, out List<GemInfo> infos))
@@ -43,8 +44,21 @@ public struct SocketItem(string name, Dictionary<string, uint>? seed = null, int
 				}
 				value = (value << 32) + seed;
 			}
+			return $"{(Corrupted ? "+" : "")}{value}";
 		}
-		return Seed.First().Value.ToString();
+		return $"{(Corrupted ? "+" : "")}{Seed.First().Value}";
+	}
+
+	public void EnsureSeeds()
+	{
+		foreach (GemInfo info in Utils.GetAllGemInfos(Name))
+		{
+			if (Jewelcrafting.GemsUsingPowerRanges.Contains(info.Type) && Seed?.ContainsKey(info.Type.ToString()) != true)
+			{
+				Seed ??= new Dictionary<string, uint>();
+				Seed[info.Type.ToString()] = Utils.GenerateSocketSeed();
+			}
+		}
 	}
 }
 
@@ -81,6 +95,10 @@ public abstract class Socketable : ItemContainer
 					{
 						itemData.Data().Add<SocketSeed>(kv.Key)!.Seed = kv.Value;
 					}
+					if (gem.Corrupted)
+					{
+						itemData.Data()["Corrupted Item"] = "";
+					}
 				}
 				inv.m_inventory.Add(itemData);
 			}
@@ -97,15 +115,18 @@ public abstract class Socketable : ItemContainer
 		}
 		foreach (ItemDrop.ItemData item in inv.m_inventory)
 		{
-			socketedGems[item.m_gridPos.x + item.m_gridPos.y * inv.m_width] = new SocketItem(item.m_dropPrefab.name, count: item.m_stack, seed: item.Data().GetAll<SocketSeed>().ToDictionary(kv => kv.Key, kv => kv.Value.Seed));
+			socketedGems[item.m_gridPos.x + item.m_gridPos.y * inv.m_width] = new SocketItem(item.m_dropPrefab.name, count: item.m_stack, seed: item.Data().GetAll<SocketSeed>().ToDictionary(kv => kv.Key, kv => kv.Value.Seed), corrupted: item.Data()["Corrupted Item"] is not null);
 		}
 	}
 
-	protected Dictionary<string, uint>? loadSeed(string[] socketInfo, int index, bool generateSeeds = true)
+	protected Dictionary<string, uint>? loadSeed(string[] socketInfo, int index, out bool corrupted, bool generateSeeds = true)
 	{
 		Dictionary<string, uint>? seeds = null;
+		corrupted = false;
 		if (socketInfo.Length > index && ulong.TryParse(socketInfo[index], out ulong seed))
 		{
+			corrupted = socketInfo[index].StartsWith("+", StringComparison.Ordinal);
+
 			if (MergedGemStoneSetup.mergedGemContents.TryGetValue(socketInfo[0], out List<GemInfo> infos))
 			{
 				seeds = new Dictionary<string, uint>
@@ -165,16 +186,10 @@ public class Sockets : Socketable
 		socketedGems = Value.Split(',').Select(s =>
 		{
 			string[] socketInfo = s.Split(':');
-			Dictionary<string, uint>? seeds = loadSeed(socketInfo, 1);
-			foreach (GemInfo info in Utils.GetAllGemInfos(socketInfo[0]))
-			{
-				if (Jewelcrafting.GemsUsingPowerRanges.Contains(info.Type) && seeds?.ContainsKey(info.Type.ToString()) != true)
-				{
-					seeds ??= new Dictionary<string, uint>();
-					seeds[info.Type.ToString()] = Utils.GenerateSocketSeed();
-				}
-			}
-			return new SocketItem(socketInfo[0], seed: loadSeed(socketInfo, 1));
+			Dictionary<string, uint>? seeds = loadSeed(socketInfo, 1, out bool corrupted);
+			SocketItem socket = new(socketInfo[0], seed: seeds, corrupted: corrupted);
+			socket.EnsureSeeds();
+			return socket;
 		}).ToList();
 		Worth = CalculateItemWorth();
 	}
@@ -187,22 +202,28 @@ public class Sockets : Socketable
 		{
 			if (ObjectDB.instance?.GetItemPrefab(socket) is { } gem)
 			{
-				if (GemStones.bossToGem.Values.Contains(gem))
-				{
-					return int.MaxValue;
-				}
-				if (GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
-				{
-					sum += info.Tier;
-				}
-				else if (MergedGemStoneSetup.mergedGemContents.TryGetValue(socket, out List<GemInfo> mergedGems))
-				{
-					sum += mergedGems.Sum(info => info.Tier);
-				}
+				sum += GemWorth(gem);
 			}
 		}
 
 		return sum;
+	}
+
+	public static int GemWorth(GameObject gem)
+	{
+		if (GemStones.bossToGem.Values.Contains(gem))
+		{
+			return 1 << 20;
+		}
+		if (GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info))
+		{
+			return info.Tier;
+		}
+		if (MergedGemStoneSetup.mergedGemContents.TryGetValue(gem.name, out List<GemInfo> mergedGems))
+		{
+			return mergedGems.Sum(info => info.Tier);
+		}
+		return 0;
 	}
 }
 
@@ -220,7 +241,7 @@ public class SocketBag : Socketable, ItemBag
 		socketedGems = Value.Split(',').Select(s =>
 		{
 			string[] split = s.Split(':');
-			return new SocketItem(split[0], count: split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0, seed: loadSeed(split, 2, false));
+			return new SocketItem(split[0], count: split.Length > 1 && int.TryParse(split[1], out int value) ? value : 0, seed: loadSeed(split, 2, out bool corrupted, false), corrupted: corrupted);
 		}).ToList();
 	}
 }
@@ -305,7 +326,7 @@ public class Box : Socketable
 		socketedGems = boxData[0].Split(',').Select(s =>
 		{
 			string[] socketInfo = s.Split(':');
-			return new SocketItem(socketInfo[0], seed: loadSeed(socketInfo, 1));
+			return new SocketItem(socketInfo[0], seed: loadSeed(socketInfo, 1, out bool corrupted), corrupted: corrupted);
 		}).ToList();
 	}
 

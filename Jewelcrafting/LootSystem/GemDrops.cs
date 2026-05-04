@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
@@ -9,34 +8,42 @@ namespace Jewelcrafting.LootSystem;
 
 public static class GemDrops
 {
-	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
-	private class AddGemStonesToDrops
+	static GemDrops()
 	{
-		private static void Postfix(CharacterDrop __instance, List<KeyValuePair<GameObject, int>> __result)
+		IEnumerable<CharacterDrop.Drop> drop(Character character)
 		{
 			if ((Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemDrops) != 0)
 			{
-				List<KeyValuePair<GameObject, int>> drops;
-				if (Jewelcrafting.gemDropBiomeDistribution.Value == Jewelcrafting.Toggle.On && ChestDrops.config.biomeConfig.TryGetValue(Heightmap.FindBiome(__instance.m_character.m_baseAI.m_spawnPoint), out GemDropBiome biomeDrops) && biomeDrops.distribution is { Count: > 0 } distribution)
+				if (Jewelcrafting.gemDropBiomeDistribution.Value == Jewelcrafting.Toggle.On && ChestDrops.config.biomeConfig.TryGetValue(Heightmap.FindBiome(character.m_baseAI.m_spawnPoint), out GemDropBiome biomeDrops) && biomeDrops.distribution is { Count: > 0 } distribution)
 				{
-					drops = new List<KeyValuePair<GameObject, int>>();
 					float count = Jewelcrafting.gemDropChances.Values.Sum(c => c.Value) / 100f;
 					for (int i = 1; i <= count; ++i)
 					{
-						drops.Add(new KeyValuePair<GameObject, int>(GemStoneSetup.uncutGems[ChestDrops.SelectGem(distribution)], 1));
+						yield return LootAdder.Drop(GemStoneSetup.uncutGems[ChestDrops.SelectGem(distribution)]);
 					}
 					if (Random.value < count - Mathf.FloorToInt(count))
 					{
-						drops.Add(new KeyValuePair<GameObject, int>(GemStoneSetup.uncutGems[ChestDrops.SelectGem(distribution)], 1));
+						yield return LootAdder.Drop(GemStoneSetup.uncutGems[ChestDrops.SelectGem(distribution)]);
 					}
 				}
 				else
 				{
-					drops = (from gem in Jewelcrafting.gemDropChances.Keys where Random.value < Jewelcrafting.gemDropChances[gem].Value / 100f select new KeyValuePair<GameObject, int>(gem, 1)).ToList();
+					foreach (GameObject gem in Jewelcrafting.gemDropChances.Keys)
+					{
+						yield return LootAdder.Drop(gem, Jewelcrafting.gemDropChances[gem].Value / 100f);
+					}
 				}
-				Stats.gemsDroppedCreature.Increment(drops.Count);
-				__result.AddRange(drops);
 			}
+		}
+		LootAdder.Loot.Add(drop);
+	}
+	
+	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
+	private static class CountGems
+	{
+		private static void Postfix(List<KeyValuePair<GameObject, int>> __result)
+		{
+			Stats.orbsDroppedCreature.Increment(__result.Where(kv => GemStoneSetup.uncutGems.ContainsValue(kv.Key)).Select(kv => kv.Value).Sum());
 		}
 	}
 }

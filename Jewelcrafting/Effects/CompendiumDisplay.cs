@@ -211,6 +211,7 @@ public static class CompendiumDisplay
 									GemLocation.ElementalMagic => "StaffFireball",
 									GemLocation.BloodMagic => "StaffSkeleton",
 									GemLocation.Magic => "YagluthDrop",
+									GemLocation.Trinket => "TrinketChitinSwim",
 									GemLocation.All => "QueenDrop",
 									_ => throw new ArgumentOutOfRangeException(),
 								};

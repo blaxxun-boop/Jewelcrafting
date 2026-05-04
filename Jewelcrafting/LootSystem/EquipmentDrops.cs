@@ -74,7 +74,7 @@ public static class EquipmentDrops
 					}
 					else
 					{
-						errors.Add($"The 'blacklist' must be a list of item names. Got unexpected {biomeKv.Value?.GetType().ToString() ?? "empty string (null)"}.");
+						errors.Add($"The 'blacklist' must be a list of item or creature names. Got unexpected {biomeKv.Value?.GetType().ToString() ?? "empty string (null)"}.");
 					}
 				}
 				else if (EffectDef.ValidBiomes.TryGetValue(biomeKv.Key, out Heightmap.Biome biome))
@@ -258,7 +258,7 @@ public static class EquipmentDrops
 		[HarmonyPriority(Priority.VeryLow - 1)]
 		private static void Postfix(CharacterDrop __instance)
 		{
-			if (dropBlacklist.Contains(global::Utils.GetPrefabName(__instance.m_character.gameObject).ToLower()) || dropBlacklist.Contains(Localization.instance.Localize(__instance.m_character.m_name).ToLower()) || dropBlacklist.Contains(Jewelcrafting.english.Localize(__instance.m_character.m_name).ToLower()))
+			if (Utils.BlacklistContainsCreature(__instance.m_character, dropBlacklist))
 			{
 				return;
 			}
@@ -283,7 +283,7 @@ public static class EquipmentDrops
 		EnsureDropCache();
 
 		Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
-		if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.GetMaxHealth() < lowHp[biome] ? Jewelcrafting.lootConfigs[lootSystem].lootLowHpChance : Jewelcrafting.lootConfigs[lootSystem].lootDefaultChance).Value / 100f)
+		if (dropCache.TryGetValue(biome, out List<Recipe> drops) && Random.value < (character.GetMaxHealth() < lowHp[biome] ? Jewelcrafting.lootConfigs[lootSystem].lootLowHpChance : Jewelcrafting.lootConfigs[lootSystem].lootDefaultChance).Value / 100f * Lucky.ChanceMultiplier(character.m_lastHit?.GetAttacker() as Player))
 		{
 			callback(biome, character, drops);
 		}
@@ -373,7 +373,6 @@ public static class EquipmentDrops
 			GemType primaryType = randomGemType();
 
 			string gem;
-			Dictionary<string, uint> seed = new();
 			if (isMergedGem)
 			{
 				GemType secondaryType = randomGemType();
@@ -384,15 +383,15 @@ public static class EquipmentDrops
 				}
 
 				gem = MergedGemStoneSetup.mergedGems[primaryType][secondaryType][socketTiers[i] / 2 - 1].name;
-				seed[secondaryType.ToString()] = Utils.GenerateSocketSeed();
 			}
 			else
 			{
 				gem = GemStoneSetup.Gems[primaryType][socketTiers[i] - 1].Prefab.name;
 			}
-			seed[primaryType.ToString()] = Utils.GenerateSocketSeed();
 
-			sockets.socketedGems.Add(new SocketItem(gem, seed));
+			SocketItem socket = new(gem);
+			socket.EnsureSeeds();
+			sockets.socketedGems.Add(socket);
 		}
 
 		sockets.Save();

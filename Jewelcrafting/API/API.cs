@@ -579,13 +579,11 @@ public static class API
 	public static bool FillItemContainerTooltip(ItemDrop.ItemData? item, Transform root, bool showInteract)
 	{
 #if ! API
-		if (item?.Data().Get<ItemContainer>() is { } container)
-		{
-			GemStones.FillItemTooltip(container, root, showInteract);
-			return true;
-		}
-#endif
+		GemStones.FillItemTooltip(item, root, showInteract);
+		return true;
+#else
 		return false;
+#endif
 	}
 
 	public static Color? GetSocketableItemColor(ItemDrop.ItemData item)

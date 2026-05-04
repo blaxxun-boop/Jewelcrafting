@@ -73,9 +73,9 @@ public static class Glider
 
 			if ((__instance.m_seman.HaveStatusEffect(GemEffectSetup.gliding.name.GetStableHashCode()) || __instance.m_seman.HaveStatusEffect(GemEffectSetup.glidingDark.name.GetStableHashCode())) && __instance.m_body && gliding)
 			{
-				Vector3 velocity = __instance.m_body.velocity;
+				Vector3 velocity = __instance.m_body.linearVelocity;
 				velocity.y = Math.Max(-2, velocity.y);
-				__instance.m_body.velocity = velocity;
+				__instance.m_body.linearVelocity = velocity;
 				__instance.m_maxAirAltitude = __instance.transform.position.y;
 			}
 		}

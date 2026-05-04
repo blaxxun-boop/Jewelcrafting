@@ -77,6 +77,7 @@ public static class MergedGemStoneSetup
 			}
 			itemDrop.m_itemData.m_shared.m_name = name;
 			GemStones.socketableGemStones.Add(name);
+			GemStones.socketableGemStoneNames.Add(prefab.name);
 			ItemSnapshots.SnapshotItems(itemDrop);
 			_ = new Item(prefab) { Configurable = Configurability.Disabled };
 

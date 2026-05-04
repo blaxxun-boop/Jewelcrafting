@@ -55,4 +55,37 @@ public static class KeepSockets
 			}
 		}
 	}
+
+	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.SetupUpgradeItem))]
+	private static class HintCorruptedItemNotUpgradeable
+	{
+		private static void Postfix(InventoryGui __instance, ItemDrop.ItemData item)
+		{
+			if (item.Data()["Corrupted Item"] is not null)
+			{
+				__instance.m_itemCraftType.text = Localization.instance.Localize("$jc_corrupted_upgrade_attempt");
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipe))]
+	private static class PreventCorruptedItemUpgradeDisplay
+	{
+		private static void Postfix(InventoryGui __instance)
+		{
+			if (__instance.m_selectedRecipe.Recipe && __instance.m_selectedRecipe.ItemData?.Data()["Corrupted Item"] is not null)
+			{
+				__instance.m_itemCraftType.text = "";
+				__instance.m_minStationLevelIcon.gameObject.SetActive(false);
+				__instance.m_craftButton.interactable = false;
+				__instance.m_craftButton.GetComponent<UITooltip>().m_text = Localization.instance.Localize("$jc_corrupted_upgrade_attempt");
+			}
+		}
+	}
+
+	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
+	private static class StopCorruptedItemUpgrade
+	{
+		private static bool Prefix(InventoryGui __instance) => !__instance.m_selectedRecipe.Recipe || __instance.m_selectedRecipe.ItemData?.Data()["Corrupted Item"] is null;
+	}
 }

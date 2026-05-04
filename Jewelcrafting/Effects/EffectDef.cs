@@ -37,7 +37,8 @@ public enum GemLocation : ulong
 	Tool = 1 << 17,
 	Shield = 1 << 18,
 	Utility = 1 << 19,
-	All = 1 << 20,
+	Trinket = 1 << 20,
+	All = 1 << 21,
 }
 
 public enum Effect
@@ -132,6 +133,11 @@ public enum Effect
 	Wisplight,
 	Wishbone,
 	Airdried,
+	Luckyminer,
+	Luckylumberjack,
+	Raging,
+	Protectivetrinket,
+	Resentfuladrenaline,
 }
 
 public enum Uniqueness
@@ -166,7 +172,7 @@ public class EffectDef
 {
 	static EffectDef()
 	{
-		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace!, StringComparison.Ordinal) || (t.Namespace ?? "").StartsWith("Jewelcrafting.SynergyEffects", StringComparison.Ordinal)))
+		foreach (Type t in typeof(EffectDef).Assembly.GetTypes().Where(t => (t.Namespace ?? "").StartsWith(typeof(EffectDef).Namespace!, StringComparison.Ordinal) || (t.Namespace ?? "").StartsWith("Jewelcrafting.SynergyEffects", StringComparison.Ordinal) || (t.Namespace ?? "").StartsWith("Jewelcrafting.LootSystem", StringComparison.Ordinal)))
 		{
 			RuntimeHelpers.RunClassConstructor(t.TypeHandle);
 		}
@@ -536,6 +542,16 @@ public class EffectDef
 								}
 
 								string[] split = powerString.Split('-');
+								if (split.Length > 2 && split[0] == "")
+								{
+									split = split.Skip(1).ToArray();
+									split[0] = "-" + split[0];
+								}
+								if (split.Length > 2 && split[1] == "")
+								{
+									split = split.Take(1).Skip(1).ToArray();
+									split[1] = "-" + split[1];
+								}
 								if (split.Length == 2 && float.TryParse(split[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float minPower) && float.TryParse(split[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float maxPower))
 								{
 									field.SetValue(effectDef.MinPower[tier], minPower);

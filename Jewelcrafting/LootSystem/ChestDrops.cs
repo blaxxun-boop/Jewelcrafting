@@ -49,13 +49,13 @@ public static class ChestDrops
 							}
 							else
 							{
-								errors.Add($"Found invalid item in 'blacklist' of 'equipment' section. Got unexpected {itemObj?.GetType().ToString() ?? "empty string (null)"}.");
+								errors.Add($"Found invalid creature in 'blacklist' of 'equipment' section. Got unexpected {itemObj?.GetType().ToString() ?? "empty string (null)"}.");
 							}
 						}
 					}
 					else
 					{
-						errors.Add($"The 'blacklist' must be a list of item names. Got unexpected {biomeKv.Value?.GetType().ToString() ?? "empty string (null)"}.");
+						errors.Add($"The 'blacklist' must be a list of creature names. Got unexpected {biomeKv.Value?.GetType().ToString() ?? "empty string (null)"}.");
 					}
 				}
 				else if (EffectDef.ValidBiomes.TryGetValue(biomeKv.Key, out Heightmap.Biome biome))
@@ -181,11 +181,11 @@ public static class ChestDrops
 		{
 			Character character = __instance.m_character;
 
-			if (character.m_baseAI is MonsterAI ai && (Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemChests) != 0 && !character.IsTamed())
+			if (character.m_baseAI is MonsterAI ai && (Jewelcrafting.lootSystem.Value & Jewelcrafting.LootSystem.GemChests) != 0 && !character.IsTamed() && !Utils.BlacklistContainsCreature(character, config.blacklist ?? []))
 			{
 				Heightmap.Biome biome = Heightmap.FindBiome(ai.m_spawnPoint);
 				Jewelcrafting.LootConfigs lootConfigs = Jewelcrafting.lootConfigs[Jewelcrafting.LootSystem.GemChests];
-				if (config.biomeConfig.TryGetValue(biome, out GemDropBiome drops) && drops.distribution is IDictionary { Count: > 0 } && Random.value < (character.GetMaxHealth() < drops.lowHp!.Value ? lootConfigs.lootLowHpChance : lootConfigs.lootDefaultChance).Value / 100f)
+				if (config.biomeConfig.TryGetValue(biome, out GemDropBiome drops) && drops.distribution is IDictionary { Count: > 0 } && Random.value < (character.GetMaxHealth() < drops.lowHp!.Value ? lootConfigs.lootLowHpChance : lootConfigs.lootDefaultChance).Value / 100f * Lucky.ChanceMultiplier(character.m_lastHit?.GetAttacker() as Player))
 				{
 					// between 0 and 1
 					float hpFactor = (Mathf.Pow(Mathf.Clamp(character.GetMaxHealth() / drops.highHp!.Value, 0.125f, 8), 1 / 3f) - 0.5f) / 1.5f;
@@ -296,7 +296,7 @@ public static class ChestDrops
 				}
 			}
 
-			if (EquipmentDrops.dropBlacklist.Contains(global::Utils.GetPrefabName(__instance.m_character.gameObject).ToLower()) || EquipmentDrops.dropBlacklist.Contains(Localization.instance.Localize(__instance.m_character.m_name).ToLower()) || EquipmentDrops.dropBlacklist.Contains(Jewelcrafting.english.Localize(__instance.m_character.m_name).ToLower()))
+			if (Utils.BlacklistContainsCreature(__instance.m_character, EquipmentDrops.dropBlacklist))
 			{
 				return;
 			}

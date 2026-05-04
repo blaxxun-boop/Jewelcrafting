@@ -3,7 +3,6 @@ using BepInEx.Configuration;
 using ItemManager;
 using UnityEngine;
 using UnityEngine.UI;
-using Toggle = ItemManager.Toggle;
 
 namespace Jewelcrafting;
 
@@ -27,6 +26,7 @@ public enum GemType
 	Group,
 	Wisplight,
 	Wishbone,
+	Corrupted,
 }
 
 public struct GemDefinition
@@ -122,6 +122,7 @@ public static class GemStoneSetup
 		prefab.GetComponent<ItemDrop>().m_itemData.m_dropPrefab = prefab;
 		string gemName = prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 		GemStones.socketableGemStones.Add(gemName);
+		GemStones.socketableGemStoneNames.Add(prefab.name);
 		colorGems.Add(new GemDefinition
 		{
 			Prefab = prefab,
@@ -142,6 +143,7 @@ public static class GemStoneSetup
 			foreach (GemDefinition gem in gems)
 			{
 				GemStones.socketableGemStones.Remove(gem.Name);
+				GemStones.socketableGemStoneNames.Remove(gem.Prefab.name);
 				GemInfos.Remove(gem.Name);
 			}
 			Gems.Remove(color);
@@ -219,7 +221,7 @@ public static class GemStoneSetup
 
 		Transform toCopy = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles/Transmute_Text_1");
 		Transform toParent = SocketTooltip.transform.Find("Bkg (1)/TrannyHoles");
-		for (int i = 6; i <= Jewelcrafting.maxNumberOfSockets; ++i)
+		for (int i = 6; i <= Jewelcrafting.maxInternalNumberOfSockets; ++i)
 		{
 			GameObject newSlot = Object.Instantiate(toCopy.gameObject);
 			newSlot.name = $"Transmute_Text_{i}";
@@ -283,6 +285,7 @@ public static class GemStoneSetup
 		GemStones.bossToGem.Add("SeekerQueen", gemStone.Prefab);
 		gemStone = AddGem("Boss_Crystal_8", GemType.Fader);
 		GemStones.bossToGem.Add("Fader", gemStone.Prefab);
+		AddGem("JC_Corrupted_Gem", GemType.Corrupted);
 
 		if (Groups.API.IsLoaded())
 		{

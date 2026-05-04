@@ -1,5 +1,7 @@
 ﻿using BepInEx.Configuration;
 using HarmonyLib;
+using ItemManager;
+using Jewelcrafting.CrystalCase;
 using Jewelcrafting.Setup;
 using PieceManager;
 using SkillManager;
@@ -54,6 +56,15 @@ public static class BuildingPiecesSetup
 		piece.Category.Set(BuildPieceCategory.Crafting);
 		astralCutter = piece.Prefab;
 		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
+		
+		piece = new BuildPiece(assets, "JC_Crystal_Case");
+		piece.RequiredItems.Add("FineWood", 25, true);
+		piece.RequiredItems.Add("Crystal", 10, true);
+		piece.RequiredItems.Add("IronNails", 30, true);
+		piece.Category.Set(BuildPieceCategory.Furniture);
+		piece.Prefab.AddComponent<VisualSetup.RuntimeTextureReducer>();
+		piece.Prefab.AddComponent<CrystalCaseInteract>();
+		CrystalCaseInteract.crystalCaseUIPrefab = PrefabManager.RegisterAssetBundle("crystalcaseui").LoadAsset<GameObject>("JC_Crystal_Case_UI_TEST");
 	}
 
 	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]

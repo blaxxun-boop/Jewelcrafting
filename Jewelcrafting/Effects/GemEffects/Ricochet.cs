@@ -31,7 +31,7 @@ public static class Ricochet
 				{
 					Vector3 hitCharacterCenter = hitCharacter.transform.position + hitCharacter.m_body.centerOfMass;
 					
-					List<Character> characters = Object.FindObjectsOfType<Character>().Where(c => c != hitCharacter && !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < 15f).ToList();
+					List<Character> characters = Object.FindObjectsByType<Character>(FindObjectsSortMode.None).Where(c => c != hitCharacter && !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < 15f).ToList();
 					if (characters.Count > 0)
 					{
 						characters.Shuffle();

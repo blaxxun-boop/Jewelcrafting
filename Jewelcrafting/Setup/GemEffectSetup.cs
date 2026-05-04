@@ -60,7 +60,8 @@ public static class GemEffectSetup
 	public static GameObject fusingSuccessSound = null!;
 	public static readonly List<GameObject> asksvinPrefabs = new();
 	public static GameObject asksvinSpawnVFX = null!;
-
+	public static SE_Stats protectedStatus = null!;
+	
 	public static void initializeGemEffect(AssetBundle assets)
 	{
 		swordFall = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_9");
@@ -122,6 +123,7 @@ public static class GemEffectSetup
 		legacyRingHaldor = assets.LoadAsset<GameObject>("JC_Black_Ring_Haldor");
 		legacyRingHildir = assets.LoadAsset<GameObject>("JC_Black_Ring_Hildir");
 		legacyRingHildirQuest = assets.LoadAsset<GameObject>("JC_Black_Ring_Quest");
+		protectedStatus = assets.LoadAsset<SE_Stats>("SE_Protective_Trinket");
 		asksvinSpawnVFX = assets.LoadAsset<GameObject>("vfx_asksvin_spawn");
 
 		asksvinPrefabs.Add(PrefabManager.RegisterPrefab(assets, "JC_Asksvin_Blue"));

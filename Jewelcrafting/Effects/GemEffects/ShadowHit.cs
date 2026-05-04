@@ -41,7 +41,7 @@ public static class ShadowHit
 				{
 					for (int i = 0; i < config.Amount; ++i)
 					{
-						List<Character> characters = Object.FindObjectsOfType<Character>().Where(c => c != __instance && !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < config.Range).ToList();
+						List<Character> characters = Object.FindObjectsByType<Character>(FindObjectsSortMode.None).Where(c => c != __instance && !c.IsPlayer() && !c.IsTamed() && Vector3.Distance(player.transform.position, c.transform.position) < config.Range).ToList();
 						if (characters.Count > 0)
 						{
 							Character character = characters[Random.Range(0, characters.Count)];

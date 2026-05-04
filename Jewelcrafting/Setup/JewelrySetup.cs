@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -89,6 +88,17 @@ public static class JewelrySetup
 		orangeNecklaceShared.m_armorPerLevel = 0;
 		orangeNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Attunement>(orangeNecklaceShared.m_equipStatusEffect);
 		
+		item = new Item(assets, "JC_Necklace_Black");
+		item.Crafting.Add("op_transmution_table", 3);
+		item.RequiredItems.Add("Perfect_Black_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		ItemDrop.ItemData.SharedData blackNecklaceShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
+		blackNecklaceShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Lucky>(blackNecklaceShared.m_equipStatusEffect);
+		Lucky.SeNames.Add(blackNecklaceShared.m_equipStatusEffect.name);
+
 		item = new Item(assets, "JC_Ring_Purple");
 		item.Crafting.Add("op_transmution_table", 2);
 		item.RequiredItems.Add("Perfect_Purple_Socket", 1);
@@ -138,6 +148,17 @@ public static class JewelrySetup
 		ItemDrop.ItemData.SharedData blackRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
 		upgradeableJewelry.Add(blackRingShared.m_name);
 		blackRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Legacy>(blackRingShared.m_equipStatusEffect);
+		
+		item = new Item(assets, "JC_Ring_Yellow");
+		item.Crafting.Add("op_transmution_table", 2);
+		item.RequiredItems.Add("Perfect_Yellow_Socket", 1);
+		item.RequiredItems.Add("Chain", 1);
+		item.MaximumRequiredStationLevel = 3;
+		item.RequiredUpgradeItems.Add("Coins", 500);
+		ItemDrop.ItemData.SharedData yellowRingShared = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared;
+		upgradeableJewelry.Add(item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name);
+		yellowRingShared.m_equipStatusEffect = Utils.ConvertStatusEffect<Lucky>(yellowRingShared.m_equipStatusEffect);
+		Lucky.SeNames.Add(yellowRingShared.m_equipStatusEffect.name);
 	}
 
 	public static void SetPurpleRingSockets()

@@ -28,11 +28,12 @@ public static class Synergy
 	public static Dictionary<GemType, int> GetGemDistribution(Player player)
 	{
 		List<GemType> gemTypes = new();
+		Utils.ActiveSockets active = new(player);
 		Utils.ApplyToAllPlayerItems(player, item =>
 		{
 			if (item.Data().Get<Sockets>() is { } itemSockets)
 			{
-				foreach (SocketItem socket in itemSockets.socketedGems)
+				foreach (SocketItem socket in itemSockets.socketedGems.Where(s => s.Name != "").Take(active.Sockets(item)))
 				{
 					if (ObjectDB.instance.GetItemPrefab(socket.Name) is { } gem && GemStoneSetup.GemInfos.TryGetValue(gem.GetComponent<ItemDrop>().m_itemData.m_shared.m_name, out GemInfo info) && GemStoneSetup.shardColors.ContainsKey(info.Type))
 					{

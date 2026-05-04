@@ -42,6 +42,7 @@ public static class Utils
 			       ItemDrop.ItemData.ItemType.Shield or
 			       ItemDrop.ItemData.ItemType.Shoulder or
 			       ItemDrop.ItemData.ItemType.Utility or
+			       ItemDrop.ItemData.ItemType.Trinket or
 			       ItemDrop.ItemData.ItemType.Tool or
 			       ItemDrop.ItemData.ItemType.TwoHandedWeapon or
 			       ItemDrop.ItemData.ItemType.TwoHandedWeaponLeft ||
@@ -79,7 +80,7 @@ public static class Utils
 		return output;
 	}
 
-	private static float CalcRealEffectPower(float minConfig, float maxConfig, int fieldIndex, GemType type, Effect effect, Dictionary<string, uint>? seeds)
+	public static float CalcRealEffectPower(float minConfig, float maxConfig, int fieldIndex, GemType type, Effect effect, Dictionary<string, uint>? seeds)
 	{
 		if (seeds?.TryGetValue(type.ToString(), out uint seed) != true)
 		{
@@ -127,6 +128,7 @@ public static class Utils
 		ItemDrop.ItemData.ItemType.Utility => GemLocation.Utility,
 		ItemDrop.ItemData.ItemType.Shoulder => GemLocation.Cloak,
 		ItemDrop.ItemData.ItemType.Tool => GemLocation.Tool,
+		ItemDrop.ItemData.ItemType.Trinket => GemLocation.Trinket,
 		_ => item.m_skillType switch
 		{
 			Skills.SkillType.Swords => GemLocation.Sword,
@@ -283,7 +285,7 @@ public static class Utils
 		Vector3 position = transform.position;
 		ItemDrop itemDrop = ItemDrop.DropItem(item, amount, position + transform.forward + transform.up, transform.rotation);
 		itemDrop.OnPlayerDrop();
-		itemDrop.GetComponent<Rigidbody>().velocity = (transform.forward + Vector3.up) * 5f;
+		itemDrop.GetComponent<Rigidbody>().linearVelocity = (transform.forward + Vector3.up) * 5f;
 		Player.m_localPlayer.m_dropEffects.Create(position, Quaternion.identity);
 	}
 
@@ -349,14 +351,19 @@ public static class Utils
 			bool isSocketedUtility(ItemDrop.ItemData i) => i.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && i.Data().Get<Sockets>() is not null;
 			activeUtilityItems = player.GetInventory().GetEquippedItems().Count(isSocketedUtility);
 			primaryUtilityItem = player.m_utilityItem?.Data().Get<Sockets>() is not null ? player.m_utilityItem : player.GetInventory().GetEquippedItems().FirstOrDefault(isSocketedUtility);
-			availableUtilitySlots = activeUtilityItems == 0 ? 0 : Jewelcrafting.maximumNumberSockets.Value / activeUtilityItems;
+			availableUtilitySlots = activeUtilityItems == 0 ? 0 : Math.Max(primaryUtilityItem?.Data().Get<Sockets>()?.socketedGems.Count ?? 0, Jewelcrafting.maximumNumberSockets.Value) / activeUtilityItems;
 		}
 
 		public int Sockets(ItemDrop.ItemData item)
 		{
 			if (Jewelcrafting.splitSockets.Value == Jewelcrafting.Toggle.On && item.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Utility && item.m_equipped)
 			{
-				return item == primaryUtilityItem ? Math.Min(item.Data().Get<Sockets>()!.socketedGems.Count, Jewelcrafting.maximumNumberSockets.Value - (activeUtilityItems - 1) * availableUtilitySlots) : availableUtilitySlots;
+				if (item != primaryUtilityItem)
+				{
+					return availableUtilitySlots;
+				}
+				Sockets sockets = item.Data().Get<Sockets>()!;
+				return Math.Min(sockets.socketedGems.Count, Math.Max(sockets.socketedGems.Count, Jewelcrafting.maximumNumberSockets.Value) - (activeUtilityItems - 1) * availableUtilitySlots);
 			}
 			return int.MaxValue / 2;
 		}
@@ -431,4 +438,8 @@ public static class Utils
 		point = Vector3.zero;
 		return false;
 	}
+
+	public static bool UsesPowerRanges() => Jewelcrafting.GemsUsingPowerRanges.Count > 1 || (Jewelcrafting.GemsUsingPowerRanges.Count == 1 && !Jewelcrafting.GemsUsingPowerRanges.Contains(GemType.Corrupted));
+
+	public static bool BlacklistContainsCreature(Character character, ICollection<string> blacklist) => blacklist.Contains(global::Utils.GetPrefabName(character.gameObject).ToLower()) || blacklist.Contains(Localization.instance.Localize(character.m_name).ToLower()) || blacklist.Contains(Jewelcrafting.english.Localize(character.m_name).ToLower());
 }

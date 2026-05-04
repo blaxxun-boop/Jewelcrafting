@@ -79,6 +79,7 @@ public static class Stats
 	public static readonly Stat destructiblesDestroyed = new("Gemstone Formations Mined");
 	public static readonly Stat gemsDroppedDestructible = new("Gems Dropped (Gemstone Formation)");
 	public static readonly Stat gemsDroppedCreature = new("Gems Dropped (Creature)");
+	public static readonly Stat orbsDroppedCreature = new("Orbs Dropped (Creature)");
 	public static readonly Stat socketedEquipmentDropped = new("Socketed Equipment Drops");
 	public static readonly Stat worldBossKills = new("World Boss Kills");
 	public static readonly Stat deathByWorldBoss = new("Death By World Boss");

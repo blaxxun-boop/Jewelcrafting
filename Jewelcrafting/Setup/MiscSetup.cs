@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using HarmonyLib;
 using ItemDataManager;
 using ItemManager;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace Jewelcrafting;
 
@@ -13,15 +11,27 @@ public static class MiscSetup
 {
 	public static string gemBagName = null!;
 	public static string gemBoxName = null!;
+	public static GameObject chaosFramePrefab = null!;
 	public static string chaosFrameName = null!;
+	public static GameObject chanceFramePrefab = null!;
 	public static string chanceFrameName = null!;
 	public static string blessedMirrorName = null!;
 	public static string celestialMirrorName = null!;
 	public static readonly List<GameObject> framePrefabs = new();
 	private static SocketBag socketBag = null!;
 	public static InventoryBag jewelryBag = null!;
-	private static GameObject divinityOrbPrefab = null!;
+	public static GameObject divinityOrbPrefab = null!;
 	public static string divinityOrbName = null!;
+	public static GameObject corruptionOrbPrefab = null!;
+	public static string corruptionOrbName = null!;
+	public static GameObject finalityOrbPrefab = null!;
+	public static string finalityOrbName = null!;
+	public static GameObject whimsicalityOrbPrefab = null!;
+	public static string whimsicalityOrbName = null!;
+	public static GameObject prophecyOrbPrefab = null!;
+	public static string prophecyOrbName = null!;
+	public static GameObject misfortuneOrbPrefab = null!;
+	public static string misfortuneOrbName = null!;
 	public static readonly List<Recipe> vanillaGemCraftingRecipes = new();
 
 	public static void initializeMisc(AssetBundle assets)
@@ -52,6 +62,7 @@ public static class MiscSetup
 		framePrefabs.Add(item.Prefab);
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chaosFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		chaosFramePrefab = item.Prefab;
 		item = new Item(assets, "Black_Crystal_Frame")
 		{
 			Configurable = Configurability.Recipe,
@@ -59,6 +70,7 @@ public static class MiscSetup
 		framePrefabs.Add(item.Prefab);
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		chanceFrameName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		chanceFramePrefab = item.Prefab;
 		item = new Item(assets, "JC_Blessed_Crystal_Mirror")
 		{
 			Configurable = Configurability.Recipe,
@@ -79,6 +91,46 @@ public static class MiscSetup
 		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
 		divinityOrbPrefab = item.Prefab;
 		divinityOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		
+		item = new Item(assets, "JC_Orb_of_Corruption")
+		{
+			Configurable = Configurability.Recipe,
+		};
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
+		corruptionOrbPrefab = item.Prefab;
+		corruptionOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		
+		item = new Item(assets, "JC_Orb_of_Finality")
+		{
+			Configurable = Configurability.Recipe,
+		};
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
+		finalityOrbPrefab = item.Prefab;
+		finalityOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		
+		item = new Item(assets, "JC_Orb_of_Whimsicality")
+		{
+			Configurable = Configurability.Recipe,
+		};
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
+		whimsicalityOrbPrefab = item.Prefab;
+		whimsicalityOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		
+		item = new Item(assets, "JC_Orb_of_Prophecy")
+		{
+			Configurable = Configurability.Recipe,
+		};
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
+		prophecyOrbPrefab = item.Prefab;
+		prophecyOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+		
+		item = new Item(assets, "JC_Orb_of_Misfortune")
+		{
+			Configurable = Configurability.Recipe,
+		};
+		item.Prefab.GetComponent<ItemDrop>().m_itemData.Data().Add<Frame>();
+		misfortuneOrbPrefab = item.Prefab;
+		misfortuneOrbName = item.Prefab.GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
 	}
 
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.Pickup))]
@@ -129,6 +181,7 @@ public static class MiscSetup
 					}
 
 					Dictionary<string, uint> seed = item.Data().GetAll<SocketSeed>().ToDictionary(kv => kv.Key, kv => kv.Value.Seed);
+					bool corrupted = item.Data()["Corrupted Item"] is not null;
 
 					if (seed.Count == 0)
 					{
@@ -166,7 +219,7 @@ public static class MiscSetup
 						{
 							if (!dryRun)
 							{
-								socketBag.socketedGems[i] = new SocketItem(item.m_dropPrefab.name, count: remainingStack, seed: seed);
+								socketBag.socketedGems[i] = new SocketItem(item.m_dropPrefab.name, count: remainingStack, seed: seed, corrupted: corrupted);
 							}
 							FinishPickup();
 							return true;
@@ -222,30 +275,6 @@ public static class MiscSetup
 			socketBag.socketedGems.Add(new SocketItem(""));
 		}
 		socketBag.Save();
-	}
-
-	[HarmonyPatch(typeof(Container), nameof(Container.RPC_OpenRespons))]
-	private static class DropDivinityOrb
-	{
-		private static void Prefix(Container __instance, bool granted)
-		{
-			if (!Player.m_localPlayer || !granted || Jewelcrafting.GemsUsingPowerRanges.Count == 0 || !__instance.name.StartsWith("TreasureChest_", StringComparison.Ordinal))
-			{
-				return;
-			}
-
-			if (__instance.m_nview.GetZDO().GetBool("Jewelcrafting Treasure Looted"))
-			{
-				return;
-			}
-
-			__instance.m_nview.GetZDO().Set("Jewelcrafting Treasure Looted", true);
-
-			if (Random.value < Jewelcrafting.divinityOrbDropChance.Value / 100f)
-			{
-				__instance.m_inventory.AddItem(divinityOrbPrefab, 1);
-			}
-		}
 	}
 
 	[HarmonyPatch(typeof(ObjectDB), nameof(ObjectDB.Awake))]
