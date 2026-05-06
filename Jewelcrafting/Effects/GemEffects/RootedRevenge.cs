@@ -76,8 +76,11 @@ public static class RootedRevenge
 				player.m_seman.AddStatusEffect(GemEffectSetup.rootStart);
 
 				yield return new WaitForSeconds(4);
-				
-				player.m_seman.AddStatusEffect(GemEffectSetup.rootedRevenge).m_ttl = config.Duration;
+
+				if (player.m_seman.AddStatusEffect(GemEffectSetup.rootedRevenge, true) is { } statusEffect)
+				{
+					statusEffect.m_ttl = config.Duration;
+				}
 
 				GameObject root = ZNetScene.instance.GetPrefab("TentaRoot");
 

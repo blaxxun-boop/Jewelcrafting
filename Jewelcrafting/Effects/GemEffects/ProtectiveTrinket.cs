@@ -25,7 +25,10 @@ public static class ProtectiveTrinket
 		{
 			if (__instance.m_character is Player player && player.m_adrenaline + use >= player.GetMaxAdrenaline() && player.GetMaxAdrenaline() > 0)
 			{
-				player.m_seman.AddStatusEffect(GemEffectSetup.protectedStatus).m_ttl = player.GetEffect<Config>(Effect.Protectivetrinket).Duration;
+				if (player.m_seman.AddStatusEffect(GemEffectSetup.protectedStatus, true) is { } statusEffect)
+				{
+					statusEffect.m_ttl = player.GetEffect<Config>(Effect.Protectivetrinket).Duration;
+				}
 			}
 		}
 	}

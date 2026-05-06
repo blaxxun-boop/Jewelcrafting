@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "2.0.0";
+	private const string ModVersion = "2.0.1";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -528,7 +528,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 			}
 		};
 		equipmentChestAllowedAmount = config("5 - Loot System", "Allowed Items Equipment Chest", 1, new ConfigDescription("Sets how many items players may take from a single equipment chest.", new AcceptableValueRange<int>(1, 8), new ConfigurationManagerAttributes { Order = --order }));
-		gemCaveLocationIcon = config("6 - Gem Cave", "Location Icon", Toggle.On, new ConfigDescription("Display the map icon of the gem cave.", null, new ConfigurationManagerAttributes { Order = --order }));
+		gemCaveLocationIcon = config("6 - Gem Cave", "Location Icon", Toggle.Off, new ConfigDescription("Display the map icon of the gem cave.", null, new ConfigurationManagerAttributes { Order = --order }));
 		upgradeChanceIncrease = config("7 - Other", "Success Chance Increase", 15, new ConfigDescription("Success chance increase at Jewelcrafting skill level 100.", new AcceptableValueRange<int>(0, 100), new ConfigurationManagerAttributes { Order = --order }));
 		additiveSkillBonus = config("7 - Other", "Additive Skill Bonus", Toggle.Off, new ConfigDescription("If on, the skill bonus from Jewelcrafting is additive instead of multiplicative. Not recommended, since it makes the skill insanely strong.", null, new ConfigurationManagerAttributes { Order = --order }));
 		experienceGainedFactor = config("7 - Other", "Skill Experience Gain Factor", 1f, new ConfigDescription("Factor for experience gained for the jewelcrafting skill.", new AcceptableValueRange<float>(0.01f, 5f), new ConfigurationManagerAttributes { Order = --order }));
