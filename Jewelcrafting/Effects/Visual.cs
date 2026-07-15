@@ -39,39 +39,51 @@ public partial class Visual
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UpdateEquipmentStatusEffects))]
 	private static class ApplyStatusEffects
 	{
-		private static void CollectEffects(Humanoid humanoid, HashSet<StatusEffect?> statusEffects)
+		private static Visual? activeVisual;
+
+		private static void Prefix(Humanoid __instance)
 		{
-			if (humanoid is Player player && visuals.TryGetValue(player.m_visEquipment, out Visual visual))
+			if (__instance.m_visEquipment)
 			{
-				if (visual.equippedFingerItem?.m_shared.m_equipStatusEffect is { } fingerStatusEffect)
-				{
-					statusEffects.Add(fingerStatusEffect);
-				}
-				if (humanoid.HaveSetEffect(visual.equippedFingerItem))
-				{
-					statusEffects.Add(visual.equippedFingerItem!.m_shared.m_equipStatusEffect);
-				}
-				if (visual.equippedNeckItem?.m_shared.m_equipStatusEffect is { } neckStatusEffect)
-				{
-					statusEffects.Add(neckStatusEffect);
-				}
-				if (humanoid.HaveSetEffect(visual.equippedNeckItem))
-				{
-					statusEffects.Add(visual.equippedNeckItem!.m_shared.m_equipStatusEffect);
-				}
+				visuals.TryGetValue(__instance.m_visEquipment, out activeVisual);
+			}
+			else
+			{
+				activeVisual = null;
+			}
+		}
+
+		private static void CollectEffects(Humanoid humanoid, HashSet<StatusEffect?> inputStatusEffects)
+		{
+			HashSet<StatusEffect?> statusEffects = inputStatusEffects; // dummy; without extra stloc/ldloc to simplify var handling when patching
+			if (activeVisual?.equippedFingerItem?.m_shared.m_equipStatusEffect)
+			{
+				statusEffects.Add(activeVisual.equippedFingerItem.m_shared.m_equipStatusEffect);
+			}
+			if (humanoid.HaveSetEffect(activeVisual?.equippedFingerItem))
+			{
+				statusEffects.Add(activeVisual!.equippedFingerItem!.m_shared.m_equipStatusEffect);
+			}
+			if (activeVisual?.equippedNeckItem?.m_shared.m_equipStatusEffect)
+			{
+				statusEffects.Add(activeVisual.equippedNeckItem.m_shared.m_equipStatusEffect);
+			}
+			if (humanoid.HaveSetEffect(activeVisual?.equippedNeckItem))
+			{
+				statusEffects.Add(activeVisual!.equippedNeckItem!.m_shared.m_equipStatusEffect);
 			}
 		}
 
 		private static MethodInfo EffectCollector = AccessTools.DeclaredMethod(typeof(ApplyStatusEffects), nameof(CollectEffects));
 
-		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable)
+		// Patch whole function so that other transpilers can see it and intercept our accesses
+		[HarmonyPriority(Priority.First)]
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable, ILGenerator ilg)
 		{
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
-			instructions.InsertRange(2, [
-				new CodeInstruction(OpCodes.Ldarg_0),
-				new CodeInstruction(OpCodes.Ldloc_0),
-				new CodeInstruction(OpCodes.Call, EffectCollector),
-			]);
+			List<CodeInstruction> customSlotInstructions = PatchProcessor.GetCurrentInstructions(AccessTools.DeclaredMethod(typeof(ApplyStatusEffects), nameof(CollectEffects)), generator: ilg).SkipWhile(i => i.opcode != OpCodes.Ldarg_0).Where(i => !i.IsStloc() && (!i.IsLdloc() || i.opcode == OpCodes.Ldloc_0)).ToList();
+			customSlotInstructions[customSlotInstructions.Count - 1].opcode = OpCodes.Nop;
+			instructions.InsertRange(2, customSlotInstructions);
 
 			return instructions;
 		}
