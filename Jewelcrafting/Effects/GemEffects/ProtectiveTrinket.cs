@@ -23,7 +23,7 @@ public static class ProtectiveTrinket
 		[UsedImplicitly]
 		private static void Finalizer(SEMan __instance, float use)
 		{
-			if (__instance.m_character is Player player && player.m_adrenaline + use >= player.GetMaxAdrenaline() && player.GetMaxAdrenaline() > 0)
+			if (__instance.m_character is Player player && player.m_adrenaline + use >= player.GetMaxAdrenaline() && player.GetMaxAdrenaline() > 0 && player.GetEffect<Config>(Effect.Protectivetrinket).Duration > 0)
 			{
 				if (player.m_seman.AddStatusEffect(GemEffectSetup.protectedStatus, true) is { } statusEffect)
 				{

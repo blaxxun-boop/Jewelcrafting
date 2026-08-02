@@ -1752,7 +1752,7 @@ public static class GemStones
                 if (UITooltip.m_current)
                 {
                     UITooltip.m_current.OnHoverStart(UITooltip.m_hovered);
-                    UITooltip.m_tooltip.SetActive(true);
+                    UITooltip.m_tooltip?.SetActive(true);
                 }
             }
 

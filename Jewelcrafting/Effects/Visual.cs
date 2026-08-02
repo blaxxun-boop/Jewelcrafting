@@ -81,7 +81,7 @@ public partial class Visual
 		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructionsEnumerable, ILGenerator ilg)
 		{
 			List<CodeInstruction> instructions = instructionsEnumerable.ToList();
-			List<CodeInstruction> customSlotInstructions = PatchProcessor.GetCurrentInstructions(AccessTools.DeclaredMethod(typeof(ApplyStatusEffects), nameof(CollectEffects)), generator: ilg).SkipWhile(i => i.opcode != OpCodes.Ldarg_0).Where(i => !i.IsStloc() && (!i.IsLdloc() || i.opcode == OpCodes.Ldloc_0)).ToList();
+			List<CodeInstruction> customSlotInstructions = PatchProcessor.GetCurrentInstructions(AccessTools.DeclaredMethod(typeof(ApplyStatusEffects), nameof(CollectEffects)), generator: ilg).SkipWhile(i => i.opcode != OpCodes.Ldsfld).Where(i => !i.IsStloc() && (!i.IsLdloc() || i.opcode == OpCodes.Ldloc_0)).ToList();
 			customSlotInstructions[customSlotInstructions.Count - 1].opcode = OpCodes.Nop;
 			instructions.InsertRange(2, customSlotInstructions);
 
