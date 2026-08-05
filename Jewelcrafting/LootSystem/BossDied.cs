@@ -25,42 +25,43 @@ public static class BossDied
 
 		private static bool BossKilled(Character boss) => ZoneSystem.instance.GetGlobalKey(boss.m_defeatSetGlobalKey);
 	}
-
-	static BossDied()
+	
+	[HarmonyPatch(typeof(CharacterDrop), nameof(CharacterDrop.GenerateDropList))]
+	private static class AddBossGemDrop
 	{
-		IEnumerable<CharacterDrop.Drop> drop(Character character)
+		[HarmonyPriority(Priority.VeryLow / 2)]
+		private static void Postfix(CharacterDrop __instance, ref List<KeyValuePair<GameObject, int>> __result)
 		{
-			if (character.IsBoss())
-			{
-				if (character.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
-				{
-					List<Player> nearbyPlayers = new();
-					Player.GetPlayersInRange(character.transform.position, 100, nearbyPlayers);
-					foreach (Player player in nearbyPlayers)
-					{
-						player.m_nview.InvokeRPC("Jewelcrafting GachaCoin Receive", Jewelcrafting.bossCoinDrop.Value, character.transform.position);
-					}
-				}
+			if (__instance.m_character.IsBoss())
+            {
+            	if (__instance.m_character.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
+            	{
+            		List<Player> nearbyPlayers = new();
+            		Player.GetPlayersInRange(__instance.transform.position, 100, nearbyPlayers);
+            		foreach (Player player in nearbyPlayers)
+            		{
+            			player.m_nview.InvokeRPC("Jewelcrafting GachaCoin Receive", Jewelcrafting.bossCoinDrop.Value, __instance.transform.position);
+            		}
+            	}
 
-				if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(character.gameObject), out GameObject bossDrop))
-				{
-					int amount = Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? Player.GetPlayersInRangeXZ(character.transform.position, 100) : 1;
-					if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique && SetBossFlag.firstKill)
-					{
-						yield return LootAdder.Drop(bossDrop);
-					}
-					else if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.GuaranteedFirst && SetBossFlag.firstKill)
-					{
-						yield return LootAdder.DropAmount(bossDrop, amount);
-					}
-					else if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.TrulyUnique)
-					{
-						yield return LootAdder.Drop(bossDrop, Jewelcrafting.uniqueGemDropChance.Value / 100f + CreatureLevelControl.API.GetWorldLevel() * Jewelcrafting.uniqueGemDropChanceIncreasePerWorldLevel.Value / 100f, amount);
-					}
-				}
-			}
+            	if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.Disabled && GemStones.bossToGem.TryGetValue(global::Utils.GetPrefabName(__instance.gameObject), out GameObject bossDrop))
+            	{
+            		int amount = Jewelcrafting.uniqueGemDropOnePerPlayer.Value == Jewelcrafting.Toggle.On ? Player.GetPlayersInRangeXZ(__instance.transform.position, 100) : 1;
+            		if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.TrulyUnique && SetBossFlag.firstKill)
+            		{
+			            __result.Add(new KeyValuePair<GameObject, int>(bossDrop, 1));
+            		}
+            		else if (Jewelcrafting.uniqueGemDropSystem.Value == Jewelcrafting.UniqueDrop.GuaranteedFirst && SetBossFlag.firstKill)
+            		{
+			            __result.Add(new KeyValuePair<GameObject, int>(bossDrop, amount));
+            		}
+            		else if (Jewelcrafting.uniqueGemDropSystem.Value != Jewelcrafting.UniqueDrop.TrulyUnique && Jewelcrafting.uniqueGemDropChance.Value / 100f + CreatureLevelControl.API.GetWorldLevel() * Jewelcrafting.uniqueGemDropChanceIncreasePerWorldLevel.Value / 100f >= Random.value)
+		            {
+			            __result.Add(new KeyValuePair<GameObject, int>(bossDrop, amount));
+		            }
+            	}
+            }
 		}
-		LootAdder.Loot.Add(drop);
 	}
 
 	[HarmonyPatch(typeof(Character), nameof(Character.OnDeath))]

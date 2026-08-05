@@ -26,7 +26,9 @@ public static class Utils
 		return IsSocketableItem(item.m_itemData);
 	}
 
-	public static bool IsSocketableItem(ItemDrop.ItemData item)
+	public static bool IsSocketableItem(ItemDrop.ItemData item) => IsContainerItem(item) && item.Data().Get<Socketable>() is not Box or Frame;
+
+	public static bool IsContainerItem(ItemDrop.ItemData item)
 	{
 		if (Jewelcrafting.socketBlacklist.Value.Replace(" ", "").Split(',').Contains(item.m_dropPrefab.name) || Jewelcrafting.PrefabBlacklist.Contains(item.m_dropPrefab.name))
 		{

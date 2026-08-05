@@ -467,7 +467,7 @@ public static class GemStones
         {
             if (AddSocketAddingTab.TabOpen())
             {
-                HashSet<ItemDrop.ItemData> socketItems = new(Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i) || i.Data().Get<ItemContainer>() is { boxSealed: false }));
+                HashSet<ItemDrop.ItemData> socketItems = new(Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsContainerItem(i) && i.Data().Get<ItemContainer>() is { boxSealed: false }));
 
                 void UpdateRecipeSocketingCosts(Recipe recipe, ItemDrop.ItemData itemData)
                 {
@@ -1500,6 +1500,10 @@ public static class GemStones
         {
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_corrupted_reroll_attempt");
         }
+        else if ((container.m_shared.m_name == MiscSetup.finalityOrbName || container.m_shared.m_name == MiscSetup.whimsicalityOrbName) && !Utils.IsSocketableItem(item))
+        {
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_reroll_no_item");
+        }
         else if ((container.m_shared.m_name == MiscSetup.finalityOrbName || container.m_shared.m_name == MiscSetup.whimsicalityOrbName) && item.Data()["Corrupted Item"] is not null)
         {
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_corrupted_reroll_attempt");
@@ -1515,6 +1519,10 @@ public static class GemStones
         else if (container.m_shared.m_name == MiscSetup.prophecyOrbName && !Utils.IsSocketableItem(item))
         {
             Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_prophecy_not_socketable");
+        }
+        else if (container.m_shared.m_name == MiscSetup.misfortuneOrbName && !Utils.IsSocketableItem(item))
+        {
+            Player.m_localPlayer.Message(MessageHud.MessageType.Center, "$jc_orb_of_misfortune_not_socketable");
         }
         else if (container.m_shared.m_name == MiscSetup.misfortuneOrbName && item.Data()["Blessed Item"] is not null)
         {
@@ -1820,7 +1828,7 @@ public static class GemStones
     private static bool ItemEligibleForSocketing(ItemDrop.ItemData item)
     {
         Box? box = AddFakeSocketsContainer.openEquipment?.Get<Box>();
-        return (socketableGemStones.Contains(item.m_shared.m_name) && box is not { progress: >= 100 } && AddFakeSocketsContainer.openInventory?.HaveItem(item.m_shared.m_name) == false) || (box?.Item.m_shared.m_name == item.m_shared.m_name && Jewelcrafting.boxSelfMergeChances.TryGetValue(item.m_shared.m_name, out ConfigEntry<int> selfMergeChance) && selfMergeChance.Value > 0 && item != box.Item && item.Data().Get<Box>() is { progress: 0, boxSealed: false });
+        return (socketableGemStones.Contains(item.m_shared.m_name) && box is not { progress: >= 100 } && AddFakeSocketsContainer.openInventory?.HaveItem(item.m_shared.m_name) == false) || (box?.Item.m_shared.m_name == item.m_shared.m_name && Jewelcrafting.boxSelfMergeChances.TryGetValue(item.m_shared.m_name, out ConfigEntry<int> selfMergeChance) && selfMergeChance.Value > 0 && item != box.Item && item.Data().Get<Box>() is { progress: 0, boxSealed: false } itemBox && itemBox.socketedGems.All(g => g.Name == ""));
     }
 
     private static bool CanBeInsertedInItemBag(ItemDrop.ItemData bag, ItemDrop.ItemData item)
