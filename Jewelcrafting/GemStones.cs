@@ -467,7 +467,7 @@ public static class GemStones
         {
             if (AddSocketAddingTab.TabOpen())
             {
-                HashSet<ItemDrop.ItemData> socketItems = new(Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsContainerItem(i) && i.Data().Get<ItemContainer>() is { boxSealed: false }));
+                HashSet<ItemDrop.ItemData> socketItems = new(Player.m_localPlayer.GetInventory().m_inventory.Where(i => Utils.IsSocketableItem(i) || i.Data().Get<ItemContainer>() is { boxSealed: false }));
 
                 void UpdateRecipeSocketingCosts(Recipe recipe, ItemDrop.ItemData itemData)
                 {

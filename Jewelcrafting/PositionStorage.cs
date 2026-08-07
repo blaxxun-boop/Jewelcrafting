@@ -32,7 +32,7 @@ public static class TagItemsWithPosition
 		if (__result is not null)
 		{
 			__result.m_dropPrefab ??= ObjectDB.instance.GetItemPrefab(name);
-			if (Utils.IsContainerItem(__result))
+			if (Utils.IsSocketableItem(__result))
 			{
 				__result.Data().GetOrCreate<PositionStorage>().Position = Player.m_localPlayer.transform.position;
 			}
