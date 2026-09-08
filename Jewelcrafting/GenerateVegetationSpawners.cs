@@ -19,13 +19,14 @@ public static class GenerateVegetationSpawners
 	{
 		ZoneSystem zoneSystem = ZoneSystem.instance;
 		int spawnerPrefab = DestructibleSetup.gemSpawner.name.GetStableHashCode();
-		List<Vector2i> zones = new(zoneSystem.m_generatedZones);
+		List<Vector2s> zones = new(zoneSystem.m_generatedZones);
 		ZNet.instance.RemotePrint(peer, $"Starting to generate destructible gems for {zones.Count} zones. This can take a long time.");
 		int zoneNum = 0;
-		foreach (Vector2i zone in zones)
+		foreach (Vector2s zone in zones)
 		{
 			List<ZDO> zdos = new();
-			ZDOMan.instance.FindObjects(zone, zdos);
+			var zdoManInstance = ZDOMan.instance;
+			ZDOMan.instance.FindObjects(zone, zdos, zdoManInstance.m_visitedSectorIndices);
 
 			if (zdos.All(z => z.m_prefab != spawnerPrefab))
 			{

@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "2.0.5";
+	private const string ModVersion = "2.0.6";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -173,7 +173,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> gemCaveLocationIcon = null!;
 	public static ConfigEntry<Toggle> daringAffectsBosses = null!;
 	public static ConfigEntry<Toggle> socketingTab = null!;
-	
+
 	public static readonly Dictionary<int, ConfigEntry<int>> socketAddingChances = new();
 	public static readonly Dictionary<GameObject, ConfigEntry<float>> gemDropChances = new();
 	public static readonly CustomSyncedValue<List<string>> socketEffectDefinitions = new(configSync, "socket effects", new List<string>());
