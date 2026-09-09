@@ -56,15 +56,16 @@ public static class BossSpawn
 						int remainingTime = int.MaxValue - 1;
 						while (oldRemainingTime > remainingTime || oldRemainingTime > 50)
 						{
-							List<Vector2i> locationsToRemove = currentBossPositions.Where(p => p.y < 1 + (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.GetZone).ToList();
+							List<Vector2s> locationsToRemove = currentBossPositions.Where(p => p.y < 1 + (int)ZNet.instance.GetTimeSeconds()).Select(ZoneSystem.GetZone).ToList();
 
 							if (locationsToRemove.Count > 0)
 							{
-								foreach (Vector2i location in locationsToRemove)
+								foreach (Vector2s location in locationsToRemove)
 								{
 									List<ZDO> zdos = new();
 									ZoneSystem.instance.m_locationInstances.Remove(location);
-									ZDOMan.instance.FindObjects(location, zdos);
+									var zdoManInstance = ZDOMan.instance;
+									zdoManInstance.FindObjects(location, zdos, zdoManInstance.m_visitedSectorIndices);
 
 									double currentTime = ZNet.instance.GetTimeSeconds() + 5;
 									foreach (ZDO zdo in zdos)
@@ -130,12 +131,12 @@ public static class BossSpawn
 		{
 			if (__instance.IsServer())
 			{
-				peer.m_rpc.Register<int, int>("Jewelcrafting BossDied", (_, sectorX, sectorY) => HandleBossDeath(new Vector2i(sectorX, sectorY)));
+				peer.m_rpc.Register<int, int>("Jewelcrafting BossDied", (_, sectorX, sectorY) => HandleBossDeath(new Vector2s(sectorX, sectorY)));
 			}
 		}
 	}
 
-	private static void HandleBossDeath(Vector2i sector)
+	private static void HandleBossDeath(Vector2s sector)
 	{
 		if (ZoneSystem.instance.m_locationInstances.TryGetValue(sector, out ZoneSystem.LocationInstance location))
 		{
@@ -159,7 +160,7 @@ public static class BossSpawn
 			if (__instance.m_nview.GetZDO().GetLong("Jewelcrafting World Boss") > 0)
 			{
 				__instance.m_nview.GetZDO().GetVec3("Jewelcrafting World Boss spawn position", out Vector3 spawn_pos);
-				Vector2i sector = ZoneSystem.GetZone(spawn_pos);
+				Vector2s sector = ZoneSystem.GetZone(spawn_pos);
 				if (ZNet.instance.IsServer())
 				{
 					HandleBossDeath(sector);
@@ -260,7 +261,7 @@ public static class BossSpawn
 			long despawnTime = ZNet.instance.GetTime().AddMinutes(Jewelcrafting.bossTimeLimit.Value).Ticks / 10000000L;
 
 			string boss;
-			
+
 			if (Jewelcrafting.eventBossSpawnChance.Value > 0 && Random.value < Jewelcrafting.eventBossSpawnChance.Value / 100f)
 			{
 				boss = "JC_Crystal_Reapers_Event";
@@ -323,7 +324,7 @@ public static class BossSpawn
 			}
 
 			int baseValue = 0;
-			Vector2i sector = ZoneSystem.GetZone(point);
+			Vector2s sector = ZoneSystem.GetZone(point);
 
 			if (ZoneSystem.instance.m_locationInstances.ContainsKey(sector))
 			{
@@ -350,7 +351,8 @@ public static class BossSpawn
 				for (int x = -1; x <= 1; ++x)
 				{
 					zdos.Clear();
-					ZDOMan.instance.FindObjects(sector + new Vector2i(x, y), zdos);
+					var zdoManInstance = ZDOMan.instance;
+					zdoManInstance.FindObjects(sector + new Vector2s(x, y), zdos, zdoManInstance.m_visitedSectorIndices);
 					foreach (ZDO zdo in zdos)
 					{
 						if (playerBasePieces.Contains(zdo.m_prefab) && global::Utils.DistanceXZ(zdo.m_position, point) < Jewelcrafting.bossSpawnBaseDistance.Value)
