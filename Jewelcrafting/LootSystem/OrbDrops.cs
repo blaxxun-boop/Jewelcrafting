@@ -49,7 +49,7 @@ public static class OrbDrops
 		}
 	}
 
-	[HarmonyPatch(typeof(Container), nameof(Container.RPC_OpenRespons))]
+	[HarmonyPatch(typeof(Container), nameof(Container.RPC_OpenResponse))]
 	private static class DropDivinityOrb
 	{
 		private static void Prefix(Container __instance, bool granted)
@@ -80,7 +80,7 @@ public static class OrbDrops
 		{
 			if (Utils.UsesPowerRanges())
 			{
-				CharacterDrop.DropItems([new KeyValuePair<GameObject, int>(MiscSetup.whimsicalityOrbPrefab, Jewelcrafting.whimsicalOrbDroprate.Value)], netView.GetZDO().GetPosition(), 10);
+				CharacterDrop.DropItems([new KeyValuePair<GameObject, int>(MiscSetup.whimsicalityOrbPrefab, Jewelcrafting.whimsicalOrbDroprate.Value)], netView.GetZDO().GetPosition(), 10, false);
 			}
 			return netView;
 		}

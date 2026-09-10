@@ -16,7 +16,7 @@ public static class MagicalBargain
 		[InverseMultiplicativePercentagePower] public float Power;
 	}
 
-	[HarmonyPatch(typeof(Attack), nameof(Attack.GetAttackEitr))]
+	[HarmonyPatch(typeof(Attack), nameof(Attack.GetAttackEitr), [])]
 	private static class ReduceEitrUsage
 	{
 		private static void Postfix(Attack __instance, ref float __result)

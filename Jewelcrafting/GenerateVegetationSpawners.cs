@@ -25,8 +25,7 @@ public static class GenerateVegetationSpawners
 		foreach (Vector2s zone in zones)
 		{
 			List<ZDO> zdos = new();
-			var zdoManInstance = ZDOMan.instance;
-			ZDOMan.instance.FindObjects(zone, zdos, zdoManInstance.m_visitedSectorIndices);
+			ZDOMan.instance.FindObjects(zone, zdos, ZDOMan.instance.m_visitedSectorIndices);
 
 			if (zdos.All(z => z.m_prefab != spawnerPrefab))
 			{

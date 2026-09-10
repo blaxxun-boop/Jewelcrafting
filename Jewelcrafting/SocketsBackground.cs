@@ -75,6 +75,11 @@ public static class SocketsBackground
 				equiped.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
 				equiped.name = "equiped";
 				equiped.transform.SetAsFirstSibling();
+				
+				if (root.GetComponent<InventoryElement>() is { } element)
+				{
+					element.m_equiped = equiped.GetComponent<Image>();
+				}
 			}
 		}
 		else if (root.transform.Find("equiped_jc_disabled")?.gameObject is { } originalEquiped)
@@ -88,6 +93,11 @@ public static class SocketsBackground
 			else
 			{
 				originalEquiped.SetActive(true);
+			}
+
+			if (root.GetComponent<InventoryElement>() is { } element)
+			{
+				element.m_equiped = originalEquiped.GetComponent<Image>();
 			}
 		}
 	}
@@ -128,7 +138,7 @@ public static class SocketsBackground
 		}
 	}
 
-	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.Awake))]
+	[HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.OnEnable))]
 	private static class ReplaceBackgroundInventory
 	{
 		private static void Prefix(InventoryGrid __instance) => ApplyToElementPrefab(ref __instance.m_elementPrefab, ref gridElementPrefab, false);
@@ -170,12 +180,12 @@ public static class SocketsBackground
 		{
 			foreach (ItemDrop.ItemData item in __instance.m_inventory.m_inventory)
 			{
-				UpdateElement(item, __instance.GetElement(item.m_gridPos.x, item.m_gridPos.y, __instance.m_inventory.GetWidth()).m_go);
+				UpdateElement(item, __instance.GetElement(item.m_gridPos.x, item.m_gridPos.y, __instance.m_inventory.GetWidth()).gameObject);
 			}
 
-			foreach (InventoryGrid.Element element in __instance.m_elements.Where(element => !element.m_used))
+			foreach (InventoryElement element in __instance.m_elements.Where(element => !element.m_used))
 			{
-				if (element.m_go?.transform.Find(background.name) is { } backgroundTransform)
+				if (element.gameObject?.transform.Find(background.name) is { } backgroundTransform)
 				{
 					backgroundTransform.gameObject.SetActive(false);
 				}

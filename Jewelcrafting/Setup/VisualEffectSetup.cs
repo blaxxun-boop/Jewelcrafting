@@ -14,6 +14,7 @@ public static class VisualEffectSetup
 	public static readonly Dictionary<VisualEffectCondition, GameObject> yellowGemEffects = new();
 	public static readonly Dictionary<VisualEffectCondition, GameObject> purpleGemEffects = new();
 	public static readonly Dictionary<VisualEffectCondition, GameObject> orangeGemEffects = new();
+	public static readonly Dictionary<VisualEffectCondition, GameObject> whiteGemEffects = new();
 	public static readonly Dictionary<VisualEffectCondition, GameObject> cyanGemEffects = new();
 
 	public static readonly Dictionary<GemType, GameObject> spearProjectiles = new();

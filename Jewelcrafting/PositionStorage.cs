@@ -24,7 +24,7 @@ public class PositionStorage : ItemData
 	}
 }
 
-[HarmonyPatch(typeof(Inventory), nameof(Inventory.AddItem), typeof(string), typeof(int), typeof(int), typeof(int), typeof(long), typeof(string), typeof(bool))]
+[HarmonyPatch(typeof(Inventory), nameof(Inventory.AddItem), typeof(string), typeof(int), typeof(int), typeof(int), typeof(long), typeof(string), typeof(bool), typeof(bool))]
 public static class TagItemsWithPosition
 {
 	private static void Postfix(string name, ItemDrop.ItemData? __result)

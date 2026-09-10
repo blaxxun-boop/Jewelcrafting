@@ -48,7 +48,7 @@ public class GachaChest : Container, Hoverable
 				{
 					if (random < prize.Chance && GachaDef.getItem(prize.Item) is { } item)
 					{
-						ItemDrop.ItemData itemData = m_inventory.AddItem(item.name, 1, 1, 0, 0, "");
+						ItemDrop.ItemData itemData = m_inventory.AddItem(item.name, 1, 1, 0, 0, "", false);
 						if (prize.Sockets.Count > 0)
 						{
 							List<SocketItem> sockets = itemData.Data().GetOrCreate<Sockets>().socketedGems;

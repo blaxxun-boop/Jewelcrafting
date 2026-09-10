@@ -166,6 +166,7 @@ public class CrystalCaseInteract : MonoBehaviour, Interactable, Hoverable
 	public string GetHoverText() => Localization.instance.Localize("[<color=yellow><b>$KEY_Use</b></color>] $jc_crystal_case_hovertext\n[<color=yellow><b>$KEY_AltPlace + $KEY_Use</b></color>] $jc_crystal_case_hovertext_alt\n[<color=yellow><b>1-8</b></color>] $jc_crystal_case_hovertext_item");
 
 	public string GetHoverName() => Localization.instance.Localize("$jc_crystal_case_hovername");
+	public float GetHoverOffset() => 0;
 
 	[HarmonyPatch]
 	private class DisablePlayerInputInCaseInterface

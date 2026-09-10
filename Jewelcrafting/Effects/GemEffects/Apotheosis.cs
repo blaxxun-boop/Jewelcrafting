@@ -59,7 +59,7 @@ public static class Apotheosis
 		// ReSharper disable once IteratorNeverReturns
 	}
 
-	[HarmonyPatch(typeof(Attack), nameof(Attack.GetAttackEitr))]
+	[HarmonyPatch(typeof(Attack), nameof(Attack.GetAttackEitr), [])]
 	private class ReduceEitrUsage
 	{
 		private static void Postfix(Attack __instance, ref float __result)

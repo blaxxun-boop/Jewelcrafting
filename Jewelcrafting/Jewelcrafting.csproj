@@ -9,7 +9,7 @@
         <AppDesignerFolder>Properties</AppDesignerFolder>
         <RootNamespace>Jewelcrafting</RootNamespace>
         <AssemblyName>Jewelcrafting</AssemblyName>
-        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
         <FileAlignment>512</FileAlignment>
         <LangVersion>default</LangVersion>
         <Nullable>enable</Nullable>
@@ -273,6 +273,10 @@
         <Compile Include="Effects\GemEffects\Vitality.cs"/>
         <Compile Include="Effects\GemEffects\Windwalk.cs"/>
         <Compile Include="Effects\GemEffects\Wishbone.cs"/>
+        <Compile Include="Effects\GemEffects\IceSkin.cs" />
+        <Compile Include="Effects\GemEffects\LoyalDevotion.cs" />
+        <Compile Include="Effects\GemEffects\SnowGoggles.cs" />
+        <Compile Include="Effects\GemEffects\SnowPiercer.cs" />
         <Compile Include="Effects\GemEffects\Groups\ArbalistMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\ArcheryMentor.cs"/>
         <Compile Include="Effects\GemEffects\Groups\Cowardice.cs"/>

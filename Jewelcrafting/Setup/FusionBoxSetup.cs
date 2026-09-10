@@ -193,12 +193,12 @@ public static class FusionBoxSetup
 			__state = __instance.m_visualItem;
 		}
 
-		private static void Postfix(ItemStand __instance, string itemName, GameObject __state)
+		private static void Postfix(ItemStand __instance, int itemHash, GameObject __state)
 		{
 			if (__instance.m_visualItem != __state && !__instance.name.StartsWith("itemstandh", StringComparison.Ordinal))
 			{
 				Transform rotate = __instance.m_visualItem.transform.parent;
-				if (Boxes.Any(b => b.name == itemName))
+				if (Boxes.Any(b => b.name.GetStableHashCode() == itemHash))
 				{
 					rotation.Remove(__instance);
 					rotation.Add(__instance, new Q { q = rotate.rotation });

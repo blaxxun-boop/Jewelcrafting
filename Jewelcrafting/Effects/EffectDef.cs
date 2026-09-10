@@ -115,6 +115,7 @@ public enum Effect
 	Fierydoom,
 	Apotheosis,
 	Lizardfriendship,
+	Loyaldevotion,
 	Togetherforever,
 	Neveralone,
 	Equilibrium,
@@ -138,6 +139,9 @@ public enum Effect
 	Raging,
 	Protectivetrinket,
 	Resentfuladrenaline,
+	Snowpiercer,
+	Snowgoggles,
+	Iceskin,
 }
 
 public enum Uniqueness

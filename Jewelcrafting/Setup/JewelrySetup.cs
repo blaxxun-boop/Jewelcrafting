@@ -193,7 +193,7 @@ public static class JewelrySetup
 		}
 	}
 
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(bool))]
 	private static class DisplayUtilityArmor
 	{
 		private static void Postfix(ItemDrop.ItemData item, int qualityLevel, float worldLevel, ref string __result)
@@ -207,7 +207,7 @@ public static class JewelrySetup
 
 	private static int OrangeNecklaceQuality() => Mathf.RoundToInt(Player.m_localPlayer.GetSkillFactor("Jewelcrafting") * 100); 
 	
-	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
+	[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int), typeof(bool))]
 	private static class SetOrangeNecklaceQualityInCraftMenu
 	{
 		private static void Prefix(ItemDrop.ItemData item, ref int qualityLevel)
@@ -222,7 +222,7 @@ public static class JewelrySetup
 	[HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.DoCrafting))]
 	private static class UpdateQualityAfterOrangeNecklaceCraft
 	{
-		private static readonly MethodInfo AddItem = AccessTools.DeclaredMethod(typeof(Inventory), nameof(Inventory.AddItem), new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(long), typeof(string), typeof(Vector2i), typeof(bool) });
+		private static readonly MethodInfo AddItem = AccessTools.DeclaredMethod(typeof(Inventory), nameof(Inventory.AddItem), new[] { typeof(string), typeof(int), typeof(int), typeof(int), typeof(long), typeof(string), typeof(Vector2i), typeof(bool), typeof(bool), typeof(bool) });
 
 		private static int SetQuality(int quality) => InventoryGui.instance.m_craftRecipe.m_item.gameObject == orangeNecklace.gameObject ? OrangeNecklaceQuality() : quality;
 		

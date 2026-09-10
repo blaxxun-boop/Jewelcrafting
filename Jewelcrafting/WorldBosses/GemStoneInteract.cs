@@ -173,4 +173,5 @@ public class GemStoneInteract : MonoBehaviour, Interactable, Hoverable
 	public string GetHoverText() => Localization.instance.Localize("$jc_gacha_gemstone" + (GachaDef.ActivePrizes() is null ? "" : "\n[<color=yellow><b>$KEY_Use</b></color>] $raven_interact"));
 
 	public string GetHoverName() => Localization.instance.Localize("$jc_gacha_gemstone");
+	public float GetHoverOffset() => 0;
 }

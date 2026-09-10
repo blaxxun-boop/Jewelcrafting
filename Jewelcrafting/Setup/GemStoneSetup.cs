@@ -15,6 +15,7 @@ public enum GemType
 	Red,
 	Yellow,
 	Orange,
+	White,
 	Cyan,
 	Eikthyr,
 	Elder,
@@ -23,6 +24,7 @@ public enum GemType
 	Yagluth,
 	Queen,
 	Fader,
+	King,
 	Group,
 	Wisplight,
 	Wishbone,
@@ -64,6 +66,7 @@ public static class GemStoneSetup
 		{ GemType.Green, new MaterialColor { Color = Color.green } },
 		{ GemType.Purple, new MaterialColor { Color = Color.magenta } },
 		{ GemType.Orange, new MaterialColor { Color = new Color(1, 0.6f, 0) } },
+		{ GemType.White, new MaterialColor { Color = new Color(1, 1, 1) } },
 	};
 
 	private static readonly Dictionary<GemType, string> materials = new()
@@ -74,6 +77,7 @@ public static class GemStoneSetup
 		{ GemType.Orange, "StoneOrange" },
 		{ GemType.Purple, "StonePurple" },
 		{ GemType.Red, "StoneRed" },
+		{ GemType.White, "StoneWhite" },
 		{ GemType.Yellow, "StoneYellow" },
 	};
 
@@ -285,6 +289,8 @@ public static class GemStoneSetup
 		GemStones.bossToGem.Add("SeekerQueen", gemStone.Prefab);
 		gemStone = AddGem("Boss_Crystal_8", GemType.Fader);
 		GemStones.bossToGem.Add("Fader", gemStone.Prefab);
+		gemStone = AddGem("Boss_Crystal_9", GemType.King);
+		GemStones.bossToGem.Add("FrozenKing_p3", gemStone.Prefab);
 		AddGem("JC_Corrupted_Gem", GemType.Corrupted);
 
 		if (Groups.API.IsLoaded())

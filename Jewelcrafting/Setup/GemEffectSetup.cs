@@ -24,6 +24,8 @@ public static class GemEffectSetup
 	public static GameObject fieryDoomExplosion = null!;
 	public static SE_Stats apotheosis = null!;
 	public static SE_Stats lizardFriendship = null!;
+	public static SE_Stats loyalty = null!;
+	public static GameObject loyaltyEffect = null!;
 	public static SE_Stats awareness = null!;
 	public static GameObject heardIcon = null!;
 	public static GameObject attackedIcon = null!;
@@ -45,6 +47,7 @@ public static class GemEffectSetup
 	public static SE_Stats apotheosisStart = null!;
 	public static SE_Stats friendshipStart = null!;
 	public static SE_Stats lizardFriendshipStart = null!;
+	public static SE_Stats loyaltyStart = null!;
 	public static SE_Stats friendship = null!;
 	public static SE_Stats loneliness = null!;
 	public static GameObject friendshipTether = null!;
@@ -82,6 +85,8 @@ public static class GemEffectSetup
 		icyProtection = assets.LoadAsset<SE_Stats>("SE_Boss_4");
 		fieryDoom = assets.LoadAsset<SE_Stats>("SE_Boss_5");
 		fieryDoomExplosion = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_3");
+		loyaltyEffect = PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_11");
+		loyalty = Utils.ConvertStatusEffect<LoyalDevotion.LoyalityEffect>(assets.LoadAsset<SE_Stats>("SE_Boss_9"));
 		awareness = assets.LoadAsset<SE_Stats>("JC_SE_Necklace_Red");
 		heardIcon = assets.LoadAsset<GameObject>("JC_Eyeball_Obj");
 		attackedIcon = assets.LoadAsset<GameObject>("JC_Alert_Obj");
@@ -102,6 +107,7 @@ public static class GemEffectSetup
 		apotheosisStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Black");
 		friendshipStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Purple");
 		lizardFriendshipStart = assets.LoadAsset<SE_Stats>("SE_Boss_6");
+		loyaltyStart = assets.LoadAsset<SE_Stats>("SE_VFX_Start_Buff_White");
 		friendship = Utils.ConvertStatusEffect<TogetherForever.TogetherForeverEffect>(assets.LoadAsset<SE_Stats>("SE_Friendship_Group"));
 		loneliness = Utils.ConvertStatusEffect<TogetherForever.LonelinessEffect>(assets.LoadAsset<SE_Stats>("SE_Loneliness_Group"));
 		friendshipTether = assets.LoadAsset<GameObject>("VFX_FriendLine_Render");

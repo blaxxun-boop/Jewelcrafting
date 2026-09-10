@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "2.0.6";
+	private const string ModVersion = "2.0.7";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -919,6 +919,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		PrefabManager.RegisterPrefab(assets, "JC_Golem_AoE");
 		PrefabManager.RegisterPrefab(assets, "JC_Golem_Groundslam");
 		PrefabManager.RegisterPrefab(assets, "JC_Golem_Punch");
+		PrefabManager.RegisterPrefab(assets, "JC_Buff_FX_Start_White");
 
 		Localizer.AddPlaceholder("jc_ring_red_description", "regen", warmthStaminaRegen);
 		Localizer.AddPlaceholder("jc_se_ring_red_description", "regen", warmthStaminaRegen);

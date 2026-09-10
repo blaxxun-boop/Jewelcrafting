@@ -97,7 +97,7 @@ public class Attunement : SE_Stats
 	[HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UpdateEquipmentStatusEffects))]
 	private static class FixupItemLevelForEquipmentStatusEffects
 	{
-		private static readonly MethodInfo AddStatusEffect = AccessTools.DeclaredMethod(typeof(SEMan), nameof(SEMan.AddStatusEffect), new []{ typeof(StatusEffect), typeof(bool), typeof(int), typeof(float) });
+		private static readonly MethodInfo AddStatusEffect = AccessTools.DeclaredMethod(typeof(SEMan), nameof(SEMan.AddStatusEffect), new []{ typeof(StatusEffect), typeof(bool), typeof(int), typeof(float), typeof(short) });
 
 		private static void BackupItem(ItemDrop.ItemData item)
 		{
