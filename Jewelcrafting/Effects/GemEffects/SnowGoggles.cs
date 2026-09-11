@@ -43,9 +43,12 @@ public static class SnowGoggles
 			{
 				foreach (GameObject psystems in allPsystems)
 				{
-					foreach (ParticleSystem psystem in psystems.GetComponentsInChildren<ParticleSystem>())
+					if (psystems)
 					{
-						psystem.emissionRate *= multiplier;
+						foreach (ParticleSystem psystem in psystems.GetComponentsInChildren<ParticleSystem>())
+						{
+							psystem.emissionRate *= multiplier;
+						}
 					}
 				}
 			}
