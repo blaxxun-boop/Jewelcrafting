@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ public static class LootAdder
 			{
 				foreach (Func<Character, IEnumerable<CharacterDrop.Drop>> loot in Loot)
 				{
-					drops.m_drops.AddRange(loot(__instance));
+					drops.m_drops.AddRange(loot(__instance).Where(drop => drop.m_chance > 0));
 				}
 			}
 		}
