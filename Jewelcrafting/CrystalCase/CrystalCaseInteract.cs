@@ -107,7 +107,7 @@ public class CrystalCaseInteract : MonoBehaviour, Interactable, Hoverable
 
 	public Inventory LoadInventory()
 	{
-		Inventory inventory = new("Crystal Case", Player.m_localPlayer?.GetInventory().m_bkg, 10000, 10000);
+		Inventory inventory = new("Crystal Case", Player.m_localPlayer?.GetInventory().m_bkg, 256, 256);
 		if (GetComponent<ZNetView>().GetZDO().GetByteArray("JC Crystal Case Inventory") is { } content)
 		{
 			inventory.Load(new ZPackage(content));

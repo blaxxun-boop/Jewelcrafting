@@ -8,6 +8,7 @@ equipment:
     - plains
     - mistlands
     - ash lands
+    - deep north
   meadows:
     low health: 10
     high health: 50
@@ -75,10 +76,18 @@ equipment:
     resource map:
       - flametal
       - asksvin hide
+  deep north:
+    low health: 100
+    high health: 1000
+    resource map:
+      - bloodgold
+      - nornathread
   blacklist:
     - jewelers bag
     - butcher knife
     - deer
+    - baby seal
+    - seal
 
 gem drops:
   meadows:
@@ -112,6 +121,9 @@ gem drops:
     low health: 60
     high health: 150
   ash lands:
-    low health: 40
-    high health: 120
+    low health: 120
+    high health: 1200
+  deep north:
+    low health: 100
+    high health: 1000
   blacklist: []

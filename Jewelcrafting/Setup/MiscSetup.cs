@@ -32,7 +32,8 @@ public static class MiscSetup
 	public static string prophecyOrbName = null!;
 	public static GameObject misfortuneOrbPrefab = null!;
 	public static string misfortuneOrbName = null!;
-	public static readonly List<Recipe> vanillaGemCraftingRecipes = new();
+	public static readonly List<Recipe> vanillaGemCraftingRecipesAshlands = new();
+	public static readonly List<Recipe> vanillaGemCraftingRecipesDeepNorth = new();
 
 	public static void initializeMisc(AssetBundle assets)
 	{
@@ -287,14 +288,14 @@ public static class MiscSetup
 				return;
 			}
 			
-			vanillaGemCraftingRecipes.Clear();
+			vanillaGemCraftingRecipesAshlands.Clear();
 			
 			Recipe recipe = ScriptableObject.CreateInstance<Recipe>();
 			recipe.name = "Emerald_To_Jade";
 			recipe.m_amount = 1;
 			recipe.m_resources = new[]
 			{
-				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Green_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = Jewelcrafting.vanillaGemCraftingAmount.Value, m_resItem = __instance.GetItemPrefab("Perfect_Green_Socket").GetComponent<ItemDrop>() },
 				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
 			};
 			recipe.m_item = __instance.GetItemPrefab("GemstoneGreen").GetComponent<ItemDrop>();
@@ -303,14 +304,14 @@ public static class MiscSetup
 			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
 			
 			__instance.m_recipes.Add(recipe);
-			vanillaGemCraftingRecipes.Add(recipe);
+			vanillaGemCraftingRecipesAshlands.Add(recipe);
 			
 			recipe = ScriptableObject.CreateInstance<Recipe>();
 			recipe.name = "Ruby_To_Bloodstone";
 			recipe.m_amount = 1;
 			recipe.m_resources = new[]
 			{
-				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Red_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = Jewelcrafting.vanillaGemCraftingAmount.Value, m_resItem = __instance.GetItemPrefab("Perfect_Red_Socket").GetComponent<ItemDrop>() },
 				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
 			};
 			recipe.m_item = __instance.GetItemPrefab("GemstoneRed").GetComponent<ItemDrop>();
@@ -319,14 +320,14 @@ public static class MiscSetup
 			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
 			
 			__instance.m_recipes.Add(recipe);
-			vanillaGemCraftingRecipes.Add(recipe);
+			vanillaGemCraftingRecipesAshlands.Add(recipe);
 			
 			recipe = ScriptableObject.CreateInstance<Recipe>();
 			recipe.name = "Sapphire_To_Iolite";
 			recipe.m_amount = 1;
 			recipe.m_resources = new[]
 			{
-				new Piece.Requirement { m_amount = 3, m_resItem = __instance.GetItemPrefab("Perfect_Blue_Socket").GetComponent<ItemDrop>() },
+				new Piece.Requirement { m_amount = Jewelcrafting.vanillaGemCraftingAmount.Value, m_resItem = __instance.GetItemPrefab("Perfect_Blue_Socket").GetComponent<ItemDrop>() },
 				new Piece.Requirement { m_amount = 10, m_resItem = __instance.GetItemPrefab("Eitr").GetComponent<ItemDrop>() },
 			};
 			recipe.m_item = __instance.GetItemPrefab("GemstoneBlue").GetComponent<ItemDrop>();
@@ -335,7 +336,7 @@ public static class MiscSetup
 			recipe.m_enabled = Jewelcrafting.vanillaGemCrafting.Value == Jewelcrafting.Toggle.On;
 			
 			__instance.m_recipes.Add(recipe);
-			vanillaGemCraftingRecipes.Add(recipe);
+			vanillaGemCraftingRecipesAshlands.Add(recipe);
 		}
 	}
 }

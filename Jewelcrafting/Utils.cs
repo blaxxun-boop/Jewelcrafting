@@ -28,7 +28,7 @@ public static class Utils
 
 	public static bool IsSocketableItem(ItemDrop.ItemData item)
 	{
-		if (Jewelcrafting.socketBlacklist.Value.Replace(" ", "").Split(',').Contains(item.m_dropPrefab.name) || Jewelcrafting.PrefabBlacklist.Contains(item.m_dropPrefab.name))
+		if (Jewelcrafting.socketBlacklist.Value.Replace(" ", "").Split(',').Contains(item.m_dropPrefab.name) || Jewelcrafting.PrefabBlacklist.Contains(item.m_dropPrefab.name) || item.m_shared.m_name == MiscSetup.gemBagName)
 		{
 			return false;
 		}

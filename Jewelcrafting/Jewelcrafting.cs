@@ -31,7 +31,7 @@ namespace Jewelcrafting;
 public partial class Jewelcrafting : BaseUnityPlugin
 {
 	public const string ModName = "Jewelcrafting";
-	private const string ModVersion = "2.0.10";
+	private const string ModVersion = "2.0.11";
 	private const string ModGUID = "org.bepinex.plugins.jewelcrafting";
 
 	public static readonly ConfigSync configSync = new(ModName) { DisplayName = ModName, CurrentVersion = ModVersion, MinimumRequiredVersion = ModVersion };
@@ -164,6 +164,7 @@ public partial class Jewelcrafting : BaseUnityPlugin
 	public static ConfigEntry<Toggle> randomPowerRanges = null!;
 	public static ConfigEntry<float> gemPowerMultiplier = null!;
 	public static ConfigEntry<Toggle> vanillaGemCrafting = null!;
+	public static ConfigEntry<int> vanillaGemCraftingAmount = null!;
 	public static ConfigEntry<float> bigGemstoneFormationChance = null!;
 	public static ConfigEntry<int> effectPowerStandardDeviation = null!;
 	public static ConfigEntry<Toggle> gemReturnLockedGems = null!;
@@ -702,11 +703,20 @@ public partial class Jewelcrafting : BaseUnityPlugin
 		vanillaGemCrafting = config("7 - Other", "Vanilla Gem Crafting", Toggle.On, new ConfigDescription("If on, the recipes for crafting vanilla gems are enabled.", null, new ConfigurationManagerAttributes { Order = --order }));
 		vanillaGemCrafting.SettingChanged += (_, _) =>
 		{
-			foreach (Recipe recipe in MiscSetup.vanillaGemCraftingRecipes)
+			foreach (Recipe recipe in MiscSetup.vanillaGemCraftingRecipesAshlands)
 			{
 				recipe.m_enabled = vanillaGemCrafting.Value == Toggle.On;
 			}
 		};
+		vanillaGemCraftingAmount = config("7 - Other", "Vanilla Gem Crafting Amount Ashlands", 2, new ConfigDescription("The amount of perfect Jewelcrafting gems required to make one vanilla Ashland gem.", new AcceptableValueRange<int>(1, 10), new ConfigurationManagerAttributes { Order = --order }));
+		vanillaGemCraftingAmount.SettingChanged += (_, _) =>
+		{
+			foreach (Recipe recipe in MiscSetup.vanillaGemCraftingRecipesAshlands)
+			{
+				recipe.m_resources[0].m_amount = vanillaGemCraftingAmount.Value;
+			}
+		};
+		
 		disableUniqueGemsInBase = config("7 - Other", "Unique gems in base", Toggle.On, new ConfigDescription("If off, unique gems cannot trigger while in whatever Valheim considers to be a player base.", null, new ConfigurationManagerAttributes { Order = --order }), false);
 		glidingFallDamagePrevention = config("7 - Other", "Gliding Status Fall Damage Prevention", Toggle.On, new ConfigDescription("If on, the gliding status prevents fall damage. If off, only actually gliding prevents fall damage.", null, new ConfigurationManagerAttributes { Order = --order }));
 		daringAffectsBosses = config("7 - Other", "Daring Affects Bosses", Toggle.On, new ConfigDescription("If on, the Daring gem effect can increase the level of bosses as well.", null, new ConfigurationManagerAttributes { Order = --order }));

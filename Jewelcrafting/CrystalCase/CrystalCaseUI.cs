@@ -154,7 +154,6 @@ public class CrystalCaseUI : MonoBehaviour
 	private void OnButtonCloseClicked()
 	{
 		// Handle the close button click event
-		Debug.Log("Close button clicked");
 		// Add logic to close the UI
 		CrystalCaseInteract.Hide();
 	}
@@ -162,7 +161,6 @@ public class CrystalCaseUI : MonoBehaviour
 	private void OnStoreAllButtonClicked()
 	{
 		// Handle the store all button click event
-		Debug.Log("Store All button clicked");
 		// Add logic to store all items
 		Interact.StoreGemsInCabinet();
 		Interact.UpdateGemIconElements(this);
@@ -170,25 +168,21 @@ public class CrystalCaseUI : MonoBehaviour
 
 	private void OnSearchInputFieldChanged(string searchText)
 	{
-		Debug.Log($"Search text changed: {searchText}");
 		FilterGemIconElements();
 	}
 
 	private void OnSearchRemoveButtonClicked()
 	{
-		Debug.Log("Search remove button clicked");
 		searchInputField.text = string.Empty;
 	}
 
 	private void OnFilterDropdownChanged(int selectedIndex)
 	{
-		Debug.Log($"Filter dropdown changed: {selectedIndex}");
 		FilterGemIconElements();
 	}
 
 	private void OnSortByDropdownChanged(int selectedIndex)
 	{
-		Debug.Log($"Sort By dropdown changed: {selectedIndex}");
 		SortByCriteria sortBy = (SortByCriteria)selectedIndex;
 		SortGemIconElements(sortBy);
 	}
